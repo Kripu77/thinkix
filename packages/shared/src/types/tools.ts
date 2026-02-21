@@ -5,6 +5,7 @@ export type DrawingTool =
   | 'draw'
   | 'laser'
   | 'eraser'
+  | 'stickyNote'
   | 'rectangle'
   | 'ellipse'
   | 'diamond'
