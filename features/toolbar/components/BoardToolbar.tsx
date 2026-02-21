@@ -7,6 +7,7 @@ import {
   Copy,
   Trash2,
   ChevronDown,
+  Pencil,
 } from 'lucide-react';
 
 import { useBoard } from '@plait-board/react-board';
@@ -45,8 +46,9 @@ import {
 
 export function BoardToolbar() {
   const board = useBoard();
-  const { state, setActiveTool } = useBoardState();
+  const { state, setActiveTool, toggleHanddrawn } = useBoardState();
   const activeTool = state.activeTool;
+  const handdrawn = state.handdrawn;
   const [isShapeMenuOpen, setIsShapeMenuOpen] = useState(false);
 
   if (!board) return null;
@@ -158,6 +160,28 @@ export function BoardToolbar() {
               </Tooltip>
             ))}
           </ToggleGroup>
+
+          <div className="mx-1 h-7 w-px bg-border" />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${BUTTON_CLASS} ${handdrawn ? 'bg-accent text-accent-foreground' : ''}`}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleHanddrawn();
+                }}
+              >
+                <Pencil className="h-6 w-6" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{handdrawn ? 'Disable Handdrawn Mode' : 'Enable Handdrawn Mode'}</p>
+            </TooltipContent>
+          </Tooltip>
 
           <div className="mx-1 h-7 w-px bg-border" />
 
