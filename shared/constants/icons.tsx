@@ -67,3 +67,84 @@ export function StartArrowIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function SolidFillIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+    </svg>
+  );
+}
+
+export function HachureFillIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <line x1="4" y1="20" x2="20" y2="4" />
+      <line x1="8" y1="20" x2="20" y2="8" />
+      <line x1="12" y1="20" x2="20" y2="12" />
+      <line x1="16" y1="20" x2="20" y2="16" />
+      <line x1="4" y1="16" x2="8" y2="20" />
+      <line x1="4" y1="12" x2="12" y2="20" />
+      <line x1="4" y1="8" x2="16" y2="20" />
+    </svg>
+  );
+}
+
+export function ZigzagFillIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M4 8 L6 6 L8 8 L10 6 L12 8 L14 6 L16 8 L18 6 L20 8" />
+      <path d="M4 13 L6 11 L8 13 L10 11 L12 13 L14 11 L16 13 L18 11 L20 13" />
+      <path d="M4 18 L6 16 L8 18 L10 16 L12 18 L14 16 L16 18 L18 16 L20 18" />
+    </svg>
+  );
+}
+
+export function CrossHatchFillIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <line x1="4" y1="20" x2="20" y2="4" />
+      <line x1="8" y1="20" x2="20" y2="8" />
+      <line x1="12" y1="20" x2="20" y2="12" />
+      <line x1="16" y1="20" x2="20" y2="16" />
+      <line x1="4" y1="16" x2="16" y2="4" />
+      <line x1="4" y1="12" x2="12" y2="4" />
+      <line x1="4" y1="8" x2="8" y2="4" />
+      <line x1="4" y1="4" x2="20" y2="20" />
+      <line x1="8" y1="4" x2="20" y2="16" />
+      <line x1="12" y1="4" x2="20" y2="12" />
+      <line x1="16" y1="4" x2="20" y2="8" />
+    </svg>
+  );
+}
+
+export function DotsFillIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="8" cy="8" r="1.5" />
+      <circle cx="12" cy="8" r="1.5" />
+      <circle cx="16" cy="8" r="1.5" />
+      <circle cx="8" cy="12" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="16" cy="12" r="1.5" />
+      <circle cx="8" cy="16" r="1.5" />
+      <circle cx="12" cy="16" r="1.5" />
+      <circle cx="16" cy="16" r="1.5" />
+    </svg>
+  );
+}
+
+export function DashedFillIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <line x1="4" y1="8" x2="20" y2="8" strokeDasharray="3 2" />
+      <line x1="4" y1="12" x2="20" y2="12" strokeDasharray="3 2" />
+      <line x1="4" y1="16" x2="20" y2="16" strokeDasharray="3 2" />
+    </svg>
+  );
+}
