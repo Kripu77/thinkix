@@ -28,8 +28,7 @@ import { withStickyNote } from '../plugins/with-sticky-note';
 import { withHanddrawn } from '../plugins/handdrawn-mode';
 import { asPlaitPlugin } from '@thinkix/plait-utils/plugin-utils';
 import { useBoardState } from '../hooks/use-board-state';
-import { InlineColorToolbar } from './InlineColorToolbar';
-import { ZoomToolbar } from './ZoomToolbar';
+import { SelectionToolbar, ZoomToolbar } from '@/features/toolbar';
 import { useAutoSave } from '@/features/storage';
 import type { Board as StorageBoard } from '@thinkix/storage';
 
@@ -117,7 +116,7 @@ export function BoardCanvas({
           className="w-full h-full bg-background"
           afterInit={handleBoardInit}
         />
-        <InlineColorToolbar />
+        <SelectionToolbar />
         <ZoomToolbar />
         {children}
       </Wrapper>
