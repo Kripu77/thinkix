@@ -66,6 +66,12 @@ import {
   CrossHatchFillIcon,
   DotsFillIcon,
   DashedFillIcon,
+  SolidFillIcon,
+  HachureFillIcon,
+  ZigzagFillIcon,
+  CrossHatchFillIcon,
+  DotsFillIcon,
+  DashedFillIcon,
 } from '@/shared/constants/icons';
 import {
   Tooltip,
@@ -159,7 +165,7 @@ function getElementColors(board: PlaitBoard, elements: PlaitElement[]): ElementC
   const textColor = textMarks?.color || '';
 
   const strokeStyle = getStrokeStyleByElement(board, first) || StrokeStyle.solid;
-  const fillStyle = firstProps.fillStyle || 'solid';
+  const fillStyle = (first as any).fillStyle || 'solid';
 
   let sourceMarker: ArrowLineMarkerType | undefined;
   let targetMarker: ArrowLineMarkerType | undefined;
@@ -200,7 +206,7 @@ function getElementColors(board: PlaitBoard, elements: PlaitElement[]): ElementC
     const elStrokeStyle = getStrokeStyleByElement(board, el) || StrokeStyle.solid;
     if (elStrokeStyle !== colors.strokeStyle) colors.strokeStyle = '';
 
-    const elFillStyle = elProps.fillStyle || 'solid';
+    const elFillStyle = (el as any).fillStyle || 'solid';
     if (elFillStyle !== colors.fillStyle) colors.fillStyle = '';
 
     if (PlaitDrawElement.isArrowLine(el)) {
