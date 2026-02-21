@@ -6,6 +6,7 @@ export interface BoardState {
   zoom: number;
   currentBoardId: string | null;
   saveStatus: SaveStatus;
+  handdrawn: boolean;
 }
 
 export interface BoardContextValue<T = any> {
@@ -16,4 +17,5 @@ export interface BoardContextValue<T = any> {
   setActiveTool: (tool: DrawingTool) => void;
   setCurrentBoardId: (id: string | null) => void;
   setSaveStatus: (status: SaveStatus) => void;
+  toggleHanddrawn: () => void;
 }
