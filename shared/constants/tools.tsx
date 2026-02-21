@@ -17,11 +17,13 @@ import {
   Cloud,
   PenTool,
   Eraser,
+  StickyNote,
 } from 'lucide-react';
 import { MindMapIcon } from './icons';
 
 export const ERASER_POINTER = 'eraser';
 export const LASER_POINTER = 'laser';
+export const STICKY_NOTE_POINTER = 'sticky-note';
 
 export const TOOL_TO_POINTER: Record<DrawingTool, string> = {
   hand: PlaitPointerType.hand,
@@ -31,6 +33,7 @@ export const TOOL_TO_POINTER: Record<DrawingTool, string> = {
   draw: 'ink',
   laser: LASER_POINTER,
   eraser: ERASER_POINTER,
+  stickyNote: STICKY_NOTE_POINTER,
 
   rectangle: 'rectangle',
   ellipse: 'ellipse',
@@ -86,7 +89,7 @@ export const SHAPE_TOOLS: DrawingTool[] = [
   'cloud',
   'arrow',
 ];
-export const OTHER_TOOLS: DrawingTool[] = ['text', 'image'];
+export const OTHER_TOOLS: DrawingTool[] = ['text', 'image', 'stickyNote'];
 
 export const DEFAULT_TOOL: DrawingTool = 'select';
 
@@ -124,6 +127,7 @@ export const SHAPE_TOOL_CONFIGS: ToolConfig[] = [
 
 export const OTHER_TOOL_CONFIGS: ToolConfig[] = [
   { id: 'mind', icon: <MindMapIcon className="h-6 w-6" />, label: 'Mind Map' },
+  { id: 'stickyNote', icon: <StickyNote className="h-6 w-6" />, label: 'Sticky Note' },
   { id: 'text', icon: <Type className="h-6 w-6" />, label: 'Text' },
   { id: 'image', icon: <ImageIcon className="h-6 w-6" />, label: 'Image' },
 ];
