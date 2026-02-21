@@ -39,7 +39,7 @@ import {
 import { ScribbleElement } from '../plugins/scribble/types';
 import { isNoColor } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
-import { useFloating, flip, offset } from '@floating-ui/react';
+import { useFloating, flip, offset, VirtualElement } from '@floating-ui/react';
 import { getMemorizeKey } from '@plait/draw';
 import {
   PaintBucket,
@@ -133,16 +133,17 @@ function getElementColors(board: PlaitBoard, elements: PlaitElement[]): ElementC
   if (elements.length === 0) return null;
 
   const first = elements[0];
-  let fill = first.fill;
-  let stroke = (first as any).strokeColor;
+  const firstProps = getStrokeFillProperties(first);
+  let fill = firstProps.fill;
+  let stroke = firstProps.strokeColor;
 
   if (!fill) {
     if (MindElement.isMindElement(board, first)) {
       fill = getFillByMindElement(board, first as MindElement);
     } else if (PlaitDrawElement.isDrawElement(first)) {
-      fill = (first as any).fill;
+      fill = firstProps.fill;
     } else if (ScribbleElement.isScribble(first)) {
-      fill = (first as any).fill;
+      fill = firstProps.fill;
     }
   }
 
@@ -158,7 +159,7 @@ function getElementColors(board: PlaitBoard, elements: PlaitElement[]): ElementC
   const textColor = textMarks?.color || '';
 
   const strokeStyle = getStrokeStyleByElement(board, first) || StrokeStyle.solid;
-  const fillStyle = (first as any).fillStyle || 'solid';
+  const fillStyle = firstProps.fillStyle || 'solid';
 
   let sourceMarker: ArrowLineMarkerType | undefined;
   let targetMarker: ArrowLineMarkerType | undefined;
@@ -173,7 +174,7 @@ function getElementColors(board: PlaitBoard, elements: PlaitElement[]): ElementC
   const colors: ElementColors = {
     fill: fill || '',
     stroke: stroke || '',
-    strokeWidth: (first as any).strokeWidth || 2,
+    strokeWidth: firstProps.strokeWidth || 2,
     strokeStyle,
     fillStyle,
     sourceMarker,
@@ -191,14 +192,15 @@ function getElementColors(board: PlaitBoard, elements: PlaitElement[]): ElementC
 
   for (let i = 1; i < elements.length; i++) {
     const el = elements[i];
-    if (el.fill !== colors.fill) colors.fill = '';
-    if ((el as any).strokeColor !== colors.stroke) colors.stroke = '';
-    if ((el as any).strokeWidth !== colors.strokeWidth) colors.strokeWidth = 0;
+    const elProps = getStrokeFillProperties(el);
+    if (elProps.fill !== colors.fill) colors.fill = '';
+    if (elProps.strokeColor !== colors.stroke) colors.stroke = '';
+    if (elProps.strokeWidth !== colors.strokeWidth) colors.strokeWidth = 0;
 
     const elStrokeStyle = getStrokeStyleByElement(board, el) || StrokeStyle.solid;
     if (elStrokeStyle !== colors.strokeStyle) colors.strokeStyle = '';
 
-    const elFillStyle = (el as any).fillStyle || 'solid';
+    const elFillStyle = elProps.fillStyle || 'solid';
     if (elFillStyle !== colors.fillStyle) colors.fillStyle = '';
 
     if (PlaitDrawElement.isArrowLine(el)) {
@@ -662,7 +664,7 @@ export function InlineColorToolbar() {
     const width = screenEnd[0] - screenStart[0];
     const height = screenEnd[1] - screenStart[1];
 
-    const virtualEl = {
+    const virtualEl: VirtualElement = {
       getBoundingClientRect() {
         return {
           width,
@@ -677,7 +679,7 @@ export function InlineColorToolbar() {
       },
     };
 
-    refs.setPositionReference(virtualEl as any);
+    refs.setPositionReference(virtualEl);
 
     const elementColors = getElementColors(board, elements);
     setColors(elementColors);
