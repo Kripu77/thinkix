@@ -221,11 +221,13 @@ Thinkix extends Plait with custom plugins:
 ## Development Scripts
 
 ```bash
-bun dev           # Start development server
-bun run build     # Build for production
-bun run lint      # Run ESLint
-bun run typecheck # Run TypeScript check
-bun run test      # Run Vitest
+bun dev             # Start development server
+bun run build       # Build for production
+bun run lint        # Run ESLint
+bun run typecheck   # Run TypeScript check
+bun run test        # Run Vitest in watch mode
+bun run test:run    # Run tests once
+bun run test:coverage # Run tests with coverage report
 ```
 
 ## CI/CD
@@ -234,11 +236,20 @@ Tests run automatically on:
 - Every push to `main`
 - Every pull request to `main`
 
-The workflow runs:
-1. Linting
-2. Type checking
-3. Tests with coverage
-4. Build verification
+The CI workflow runs:
+1. **Lint** - ESLint code quality checks
+2. **Type Check** - TypeScript validation
+3. **Test with Coverage** - Vitest with v8 coverage
+4. **Build** - Next.js production build
+
+### Coverage Reports
+
+For pull requests:
+- Coverage summary is posted as a PR comment
+- Full HTML coverage report is uploaded as an artifact
+- Download from the workflow run → Artifacts section
+
+Coverage reports are retained for 14 days.
 
 ## License
 
