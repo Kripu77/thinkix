@@ -2,6 +2,7 @@
 
 import { createRoot } from 'react-dom/client';
 import type { PlaitTextBoard, TextProps } from '@plait/common';
+import type { PlaitBoard } from '@plait/core';
 import type { Element as SlateElement, Descendant } from 'slate';
 import { createEditor } from 'slate';
 import { withReact as withSlateReact, ReactEditor } from 'slate-react';
@@ -175,8 +176,9 @@ const componentMap = new Map<string, {
 }>();
 let renderId = 0;
 
-export function addTextRenderer(board: PlaitTextBoard) {
-  board.renderText = (container, props) => {
+export function addTextRenderer(board: PlaitBoard) {
+  const textBoard = board as PlaitBoard & PlaitTextBoard;
+  textBoard.renderText = (container, props) => {
     const id = `${container}-${renderId++}`;
 
     const root = createRoot(container);
