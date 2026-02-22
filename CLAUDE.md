@@ -224,7 +224,7 @@ The board uses `@plait-board/react-board@0.4.0-2` with Plait 0.92.1 packages.
 
 Tests are located in `tests/` directory:
 
-```
+```text
 tests/
 ├── unit/                    # Unit tests
 │   └── file-utils.test.ts
@@ -250,7 +250,7 @@ tests/
 
 GitHub Actions workflow with parallel jobs:
 
-```
+```text
 ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
 │    lint     │   │  typecheck  │   │    test     │
 │  (parallel) │   │  (parallel) │   │  (parallel) │
