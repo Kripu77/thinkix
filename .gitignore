@@ -11,3 +11,4 @@ tsconfig.tsbuildinfo
 .serena/project.yml
 plans/
 scratch
+coverage

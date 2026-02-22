@@ -15,7 +15,7 @@
     "test:run": "vitest run",
     "test:watch": "vitest watch",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage && bun scripts/coverage-summary.ts",
     "postinstall": "bash scripts/apply-patches.sh"
   },
   "dependencies": {
@@ -60,6 +60,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.4",
+    "@vitest/coverage-v8": "4.0.18",
     "@vitest/ui": "^4.0.18",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.1",
