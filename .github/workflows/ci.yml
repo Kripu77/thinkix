@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Type Check
+        run: bun run typecheck
+
+      - name: Test with Coverage
+        run: bun run test:coverage
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.run_id }}
+          path: coverage/
+          retention-days: 14
+
+      - name: Get Coverage Summary
+        id: coverage
+        if: github.event_name == 'pull_request'
+        run: |
+          SUMMARY=$(cat coverage/coverage-summary.json)
+          LINES=$(echo "$SUMMARY" | jq -r '.lines.percentage // 0')
+          FUNCTIONS=$(echo "$SUMMARY" | jq -r '.functions.percentage // 0')
+          BRANCHES=$(echo "$SUMMARY" | jq -r '.branches.percentage // 0')
+          STATEMENTS=$(echo "$SUMMARY" | jq -r '.statements.percentage // 0')
+          
+          # Calculate average
+          AVG=$(echo "scale=1; ($LINES + $FUNCTIONS + $BRANCHES + $STATEMENTS) / 4" | bc)
+          
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+          echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+          echo "average=$AVG" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const lines = '${{ steps.coverage.outputs.lines }}';
+            const functions = '${{ steps.coverage.outputs.functions }}';
+            const branches = '${{ steps.coverage.outputs.branches }}';
+            const statements = '${{ steps.coverage.outputs.statements }}';
+            const average = '${{ steps.coverage.outputs.average }}';
+            
+            const emoji = parseFloat(average) >= 70 ? '✅' : parseFloat(average) >= 50 ? '⚠️' : '❌';
+            
+            const body = `## ${emoji} Test Results
+            
+            | Metric | Coverage |
+            |--------|----------|
+            | Lines | ${lines}% |
+            | Functions | ${functions}% |
+            | Branches | ${branches}% |
+            | Statements | ${statements}% |
+            | **Average** | **${average}%** |
+            
+            📦 [Download Coverage Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            <details>
+            <summary>How to view coverage report</summary>
+            
+            1. Download the coverage artifact from the link above
+            2. Extract the ZIP file
+            3. Open \`index.html\` in your browser
+            </details>
+            
+            ---
+            
+            *Commit: \`${{ github.sha }}\`*`;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('## ') && 
+              comment.body.includes('Test Results')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Build
+        run: bun run build
