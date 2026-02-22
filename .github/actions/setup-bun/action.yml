@@ -1,0 +1,35 @@
+name: Setup Bun
+description: Checkout, setup Bun with caching, and install dependencies
+
+inputs:
+  bun-version:
+    description: Bun version to install
+    required: false
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v4
+      id: bun-cache
+      with:
+        path: |
+          ~/.bun/install/cache
+          node_modules
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+
+    - name: Install dependencies
+      if: steps.bun-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: bun install --frozen-lockfile
