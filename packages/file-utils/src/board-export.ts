@@ -19,7 +19,7 @@ export const isValidThinkixData = (data: unknown): data is ThinkixExportedData =
   );
 };
 
-const sanitizeFileName = (name: string): string => {
+export const sanitizeFileName = (name: string): string => {
   return name.replace(/[^a-zA-Z0-9_\-\s]/g, '').trim() || 'board';
 };
 

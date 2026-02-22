@@ -15,7 +15,9 @@ export function addImageRenderer(board: PlaitBoard): PlaitBoard {
     props: ImageProps
   ) => {
     const root = createRoot(container);
-    root.render(<Image {...props} />);
+    root.render(
+      <Image {...props} />
+    );
 
     let activeProps = { ...props };
 
@@ -27,7 +29,9 @@ export function addImageRenderer(board: PlaitBoard): PlaitBoard {
       },
       update: (updatedProps: Partial<ImageProps>) => {
         activeProps = { ...activeProps, ...updatedProps };
-        root.render(<Image {...activeProps} />);
+        root.render(
+          <Image {...activeProps} />
+        );
       },
     };
 

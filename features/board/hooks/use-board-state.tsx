@@ -73,6 +73,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
       setHanddrawn(board, true, 'excalidraw');
       handdrawnAppliedRef.current = true;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board]);
 
   const setActiveTool = useCallback(
