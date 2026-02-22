@@ -14,7 +14,7 @@ An AI-powered infinite canvas whiteboard for visual thinking. Create mind maps, 
 ## Tech Stack
 
 - **Framework:** Next.js 16 (React 19, Turbopack)
-- **Canvas:** [Plait Board](https://github.com/plait-board) - Infinite whiteboard engine
+- **Canvas:** [Plait Board](https://github.com/worktile/plait) - Infinite whiteboard engine
 - **AI:** Vercel AI SDK (OpenAI, Anthropic support)
 - **UI:** shadcn/ui components with Tailwind CSS v4
 - **Monorepo:** Bun workspaces with shared packages

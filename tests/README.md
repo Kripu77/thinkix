@@ -2,26 +2,12 @@
 
 This directory contains all tests for the Thinkix project.
 
-## Structure
-
-```
-tests/
-├── __mocks__/          # Global mocks and setup
-│   └── setup.ts        # Vitest setup file with mocks
-├── __utils__/          # Test utilities and helpers
-│   └── test-utils.ts   # Common test utilities
-├── components/         # Component tests
-│   └── loading-logo.test.tsx
-├── integration/        # Integration tests
-│   └── storage.test.ts
-└── unit/               # Unit tests
-    └── file-utils.test.ts
-```
-
 ## Running Tests
 
+**IMPORTANT**: This project uses **Vitest**, not Bun's built-in test runner.
+
 ```bash
-# Run all tests
+# Run all tests (Vitest)
 bun run test
 
 # Run tests once (CI mode)
@@ -36,6 +22,8 @@ bun run test:ui
 # Run tests with coverage
 bun run test:coverage
 ```
+
+**Note**: Do NOT use `bun test` - that runs Bun's native test runner which is not configured for this project. Always use `bun run test` commands.
 
 ## Writing Tests
 

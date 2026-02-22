@@ -44,7 +44,9 @@
   ],
   "exclude": [
     "node_modules",
-    "scratch"
+    "scratch",
+    "vitest.config.mts",
+    "tests"
   ],
   "references": [
     { "path": "./packages/ui" },
