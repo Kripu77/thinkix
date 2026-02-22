@@ -10,36 +10,29 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   ci:
     name: CI
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: bun install
-
-      - name: Add node_modules to PATH
-        run: echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
+        run: bun install --frozen-lockfile
 
       - name: Lint
-        run: bun run lint
+        run: bun lint
 
       - name: Type Check
-        run: bun run typecheck
+        run: bun typecheck
 
       - name: Test
-        run: bun run test:run
+        run: bun test:run
 
       - name: Build
-        run: bun run build
+        run: bun build
