@@ -7,15 +7,15 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "bunx next build",
+    "build": "next build",
     "start": "next start",
-    "lint": "bun eslint .",
-    "typecheck": "bunx tsc --noEmit --skipLibCheck",
-    "test": "bun vitest",
-    "test:run": "bun vitest run",
-    "test:watch": "bun vitest watch",
-    "test:ui": "bun vitest --ui",
-    "test:coverage": "bun vitest run --coverage",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:watch": "vitest watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "postinstall": "bash scripts/apply-patches.sh"
   },
   "dependencies": {
