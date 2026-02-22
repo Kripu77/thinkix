@@ -10,6 +10,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ci:
     name: CI
@@ -24,6 +28,9 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      - name: Add node_modules to PATH
+        run: echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
 
       - name: Lint
         run: bun run lint
