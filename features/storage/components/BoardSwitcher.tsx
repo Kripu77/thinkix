@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { FileText, ChevronDown, Plus, Trash2, Pencil, Check } from 'lucide-react';
 import { Button } from '@thinkix/ui';
 import {
@@ -49,13 +49,6 @@ export function BoardSwitcher({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentBoard = boards.find((b) => b.id === currentBoardId);
-
-  useEffect(() => {
-    if (isCreateDialogOpen) {
-      setBoardName(`Board ${boards.length + 1}`);
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  }, [isCreateDialogOpen, boards.length]);
 
   const handleCreateBoard = () => {
     if (boardName.trim()) {
@@ -178,7 +171,8 @@ export function BoardSwitcher({
                   className="py-2.5 text-base"
                   onClick={() => {
                     setIsOpen(false);
-                    setTimeout(() => setIsCreateDialogOpen(true), 0);
+                    setBoardName(`Board ${boards.length + 1}`);
+                    setIsCreateDialogOpen(true);
                   }}
                 >
                   <Plus className="h-5 w-5 mr-2" />
@@ -205,6 +199,7 @@ export function BoardSwitcher({
               onChange={(e) => setBoardName(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Board name"
+              autoFocus
             />
           </div>
           <DialogFooter>

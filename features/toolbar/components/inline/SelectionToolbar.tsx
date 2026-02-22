@@ -146,7 +146,7 @@ export function SelectionToolbar() {
 
     const elementColors = getElementColors(board, elements);
     setColors(elementColors);
-  }, [board?.viewport, board?.selection, hasSelectionNow, movingOrDragging, refs]);
+  }, [board, board?.viewport, board?.selection, hasSelectionNow, movingOrDragging, refs]);
 
   const refreshColors = () => {
     if (!board) return;

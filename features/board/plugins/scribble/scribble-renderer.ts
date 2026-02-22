@@ -31,7 +31,7 @@ export class ScribbleRenderer extends Generator<ScribbleElement> {
     return g;
   }
 
-  canDraw(element: ScribbleElement): boolean {
+  canDraw(_element: ScribbleElement): boolean {
     return true;
   }
 }

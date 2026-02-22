@@ -1,20 +1,18 @@
 'use client';
 
-import { Check, Palette } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@thinkix/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@thinkix/ui';
-import { Stack } from '@thinkix/ui';
 import { SizeSlider } from '@thinkix/ui';
 import { NoColorIcon } from '@thinkix/ui';
 import { CLASSIC_COLORS, NO_COLOR, WHITE } from '@/shared/constants/colors';
-import { splitRows, isDefaultStroke, isNoColor } from '@thinkix/ui';
+import { splitRows, isNoColor } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
 
 export interface ColorPickerProps {

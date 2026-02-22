@@ -202,7 +202,6 @@ function updateElementSize(
 
 export function addMindNodeResize(board: PlaitBoard): PlaitBoard {
   const { pointerDown, pointerMove, pointerUp } = board;
-  let isResizing = false;
 
   board.pointerDown = (e: PointerEvent) => {
     const handle = getHandleFromEvent(e);
@@ -225,11 +224,9 @@ export function addMindNodeResize(board: PlaitBoard): PlaitBoard {
           initialRect: rect,
           startPoint: point,
         });
-        isResizing = true;
         return;
       }
     }
-    isResizing = false;
     pointerDown(e);
   };
 
@@ -253,7 +250,6 @@ export function addMindNodeResize(board: PlaitBoard): PlaitBoard {
     const wasResizing = getState(board) !== undefined;
     if (wasResizing) {
       setState(board, undefined);
-      isResizing = false;
       setTimeout(() => updateHandles(board), 50);
       return;
     }

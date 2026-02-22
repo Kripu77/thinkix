@@ -3,7 +3,6 @@ import {
   idCreator,
   isPointInPolygon,
   PlaitBoard,
-  PlaitElement,
   Point,
   RectangleClient,
   rotateAntiPointsByElement,
@@ -17,7 +16,6 @@ import {
   SCRIBBLE_ELEMENT_TYPE,
 } from './types';
 import {
-  isClosedCustomGeometry,
   isClosedPoints,
   isHitPolyLine,
   isRectangleHitRotatedPoints,

@@ -13,15 +13,22 @@ import {
 
 export const LASER_POINTER_CLASS_NAME = 'laser-pointer';
 
+interface CanvasRenderingContext2DWithBackingStore extends CanvasRenderingContext2D {
+  backingStorePixelRatio?: number;
+  webkitBackingStorePixelRatio?: number;
+  mozBackingStorePixelRatio?: number;
+  msBackingStorePixelRatio?: number;
+  oBackingStorePixelRatio?: number;
+}
+
 const calculateRatio = (context: CanvasRenderingContext2D): number => {
-  const ctx = context as any;
+  const ctx = context as CanvasRenderingContext2DWithBackingStore;
   const backingStore =
     ctx.backingStorePixelRatio ||
     ctx.webkitBackingStorePixelRatio ||
     ctx.mozBackingStorePixelRatio ||
     ctx.msBackingStorePixelRatio ||
     ctx.oBackingStorePixelRatio ||
-    ctx.backingStorePixelRatio ||
     1;
   return (window.devicePixelRatio || 1) / backingStore;
 };

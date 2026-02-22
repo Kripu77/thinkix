@@ -14,7 +14,7 @@ export * from './components/ui/color-picker';
 export * from './components/ui/slider';
 export * from './components/ui/size-slider';
 export * from './components/ui/no-color-icon';
-export * from "./components/ui/shimmer";
+export * from './components/ui/loading-logo';
 
 export * from './lib/utils';
 export * from './lib/color';

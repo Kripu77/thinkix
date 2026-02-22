@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import type { PlaitBoard } from '@plait/core';
 import { useBoardStore } from '@thinkix/storage';
 
@@ -16,47 +16,46 @@ export function useAutoSave({ board, enabled = true }: UseAutoSaveOptions) {
 
   const boardRef = useRef<PlaitBoard | null>(board);
   const currentBoardRef = useRef(currentBoard);
+  const saveBoardRef = useRef(saveBoard);
 
   useEffect(() => { boardRef.current = board; }, [board]);
   useEffect(() => { currentBoardRef.current = currentBoard; }, [currentBoard]);
-
-  const triggerSave = useCallback(() => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-
-    saveTimerRef.current = setTimeout(async () => {
-      const b = boardRef.current;
-      const cb = currentBoardRef.current;
-
-      if (!b || !cb?.id) return;
-
-      await saveBoard({
-        id: cb.id,
-        name: cb.name,
-        elements: b.children,
-        viewport: { x: b.viewport.x ?? 0, y: b.viewport.y ?? 0, zoom: b.viewport.zoom ?? 1 },
-        createdAt: cb.createdAt,
-        updatedAt: Date.now(),
-      });
-    }, 500);
-  }, []);
+  useEffect(() => { saveBoardRef.current = saveBoard; }, [saveBoard]);
 
   useEffect(() => {
     if (!board || !enabled) return;
 
     const handlePointerUp = () => {
-      triggerSave();
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+      saveTimerRef.current = setTimeout(() => {
+        const b = boardRef.current;
+        const cb = currentBoardRef.current;
+
+        if (!b || !cb?.id) return;
+
+        saveBoardRef.current({
+          id: cb.id,
+          name: cb.name,
+          elements: b.children,
+          viewport: { x: b.viewport.x ?? 0, y: b.viewport.y ?? 0, zoom: b.viewport.zoom ?? 1 },
+          createdAt: cb.createdAt,
+          updatedAt: Date.now(),
+        });
+      }, 500);
     };
 
     const boardEl = document.querySelector('.plait-board-container') || document.querySelector('svg');
     if (!boardEl) return;
 
-    boardEl.addEventListener('pointerup', handlePointerUp, { capture: true, passive: true } as any);
+    const options: AddEventListenerOptions = { capture: true, passive: true };
+    boardEl.addEventListener('pointerup', handlePointerUp, options);
 
     return () => {
-      boardEl.removeEventListener('pointerup', handlePointerUp, { capture: true } as any);
+      boardEl.removeEventListener('pointerup', handlePointerUp, { capture: true });
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [board, enabled, triggerSave]);
+  }, [board, enabled]);
 
   useEffect(() => {
     return () => {

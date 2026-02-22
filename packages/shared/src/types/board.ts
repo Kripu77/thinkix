@@ -9,9 +9,10 @@ export interface BoardState {
   handdrawn: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface BoardContextValue<T = any> {
   board: T | null;
-  setBoard: (board: T | null) => void;
+  setBoard: React.Dispatch<React.SetStateAction<T | null>>;
   state: BoardState;
   setState: React.Dispatch<React.SetStateAction<BoardState>>;
   setActiveTool: (tool: DrawingTool) => void;

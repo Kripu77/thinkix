@@ -1,7 +1,7 @@
 'use client';
 
-import { createRoot } from 'react-dom/client';
-import type { PlaitTextBoard, TextProps } from '@plait/common';
+import { createRoot, Root } from 'react-dom/client';
+import type { PlaitTextBoard, TextProps, CustomText, ParagraphElement } from '@plait/common';
 import type { PlaitBoard } from '@plait/core';
 import type { Element as SlateElement, Descendant } from 'slate';
 import { createEditor } from 'slate';
@@ -11,12 +11,17 @@ import { Slate, Editable, RenderElementProps, RenderLeafProps } from 'slate-reac
 import { useMemo, useCallback, useEffect, CSSProperties } from 'react';
 import { isKeyHotkey } from 'is-hotkey';
 import { Transforms, Range } from 'slate';
-import type { CustomElement, CustomText, ParagraphElement } from '@plait/common';
 
 const DEFAULT_CHINESE_TEXT = '文本';
 
+interface TextNode {
+  text: string;
+}
+
 function getTextString(text: SlateElement): string {
-  return text.children.map((child: any) => child.text || '').join('');
+  return text.children
+    .map((child) => (child as TextNode).text || '')
+    .join('');
 }
 
 function normalizeTextValue(text: SlateElement | undefined): SlateElement {
@@ -26,11 +31,11 @@ function normalizeTextValue(text: SlateElement | undefined): SlateElement {
   if (!text.children || !Array.isArray(text.children)) {
     return { ...text, children: [{ text: '' }] };
   }
-  const hasNullChildren = text.children.some((child: any) => child === null || child === undefined);
+  const hasNullChildren = text.children.some((child) => child === null || child === undefined);
   if (hasNullChildren) {
     return {
       ...text,
-      children: text.children.map((child: any) =>
+      children: text.children.map((child) =>
         child === null || child === undefined ? { text: '' } : child
       )
     };
@@ -48,27 +53,29 @@ function normalizeTextValue(text: SlateElement | undefined): SlateElement {
 }
 
 const Leaf: React.FC<RenderLeafProps> = ({ children, leaf, attributes }) => {
-  if ((leaf as CustomText).bold) {
+  const customLeaf = leaf as CustomText;
+  
+  if (customLeaf.bold) {
     children = <strong>{children}</strong>;
   }
-  if ((leaf as CustomText).code) {
+  if (customLeaf.code) {
     children = <code>{children}</code>;
   }
-  if ((leaf as CustomText).italic) {
+  if (customLeaf.italic) {
     children = <em>{children}</em>;
   }
-  if ((leaf as CustomText).underlined) {
+  if (customLeaf.underlined) {
     children = <u>{children}</u>;
   }
-  if ((leaf as CustomText).strike) {
+  if (customLeaf.strike) {
     children = <s>{children}</s>;
   }
 
   const style: CSSProperties = {};
-  if ((leaf as CustomText).color) {
-    style.color = (leaf as CustomText).color;
+  if (customLeaf.color) {
+    style.color = customLeaf.color;
   }
-  const fontSize = (leaf as any)['font-size'];
+  const fontSize = customLeaf['font-size'];
   if (fontSize) {
     const sizeValue = typeof fontSize === 'number' ? fontSize : parseInt(fontSize, 10);
     if (!isNaN(sizeValue)) {
@@ -96,24 +103,29 @@ const Element = (props: RenderElementProps) => {
 const TextComponent: React.FC<TextProps> = (props) => {
   const { text, readonly, onChange, onComposition, afterInit } = props;
 
-  const renderLeaf = useCallback((props: RenderLeafProps) => <Leaf {...props} />, []);
-  const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);
+  const renderLeaf = useCallback((leafProps: RenderLeafProps) => <Leaf {...leafProps} />, []);
+  const renderElement = useCallback((elementProps: RenderElementProps) => <Element {...elementProps} />, []);
 
   const initialValue: Descendant[] = [normalizeTextValue(text)];
 
   const editor = useMemo(() => {
     const e = withHistory(withSlateReact(createEditor()));
-    afterInit?.(e);
     return e;
   }, []);
+
+  useEffect(() => {
+    if (afterInit) {
+      afterInit(editor);
+    }
+  }, [editor, afterInit]);
 
   useEffect(() => {
     const normalizedText = normalizeTextValue(text);
     if (normalizedText === editor.children[0]) {
       return;
     }
-    editor.children = [normalizedText];
-    editor.onChange();
+    Transforms.removeNodes(editor, { at: [0] });
+    Transforms.insertNodes(editor, normalizedText, { at: [0] });
   }, [text, editor]);
 
   const onKeyDown: React.KeyboardEventHandler = (event) => {
@@ -136,7 +148,7 @@ const TextComponent: React.FC<TextProps> = (props) => {
     <Slate
       editor={editor}
       initialValue={initialValue}
-      onChange={(value: Descendant[]) => {
+      onChange={() => {
         onChange?.({
           newText: editor.children[0] as ParagraphElement,
           operations: editor.operations
@@ -149,19 +161,13 @@ const TextComponent: React.FC<TextProps> = (props) => {
         renderLeaf={renderLeaf}
         readOnly={readonly === undefined ? true : readonly}
         onCompositionStart={(event) => {
-          if (onComposition) {
-            onComposition(event as unknown as CompositionEvent);
-          }
+          onComposition?.(event as unknown as CompositionEvent);
         }}
         onCompositionUpdate={(event) => {
-          if (onComposition) {
-            onComposition(event as unknown as CompositionEvent);
-          }
+          onComposition?.(event as unknown as CompositionEvent);
         }}
         onCompositionEnd={(event) => {
-          if (onComposition) {
-            onComposition(event as unknown as CompositionEvent);
-          }
+          onComposition?.(event as unknown as CompositionEvent);
         }}
         onKeyDown={onKeyDown}
       />
@@ -169,11 +175,13 @@ const TextComponent: React.FC<TextProps> = (props) => {
   );
 };
 
-const componentMap = new Map<string, {
-  root: any;
+interface ComponentEntry {
+  root: Root;
   currentEditor: ReactEditor;
   currentProps: TextProps;
-}>();
+}
+
+const componentMap = new Map<string, ComponentEntry>();
 let renderId = 0;
 
 export function addTextRenderer(board: PlaitBoard) {
@@ -189,7 +197,9 @@ export function addTextRenderer(board: PlaitBoard) {
         {...props}
         afterInit={(editor) => {
           currentEditor = editor as ReactEditor;
-          props.afterInit && props.afterInit(editor);
+          if (props.afterInit) {
+            props.afterInit(editor);
+          }
         }}
       />
     );
@@ -210,8 +220,8 @@ export function addTextRenderer(board: PlaitBoard) {
         const hasUpdated =
           updatedProps &&
           newProps &&
-          Object.keys(updatedProps).some(
-            (key) => (updatedProps as any)[key] !== (newProps as any)[key]
+          (Object.keys(updatedProps) as (keyof TextProps)[]).some(
+            (key) => updatedProps[key] !== newProps[key]
           );
         if (!hasUpdated) {
           return;

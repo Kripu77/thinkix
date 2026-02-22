@@ -1,10 +1,33 @@
 import type { PlaitBoard } from '@plait/core';
-import type { PlaitMindBoard } from '@plait/mind';
+import type { PlaitMindBoard, MindElement } from '@plait/mind';
 import { MindTransforms } from '@plait/mind';
+
+export interface CreateMindmapData {
+  mindMapData: MindElement;
+}
+
+export interface AddNodeData {
+  text: string;
+  position: [number, number];
+  parentId?: string;
+}
+
+export interface UpdateNodeData {
+  nodeId: string;
+  width?: number;
+  height?: number;
+  text?: string;
+}
+
+export interface DeleteSelectionData {
+  nodeIds: string[];
+}
+
+export type CanvasCommandData = CreateMindmapData | AddNodeData | UpdateNodeData | DeleteSelectionData;
 
 export interface CanvasCommand {
   type: 'createMindmap' | 'addNode' | 'addEdge' | 'updateNode' | 'deleteSelection';
-  data: any;
+  data: CanvasCommandData;
 }
 
 export interface MindmapNodeData {
@@ -13,25 +36,16 @@ export interface MindmapNodeData {
   parentId?: string;
 }
 
-export interface UpdateNodeData {
-  width?: number;
-  height?: number;
-  text?: string;
-}
-
 export function executeCommand(board: PlaitBoard, command: CanvasCommand): void {
   switch (command.type) {
     case 'createMindmap':
-      MindTransforms.insertMind(board as PlaitMindBoard, command.data);
+      MindTransforms.insertMind(board as PlaitMindBoard, (command.data as CreateMindmapData).mindMapData);
       break;
     case 'addNode':
-      // TODO: Implement addNode operation
       break;
     case 'updateNode':
-      // TODO: Implement updateNode operation
       break;
     case 'deleteSelection':
-      // TODO: Implement deleteSelection operation
       break;
   }
 }

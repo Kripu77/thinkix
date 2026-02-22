@@ -40,7 +40,8 @@ function removeMark(text: SlateElement, mark: MarkKey): SlateElement {
     ...text,
     children: text.children.map((child) => {
       if (!isRichText(child)) return child;
-      const { [mark]: _, ...rest } = child;
+      const { [mark]: omitted, ...rest } = child;
+      void omitted;
       return rest;
     }),
   };
@@ -60,7 +61,8 @@ function withTextColors(text: SlateElement, color: string | null): SlateElement 
     children: text.children.map((child) => {
       if (!isRichText(child)) return child;
       if (color === null) {
-        const { color: _, ...rest } = child;
+        const { color: omitted, ...rest } = child;
+        void omitted;
         return rest;
       }
       return { ...child, color };
@@ -74,7 +76,8 @@ function withFontSize(text: SlateElement, fontSize: string | null): SlateElement
     children: text.children.map((child) => {
       if (!isRichText(child)) return child;
       if (fontSize === null) {
-        const { 'font-size': _, ...rest } = child;
+        const { 'font-size': omitted, ...rest } = child;
+        void omitted;
         return rest;
       }
       return { ...child, 'font-size': fontSize };

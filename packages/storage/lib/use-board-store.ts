@@ -44,7 +44,7 @@ interface BoardActions {
 type BoardStore = BoardState & BoardActions;
 
 export const useBoardStore = create<BoardStore>()(
-  subscribeWithSelector((set, get) => ({
+  subscribeWithSelector((set) => ({
     boards: [],
     currentBoard: null,
     isLoading: true,

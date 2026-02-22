@@ -33,10 +33,7 @@ import {
 import { useBoardState } from '@/features/board/hooks/use-board-state';
 import type { DrawingTool } from '@thinkix/shared';
 import {
-  SELECTION_TOOLS,
-  NAVIGATION_TOOLS,
   SHAPE_TOOLS,
-  OTHER_TOOLS,
   BASIC_TOOLS,
   SHAPE_TOOL_CONFIGS,
   OTHER_TOOL_CONFIGS,

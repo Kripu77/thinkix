@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, useEffect, type HTMLAttributes, type ReactNode } from 'react';
 import { useFloating, flip, offset, type FloatingContext } from '@floating-ui/react';
 import { cn } from '@thinkix/ui';
 
@@ -19,10 +19,11 @@ export const FloatingToolbar = forwardRef<HTMLDivElement, FloatingToolbarProps>(
       middleware: [offset(offsetValue), flip()],
     });
 
-    // Set the virtual element reference if provided
-    if (virtualElementRef?.current) {
-      refs.setPositionReference(virtualElementRef.current);
-    }
+    useEffect(() => {
+      if (virtualElementRef?.current) {
+        refs.setPositionReference(virtualElementRef.current);
+      }
+    }, [virtualElementRef, refs]);
 
     if (!open) return null;
 
