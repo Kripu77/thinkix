@@ -33,7 +33,8 @@ runs:
       with:
         github-token: ${{ inputs.github-token }}
         script: |
-          const { createCoverageComment, findBotComment } = require('./.github/actions/coverage-report/src/comment.js');
+          const createCoverageComment = require('./.github/actions/coverage-report/src/comment.js');
+          const findBotComment = createCoverageComment.findBotComment;
 
           const body = createCoverageComment({
             lines: '${{ steps.coverage.outputs.lines }}',
