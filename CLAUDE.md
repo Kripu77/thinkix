@@ -28,7 +28,7 @@ bun run test:coverage # Run tests with coverage report
 
 The project uses Bun workspaces with the following structure:
 
-```
+```text
 thinkix/
 ├── packages/              # Workspace packages
 │   ├── ui/               # @thinkix/ui - Shared UI components (shadcn-based)
@@ -105,7 +105,7 @@ import { BASIC_TOOLS, TOOLBAR_ITEM_CLASS } from '@/shared/constants';
 
 ### Feature-Based Structure
 
-```
+```text
 features/
 ├── board/                        # Board canvas and state management
 │   ├── components/
