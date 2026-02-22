@@ -1,0 +1,71 @@
+name: Coverage Report
+description: Upload coverage artifact and comment on PR
+
+inputs:
+  coverage-path:
+    description: Path to coverage directory
+    required: false
+    default: coverage
+  github-token:
+    description: GitHub token for API access
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report-${{ github.run_id }}
+        path: ${{ inputs.coverage-path }}/
+        retention-days: 14
+
+    - name: Get Coverage Summary
+      id: coverage
+      if: github.event_name == 'pull_request'
+      shell: bash
+      run: .github/scripts/coverage-summary.sh ${{ inputs.coverage-path }}/coverage-summary.json
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const { createCoverageComment, findBotComment } = require('./.github/actions/coverage-report/src/comment.js');
+
+          const body = createCoverageComment({
+            lines: '${{ steps.coverage.outputs.lines }}',
+            functions: '${{ steps.coverage.outputs.functions }}',
+            branches: '${{ steps.coverage.outputs.branches }}',
+            statements: '${{ steps.coverage.outputs.statements }}',
+            average: '${{ steps.coverage.outputs.average }}',
+            sha: '${{ github.sha }}',
+            runId: '${{ github.run_id }}',
+            repo: '${{ github.repository }}'
+          });
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+
+          const botComment = findBotComment(comments);
+
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: body
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }
