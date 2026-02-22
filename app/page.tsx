@@ -12,7 +12,7 @@ const BoardCanvas = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex items-center justify-center w-full h-full">
-               <Shimmer className='text-muted-foreground'>
+        <Shimmer className="text-muted-foreground">
           Loading Board...
         </Shimmer>
       </div>
@@ -40,29 +40,34 @@ function BoardApp() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center w-screen h-screen bg-background">
-      </div>
+      <div className="flex items-center justify-center w-screen h-screen bg-background" />
     );
   }
 
   return (
     <main className="w-screen h-screen overflow-hidden bg-background">
-      <div className="absolute top-4 left-4 z-50" data-no-autosave>
-        <BoardSwitcher
-          boards={boards}
-          currentBoardId={currentBoard?.id ?? null}
-          onCreateBoard={handleCreateBoard}
-          onSelectBoard={switchBoard}
-          onDeleteBoard={deleteBoard}
-          onRenameBoard={renameBoard}
-        />
-      </div>
       <BoardCanvas boardData={currentBoard}>
         <BoardToolbar />
+        <div className="absolute top-4 left-4 z-50 flex items-center gap-2" data-no-autosave>
+          <BoardSwitcher
+            boards={boards}
+            currentBoardId={currentBoard?.id ?? null}
+            onCreateBoard={handleCreateBoard}
+            onSelectBoard={switchBoard}
+            onDeleteBoard={deleteBoard}
+            onRenameBoard={renameBoard}
+          />
+          <AppMenu boardName={currentBoard?.name} />
+        </div>
       </BoardCanvas>
     </main>
   );
 }
+
+const AppMenu = dynamic(
+  () => import('@/features/toolbar').then((mod) => mod.AppMenu),
+  { ssr: false }
+);
 
 export default function HomePage() {
   return (
