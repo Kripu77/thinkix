@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "bun eslint .",
-    "typecheck": "bun tsc --noEmit --skipLibCheck",
+    "typecheck": "bunx tsc --noEmit --skipLibCheck",
     "test": "bun vitest",
     "test:run": "bun vitest run",
     "test:watch": "bun vitest watch",
