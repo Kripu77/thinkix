@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bunx next build",
     "start": "next start",
     "lint": "bun eslint .",
     "typecheck": "bunx tsc --noEmit --skipLibCheck",
