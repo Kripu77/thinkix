@@ -22,16 +22,17 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@/features/*": [
-        "./features/*"
-      ],
-      "@/shared/*": [
-        "./shared/*"
-      ]
+      "@/*": ["./*"],
+      "@/features/*": ["./features/*"],
+      "@/shared/*": ["./shared/*"],
+      "@thinkix/ui": ["./packages/ui/src"],
+      "@thinkix/ai": ["./packages/ai/lib"],
+      "@thinkix/plait-utils": ["./packages/plait-utils/lib"],
+      "@thinkix/storage": ["./packages/storage/lib"],
+      "@thinkix/shared": ["./packages/shared/src"],
+      "@thinkix/file-utils": ["./packages/file-utils/src"]
     }
   },
   "include": [
@@ -39,13 +40,12 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "scratch",
-    "vitest.config.mts",
-    "tests"
+    "tests",
+    "coverage"
   ]
 }
