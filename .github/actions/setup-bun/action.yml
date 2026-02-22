@@ -1,5 +1,5 @@
 name: Setup Bun
-description: Checkout, setup Bun with caching, and install dependencies
+description: Setup Bun with caching and install dependencies
 
 inputs:
   bun-version:
@@ -10,9 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Setup Bun
       uses: oven-sh/setup-bun@v2
       with:
