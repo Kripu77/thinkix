@@ -1,40 +1,53 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
+interface CoverageMetric {
+  total: number;
+  covered: number;
+  percentage: number;
+}
+
 interface CoverageData {
-  lines: { total: number; covered: number; percentage: number };
-  functions: { total: number; covered: number; percentage: number };
-  branches: { total: number; covered: number; percentage: number };
-  statements: { total: number; covered: number; percentage: number };
+  lines: CoverageMetric;
+  functions: CoverageMetric;
+  branches: CoverageMetric;
+  statements: CoverageMetric;
+}
+
+interface FileCoverage {
+  l?: Record<string, number>;
+  f?: Record<string, number>;
+  b?: Record<string, number[]>;
+  s?: Record<string, number>;
 }
 
 function parseCoverageFinal(filePath: string): CoverageData {
   const content = readFileSync(filePath, 'utf-8');
-  const data = JSON.parse(content);
+  const data: Record<string, FileCoverage> = JSON.parse(content);
 
   let totalLines = 0, coveredLines = 0;
   let totalFunctions = 0, coveredFunctions = 0;
   let totalBranches = 0, coveredBranches = 0;
   let totalStatements = 0, coveredStatements = 0;
 
-  for (const file of Object.values(data) as any[]) {
+  for (const file of Object.values(data)) {
     if (file.l) {
       totalLines += Object.keys(file.l).length;
-      coveredLines += Object.values(file.l).filter((v: any) => v > 0).length;
+      coveredLines += Object.values(file.l).filter((v) => v > 0).length;
     }
     if (file.f) {
       totalFunctions += Object.keys(file.f).length;
-      coveredFunctions += Object.values(file.f).filter((v: any) => v > 0).length;
+      coveredFunctions += Object.values(file.f).filter((v) => v > 0).length;
     }
     if (file.b) {
-      for (const branch of Object.values(file.b) as any[][]) {
+      for (const branch of Object.values(file.b)) {
         totalBranches += branch.length;
-        coveredBranches += branch.filter((v: any) => v > 0).length;
+        coveredBranches += branch.filter((v) => v > 0).length;
       }
     }
     if (file.s) {
       totalStatements += Object.keys(file.s).length;
-      coveredStatements += Object.values(file.s).filter((v: any) => v > 0).length;
+      coveredStatements += Object.values(file.s).filter((v) => v > 0).length;
     }
   }
 
