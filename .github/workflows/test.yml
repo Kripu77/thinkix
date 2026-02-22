@@ -35,4 +35,6 @@ jobs:
         run: bun run test:run
 
       - name: Build
-        run: bun run build
+        run: |
+          export PATH="$PWD/node_modules/.bin:$PATH"
+          bun run build
