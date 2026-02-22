@@ -14,6 +14,30 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "scratch/**"
   ]),
+  {
+    files: ["features/board/plugins/add-image-renderer.tsx"],
+    rules: {
+      "jsx-a11y/alt-text": "off",
+    },
+  },
+  {
+    files: ["features/board/plugins/image-component.tsx", "packages/ui/src/components/ui/image-viewer.tsx"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
+  {
+    files: ["features/board/plugins/scribble/scribble-renderer.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    },
+  },
+  {
+    files: ["packages/ui/src/components/ui/dropdown-menu.tsx"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
