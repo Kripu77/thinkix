@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode, useMemo } from 'react';
 import { Board, Wrapper, type BoardChangeData } from '@plait-board/react-board';
 import {
   type PlaitElement,
@@ -9,13 +9,11 @@ import {
   type PlaitBoard,
   type PlaitTheme,
   ThemeColorMode,
-  withSelection,
-  withHistory,
-  withHotkey,
 } from '@plait/core';
 import { withGroup, withText } from '@plait/common';
 import { withDraw } from '@plait/draw';
 import { withMind, MindThemeColors } from '@plait/mind';
+import { addImageRenderer } from '../plugins/add-image-renderer';
 import { addEmojiRenderer } from '../plugins/add-emoji-renderer';
 import { addMindNodeResize } from '../plugins/add-mind-node-resize';
 import { addPenMode } from '../plugins/add-pen-mode';
@@ -26,7 +24,6 @@ import { withScribble } from '../plugins/scribble';
 import { withEraser } from '../plugins/with-eraser';
 import { withStickyNote } from '../plugins/with-sticky-note';
 import { withHanddrawn } from '../plugins/handdrawn-mode';
-import { asPlaitPlugin } from '@thinkix/plait-utils/plugin-utils';
 import { useBoardState } from '../hooks/use-board-state';
 import { SelectionToolbar, ZoomToolbar } from '@/features/toolbar';
 import { useAutoSave } from '@/features/storage';
@@ -52,6 +49,23 @@ const DEFAULT_THEME: PlaitTheme = {
   themeColorMode: ThemeColorMode.default,
 };
 
+const createPlugins = (): PlaitPlugin[] => [
+  withDraw,
+  withTextNormalization(),
+  withText,
+  addTextRenderer,
+  addImageRenderer,
+  withGroup,
+  withMind,
+  addEmojiRenderer,
+  addMindNodeResize,
+  addPenMode,
+  addImageInteractions,
+  withScribble,
+  withEraser,
+  withStickyNote,
+  withHanddrawn,
+];
 
 export function BoardCanvas({
   initialValue = [],
@@ -60,27 +74,27 @@ export function BoardCanvas({
   boardData,
 }: BoardCanvasProps) {
   const { board, setBoard, setCurrentBoardId } = useBoardState();
-  const [value, setValue] = useState<PlaitElement[]>(initialValue);
+  
+  const initialElements = useMemo(() => {
+    return boardData?.elements ?? initialValue;
+  }, [boardData?.elements, initialValue]);
 
-  const plugins: PlaitPlugin[] = [
-    asPlaitPlugin(withTextNormalization()),
-    withText,
-    asPlaitPlugin(addTextRenderer),
-    withSelection,
-    withDraw,
-    withGroup,
-    withMind,
-    addEmojiRenderer,
-    asPlaitPlugin(addMindNodeResize),
-    withHistory,
-    withHotkey,
-    addPenMode,
-    addImageInteractions,
-    withScribble,
-    withEraser,
-    withStickyNote,
-    withHanddrawn,
-  ];
+  const [value, setValue] = useState<PlaitElement[]>(initialElements);
+
+  useEffect(() => {
+    if (boardData) {
+      setCurrentBoardId(boardData.id);
+    }
+  }, [boardData, setCurrentBoardId]);
+
+  useEffect(() => {
+    setValue(initialElements);
+  }, [initialElements]);
+
+  useAutoSave({
+    board: board,
+    enabled: !!boardData,
+  });
 
   const handleChange = (data: BoardChangeData) => {
     setValue(data.children);
@@ -90,25 +104,13 @@ export function BoardCanvas({
     setBoard(board);
   };
 
-  useEffect(() => {
-    if (boardData) {
-      setValue(boardData.elements);
-      setCurrentBoardId(boardData.id);
-    }
-  }, [boardData, setCurrentBoardId]);
-
-  useAutoSave({
-    board: board,
-    enabled: !!boardData,
-  });
-
   return (
     <div className={`relative w-full h-full board-wrapper ${className || ''}`}>
       <Wrapper
         key={boardData?.id ?? 'default'}
         value={value}
         options={DEFAULT_BOARD_OPTIONS}
-        plugins={plugins}
+        plugins={createPlugins()}
         theme={DEFAULT_THEME}
         onChange={handleChange}
       >
