@@ -166,7 +166,7 @@ export function BoardToolbar() {
                 variant="ghost"
                 size="icon"
                 className={`${BUTTON_CLASS} ${handdrawn ? 'bg-accent text-accent-foreground' : ''}`}
-                onPointerDown={(e) => {
+                onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
                   toggleHanddrawn();
@@ -189,7 +189,7 @@ export function BoardToolbar() {
                 size="icon"
                 className={BUTTON_CLASS}
                 disabled={isUndoDisabled}
-                onPointerDown={(e) => {
+                onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
                   board.undo();
@@ -210,7 +210,7 @@ export function BoardToolbar() {
                 size="icon"
                 className={BUTTON_CLASS}
                 disabled={isRedoDisabled}
-                onPointerDown={(e) => {
+                onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
                   board.redo();
@@ -233,7 +233,7 @@ export function BoardToolbar() {
                     variant="ghost"
                     size="icon"
                     className={BUTTON_CLASS}
-                    onPointerDown={(e) => {
+                    onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
                       duplicateElements(board);
@@ -253,7 +253,7 @@ export function BoardToolbar() {
                     variant="ghost"
                     size="icon"
                     className={`${BUTTON_CLASS} hover:bg-destructive/10 hover:text-destructive`}
-                    onPointerDown={(e) => {
+                    onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
                       deleteFragment(board);

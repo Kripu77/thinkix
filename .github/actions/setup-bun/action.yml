@@ -27,6 +27,5 @@ runs:
           ${{ runner.os }}-bun-
 
     - name: Install dependencies
-      if: steps.bun-cache.outputs.cache-hit != 'true'
       shell: bash
       run: bun install --frozen-lockfile

@@ -73,7 +73,7 @@ export function ColorPicker({
             disabled && 'opacity-50 cursor-not-allowed'
           )}
           disabled={disabled}
-          onPointerDown={(e) => e.stopPropagation()}
+          onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
         >
           <div
             className="absolute inset-0"
@@ -93,7 +93,7 @@ export function ColorPicker({
         align="start"
         className="w-64 p-0"
         sideOffset={4}
-        onCloseAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e: Event) => e.preventDefault()}
       >
         <div className="p-3" onPointerDown={(e) => e.stopPropagation()}>
           {showStrokeControls && (

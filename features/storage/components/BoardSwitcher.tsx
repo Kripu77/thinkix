@@ -149,7 +149,7 @@ export function BoardSwitcher({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 opacity-0 group-hover:opacity-100 shrink-0"
-                          onClick={(e) => handleRenameStart(board.id, board.name, e)}
+                          onClick={(e: React.MouseEvent) => handleRenameStart(board.id, board.name, e)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -157,7 +157,7 @@ export function BoardSwitcher({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 opacity-0 group-hover:opacity-100 shrink-0 hover:text-destructive disabled:opacity-50"
-                          onClick={(e) => handleDelete(board.id, e)}
+                          onClick={(e: React.MouseEvent) => handleDelete(board.id, e)}
                           disabled={boards.length === 1}
                         >
                           <Trash2 className="h-4 w-4" />
