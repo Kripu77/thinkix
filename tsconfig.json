@@ -43,13 +43,15 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "scratch"
   ],
   "references": [
     { "path": "./packages/ui" },
     { "path": "./packages/ai" },
     { "path": "./packages/plait-utils" },
     { "path": "./packages/storage" },
-    { "path": "./packages/shared" }
+    { "path": "./packages/shared" },
+    { "path": "./packages/file-utils" }
   ]
 }
