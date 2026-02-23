@@ -1,5 +1,9 @@
 import type { Page, Locator } from '@playwright/test';
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function getCanvas(page: Page): Promise<Locator> {
   const selectors = [
     page.locator('.board-wrapper'),
@@ -68,8 +72,8 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
       await shapesDropdown.click({ force: true });
       await page.waitForTimeout(200);
       
-      const toolItem = page.getByRole('menuitem', { name: new RegExp(toolName, 'i') })
-        .or(page.locator(`[role="menuitem"]:has-text("${toolName}")`));
+      const toolItem = page.locator(`[role="menuitem"]:has-text("${toolName}")`)
+        .or(page.getByRole('menuitem', { name: new RegExp(escapeRegExp(toolName), 'i') }));
       
       if (await toolItem.first().isVisible({ timeout: 1000 }).catch(() => false)) {
         await toolItem.first().click();
@@ -80,7 +84,7 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
     return false;
   }
   
-  const tool = page.getByRole('button', { name: new RegExp(toolName, 'i') })
+  const tool = page.locator(`[role="button"]:has-text("${toolName}")`)
     .or(page.locator(`[data-tool="${toolName}"]`))
     .or(page.locator(`[aria-label*="${toolName}" i]`));
   
@@ -124,8 +128,12 @@ export async function getElementCount(page: Page): Promise<number> {
     }
   }
   
+  if (count > 0) {
+    return count;
+  }
+  
   const svgElements = content.match(/<svg|<path|<rect|<ellipse|<circle|<polygon|<line/g);
-  return svgElements ? svgElements.length : count;
+  return svgElements ? svgElements.length : 0;
 }
 
 export async function hasElementOnCanvas(page: Page): Promise<boolean> {
@@ -137,12 +145,14 @@ export async function hasElementOnCanvas(page: Page): Promise<boolean> {
 }
 
 export async function isSelectionToolbarVisible(page: Page): Promise<boolean> {
-  const toolbar = page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border');
+  const toolbar = page.locator('[data-testid="selection-toolbar"]')
+    .or(page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border'));
   return toolbar.isVisible({ timeout: 2000 }).catch(() => false);
 }
 
 export function getSelectionToolbar(page: Page): Locator {
-  return page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border').first();
+  return page.locator('[data-testid="selection-toolbar"]')
+    .or(page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border')).first();
 }
 
 export async function pressEscape(page: Page): Promise<void> {

@@ -8,14 +8,20 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
 
   test.describe('Multiple Sequential Undo', () => {
     test('should undo multiple creations', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectSelected = await selectTool(page, 'rectangle');
+      if (!rectSelected) { test.skip(); return; }
       await drawShape(page, 50, 50, 150, 150);
       
-      await selectTool(page, 'ellipse');
+      const ellipseSelected = await selectTool(page, 'ellipse');
+      if (!ellipseSelected) { test.skip(); return; }
       await drawShape(page, 200, 50, 300, 150);
       
-      await selectTool(page, 'diamond');
+      const diamondSelected = await selectTool(page, 'diamond');
+      if (!diamondSelected) { test.skip(); return; }
       await drawShape(page, 350, 50, 450, 150);
+      
+      const hasElementsBefore = await hasElementOnCanvas(page);
+      expect(hasElementsBefore).toBe(true);
       
       for (let i = 0; i < 3; i++) {
         await page.keyboard.down('Control');
@@ -24,7 +30,8 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
         await page.waitForTimeout(200);
       }
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -50,8 +57,12 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
     });
 
     test('should toggle undo/redo multiple times', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectSelected = await selectTool(page, 'rectangle');
+      if (!rectSelected) { test.skip(); return; }
       await drawShape(page, 100, 100, 200, 200);
+      
+      const hasElementBefore = await hasElementOnCanvas(page);
+      expect(hasElementBefore).toBe(true);
       
       for (let i = 0; i < 3; i++) {
         await page.keyboard.down('Control');
@@ -67,7 +78,8 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
         await page.waitForTimeout(150);
       }
       
-      expect(true).toBeTruthy();
+      const hasElementAfter = await hasElementOnCanvas(page);
+      expect(hasElementAfter).toBe(true);
     });
   });
 
@@ -79,6 +91,9 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
         return;
       }
       await drawShape(page, 100, 100, 300, 250);
+      
+      const hasElementBefore = await hasElementOnCanvas(page);
+      expect(hasElementBefore).toBe(true);
       
       await selectTool(page, 'select');
       const canvas = page.locator('.board-wrapper');
@@ -102,7 +117,8 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
         await page.waitForTimeout(300);
       }
       
-      expect(true).toBeTruthy();
+      const hasElementAfter = await hasElementOnCanvas(page);
+      expect(hasElementAfter).toBe(true);
     });
 
     test('should undo stroke width change', async ({ page }) => {
@@ -112,6 +128,9 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
         return;
       }
       await drawShape(page, 100, 100, 300, 250);
+      
+      const hasElementBefore = await hasElementOnCanvas(page);
+      expect(hasElementBefore).toBe(true);
       
       await selectTool(page, 'select');
       const canvas = page.locator('.board-wrapper');
@@ -136,7 +155,8 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
         await page.waitForTimeout(300);
       }
       
-      expect(true).toBeTruthy();
+      const hasElementAfter = await hasElementOnCanvas(page);
+      expect(hasElementAfter).toBe(true);
     });
   });
 

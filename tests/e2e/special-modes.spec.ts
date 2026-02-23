@@ -8,10 +8,6 @@ test.describe('Special Modes E2E Tests', () => {
 
   test.describe('Handdrawn Mode', () => {
     test('should toggle handdrawn mode', async ({ page }) => {
-      const handdrawnButton = page.getByRole('button').filter({ 
-        has: page.locator('svg') 
-      }).locator('visible=true').nth(5);
-      
       const pencilButtons = page.locator('button').filter({ 
         has: page.locator('svg[class*="pencil"], svg.lucide-pencil') 
       });
@@ -21,7 +17,8 @@ test.describe('Special Modes E2E Tests', () => {
         await page.waitForTimeout(300);
       }
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
 
     test('should draw shapes in handdrawn mode', async ({ page }) => {
@@ -58,7 +55,8 @@ test.describe('Special Modes E2E Tests', () => {
         await page.waitForTimeout(300);
       }
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -100,7 +98,7 @@ test.describe('Special Modes E2E Tests', () => {
       
       const fillButton = page.getByTestId('fill-button');
       const isVisible = await fillButton.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(isVisible || true).toBeTruthy();
+      expect(typeof isVisible).toBe('boolean');
     });
 
     test('should change sticky note color', async ({ page }) => {
@@ -133,7 +131,8 @@ test.describe('Special Modes E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should delete sticky note', async ({ page }) => {
@@ -157,7 +156,7 @@ test.describe('Special Modes E2E Tests', () => {
       await page.keyboard.press('Delete');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      await expect(canvas).toBeVisible();
     });
   });
 });

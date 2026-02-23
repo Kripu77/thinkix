@@ -1,32 +1,32 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PlaitBoard, PlaitElement } from '@plait/core';
 
-const STICKY_NOTE_POINTER = 'sticky-note';
-const STICKY_NOTE_FILL = '#FFEAA7';
-const STICKY_NOTE_STROKE = '#F1C40F';
-const STICKY_NOTE_WIDTH = 160;
-const STICKY_NOTE_HEIGHT = 160;
+const MOCK_STICKY_NOTE_POINTER = 'sticky-note';
 
-vi.mock('@plait/core', async () => ({
-  toHostPoint: vi.fn((board, x, y) => [x, y]),
-  toViewBoxPoint: vi.fn((board, point) => point),
-  Transforms: {
-    insertNode: vi.fn(),
-  },
-  BoardTransforms: {
-    updatePointerType: vi.fn(),
-  },
-  PlaitPointerType: {
-    selection: 'selection',
-  },
-  PlaitBoard: {
-    isInPointer: vi.fn((board, pointers) => pointers.includes(STICKY_NOTE_POINTER)),
-  },
-}));
+vi.mock('@plait/core', async () => {
+  const actual = await vi.importActual('@plait/core');
+  return {
+    ...actual,
+    toHostPoint: vi.fn((board, x, y) => [x, y]),
+    toViewBoxPoint: vi.fn((board, point) => point),
+    Transforms: {
+      insertNode: vi.fn(),
+    },
+    BoardTransforms: {
+      updatePointerType: vi.fn(),
+    },
+    PlaitPointerType: {
+      selection: 'selection',
+    },
+    PlaitBoard: {
+      isInPointer: vi.fn((board, pointers) => pointers.includes(MOCK_STICKY_NOTE_POINTER)),
+    },
+  };
+});
 
 vi.mock('@plait/draw', () => ({
   createGeometryElement: vi.fn((shape, points, text, props) => ({
-    id: 'test-id',
+    id: 'sticky-note-id',
     type: shape,
     points,
     text,
@@ -36,6 +36,10 @@ vi.mock('@plait/draw', () => ({
   BasicShapes: {
     rectangle: 'rectangle',
   },
+}));
+
+vi.mock('@/shared/constants', () => ({
+  STICKY_NOTE_POINTER: MOCK_STICKY_NOTE_POINTER,
 }));
 
 function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
@@ -49,11 +53,11 @@ function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
     isSpaceDown: false,
     isHand: false,
     isSelecting: false,
-    pointer: 'default',
+    pointer: MOCK_STICKY_NOTE_POINTER,
     actions: [],
     selectedAction: null,
     getRectangle: vi.fn(),
-    getViewBox: vi.fn(),
+    getViewBox: vi.fn(() => ({ x: 0, y: 0, width: 1000, height: 1000 })),
     toGlobalPoint: vi.fn((p) => p),
     toLocalPoint: vi.fn((p) => p),
     onChange: vi.fn(),
@@ -85,129 +89,210 @@ function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
 }
 
 describe('with-sticky-note', () => {
-  describe('sticky note constants', () => {
-    it('should have correct fill color', () => {
+  let dispatchEventSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    dispatchEventSpy = vi.spyOn(window, 'dispatchEvent').mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    dispatchEventSpy.mockRestore();
+  });
+
+  describe('exported constants', () => {
+    it('should export correct pointer constant', async () => {
+      const { STICKY_NOTE_POINTER } = await import('@/features/board/plugins/with-sticky-note');
+      expect(STICKY_NOTE_POINTER).toBe('sticky-note');
+    });
+
+    it('should export correct fill color', async () => {
+      const { STICKY_NOTE_FILL } = await import('@/features/board/plugins/with-sticky-note');
       expect(STICKY_NOTE_FILL).toBe('#FFEAA7');
     });
 
-    it('should have correct stroke color', () => {
+    it('should export correct stroke color', async () => {
+      const { STICKY_NOTE_STROKE } = await import('@/features/board/plugins/with-sticky-note');
       expect(STICKY_NOTE_STROKE).toBe('#F1C40F');
     });
 
-    it('should have correct width', () => {
+    it('should export correct width', async () => {
+      const { STICKY_NOTE_WIDTH } = await import('@/features/board/plugins/with-sticky-note');
       expect(STICKY_NOTE_WIDTH).toBe(160);
     });
 
-    it('should have correct height', () => {
+    it('should export correct height', async () => {
+      const { STICKY_NOTE_HEIGHT } = await import('@/features/board/plugins/with-sticky-note');
       expect(STICKY_NOTE_HEIGHT).toBe(160);
     });
   });
 
-  describe('sticky note pointer detection', () => {
-    it('should detect sticky note pointer', async () => {
-      const { PlaitBoard } = await import('@plait/core');
-      const board = createMockBoard([]);
+  describe('plugin application', () => {
+    it('should apply plugin to board without error', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const board = createMockBoard();
       
-      const isStickyNote = PlaitBoard.isInPointer(board, [STICKY_NOTE_POINTER]);
-      expect(isStickyNote).toBe(true);
+      expect(() => withStickyNote(board)).not.toThrow();
     });
 
-    it('should not detect non-sticky-note pointer', async () => {
-      const { PlaitBoard } = await import('@plait/core');
-      const board = createMockBoard([]);
+    it('should wrap existing pointerDown handler', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const board = createMockBoard();
+      const originalPointerDown = vi.fn();
+      board.pointerDown = originalPointerDown;
       
-      const isStickyNote = PlaitBoard.isInPointer(board, ['selection']);
-      expect(isStickyNote).toBe(false);
+      withStickyNote(board);
+      
+      expect(board.pointerDown).toBeDefined();
+      expect(board.pointerDown).not.toBe(originalPointerDown);
+    });
+
+    it('should wrap existing pointerUp handler', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const board = createMockBoard();
+      const originalPointerUp = vi.fn();
+      board.pointerUp = originalPointerUp;
+      
+      withStickyNote(board);
+      
+      expect(board.pointerUp).toBeDefined();
+      expect(board.pointerUp).not.toBe(originalPointerUp);
     });
   });
 
-  describe('sticky note creation', () => {
-    it('should create geometry element with rectangle shape', async () => {
-      const { createGeometryElement, BasicShapes } = await import('@plait/draw');
-      
-      const points: [[number, number], [number, number]] = [[0, 0], [160, 160]];
-      const text = { children: [{ text: '' }] };
-      const props = {
-        fill: STICKY_NOTE_FILL,
-        strokeColor: STICKY_NOTE_STROKE,
-        strokeWidth: 1,
-      };
-      
-      const element = createGeometryElement(BasicShapes.rectangle, points, text, props);
-      
-      expect(element.type).toBe('rectangle');
-      expect(element.points).toEqual(points);
-      expect(element.text).toEqual(text);
-      expect(element.fill).toBe(STICKY_NOTE_FILL);
-      expect(element.strokeColor).toBe(STICKY_NOTE_STROKE);
-    });
-
-    it('should insert node at correct path', async () => {
+  describe('sticky note creation on pointer events', () => {
+    it('should create sticky note on pointerUp after pointerDown', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
       const { Transforms } = await import('@plait/core');
-      const board = createMockBoard([]);
-      const element = { id: 'test', type: 'rectangle' } as PlaitElement;
+      const board = createMockBoard();
       
-      Transforms.insertNode(board, element, [0]);
-      expect(Transforms.insertNode).toHaveBeenCalledWith(board, element, [0]);
+      withStickyNote(board);
+      
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
+      
+      expect(Transforms.insertNode).toHaveBeenCalled();
     });
 
     it('should update pointer type to selection after creation', async () => {
-      const { BoardTransforms, PlaitPointerType } = await import('@plait/core');
-      const board = createMockBoard([]);
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { BoardTransforms } = await import('@plait/core');
+      const board = createMockBoard();
       
-      BoardTransforms.updatePointerType(board, PlaitPointerType.selection);
-      expect(BoardTransforms.updatePointerType).toHaveBeenCalledWith(board, 'selection');
+      withStickyNote(board);
+      
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
+      
+      expect(BoardTransforms.updatePointerType).toHaveBeenCalled();
+    });
+
+    it('should dispatch toolchange event after creation', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const board = createMockBoard();
+      
+      withStickyNote(board);
+      
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
+      
+      expect(dispatchEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'thinkix:toolchange',
+          detail: { tool: 'select' },
+        })
+      );
+    });
+
+    it('should not create sticky note when pointerDown not called first', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { Transforms } = await import('@plait/core');
+      const board = createMockBoard();
+      
+      withStickyNote(board);
+      
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      await board.pointerUp!(pointerUpEvent);
+      
+      expect(Transforms.insertNode).not.toHaveBeenCalled();
+    });
+
+    it('should call original handler when not in sticky note mode', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { PlaitBoard } = await import('@plait/core');
+      
+      (PlaitBoard.isInPointer as ReturnType<typeof vi.fn>).mockReturnValueOnce(false);
+      
+      const board = createMockBoard();
+      const originalPointerDown = vi.fn();
+      const originalPointerUp = vi.fn();
+      board.pointerDown = originalPointerDown;
+      board.pointerUp = originalPointerUp;
+      
+      withStickyNote(board);
+      
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
+      
+      expect(originalPointerDown).toHaveBeenCalledWith(pointerDownEvent);
+      expect(originalPointerUp).toHaveBeenCalledWith(pointerUpEvent);
     });
   });
 
-  describe('sticky note dimensions', () => {
-    it('should use minimum dimensions when drag is small', () => {
-      const startPoint: [number, number] = [0, 0];
-      const endPoint: [number, number] = [10, 10];
+  describe('element creation parameters', () => {
+    it('should insert element at correct path', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { Transforms } = await import('@plait/core');
+      const board = createMockBoard([{ id: 'existing' } as PlaitElement]);
       
-      const width = Math.max(Math.abs(endPoint[0] - startPoint[0]), STICKY_NOTE_WIDTH);
-      const height = Math.max(Math.abs(endPoint[1] - startPoint[1]), STICKY_NOTE_HEIGHT);
+      withStickyNote(board);
       
-      expect(width).toBe(STICKY_NOTE_WIDTH);
-      expect(height).toBe(STICKY_NOTE_HEIGHT);
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
+      
+      expect(Transforms.insertNode).toHaveBeenCalledWith(
+        board,
+        expect.objectContaining({
+          type: 'rectangle',
+        }),
+        [1]
+      );
     });
 
-    it('should use drag dimensions when larger than minimum', () => {
-      const startPoint: [number, number] = [0, 0];
-      const endPoint: [number, number] = [200, 300];
+    it('should create element with correct properties', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { Transforms } = await import('@plait/core');
+      const board = createMockBoard();
       
-      const width = Math.max(Math.abs(endPoint[0] - startPoint[0]), STICKY_NOTE_WIDTH);
-      const height = Math.max(Math.abs(endPoint[1] - startPoint[1]), STICKY_NOTE_HEIGHT);
+      withStickyNote(board);
       
-      expect(width).toBe(200);
-      expect(height).toBe(300);
-    });
-
-    it('should calculate correct bounds when dragging in reverse', () => {
-      const startPoint: [number, number] = [200, 200];
-      const endPoint: [number, number] = [50, 50];
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
       
-      const x = Math.min(startPoint[0], endPoint[0]);
-      const y = Math.min(startPoint[1], endPoint[1]);
-      const width = Math.max(Math.abs(endPoint[0] - startPoint[0]), STICKY_NOTE_WIDTH);
-      const height = Math.max(Math.abs(endPoint[1] - startPoint[1]), STICKY_NOTE_HEIGHT);
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
       
-      expect(x).toBe(50);
-      expect(y).toBe(50);
-      expect(width).toBe(STICKY_NOTE_WIDTH);
-      expect(height).toBe(STICKY_NOTE_HEIGHT);
-    });
-  });
-
-  describe('tool change event', () => {
-    it('should dispatch tool change event', () => {
-      const dispatchEventSpy = vi.spyOn(window, 'dispatchEvent');
+      const insertedElement = (Transforms.insertNode as ReturnType<typeof vi.fn>).mock.calls[0][1];
       
-      window.dispatchEvent(new CustomEvent('thinkix:toolchange', { 
-        detail: { tool: 'select' } 
-      }));
-      
-      expect(dispatchEventSpy).toHaveBeenCalled();
+      expect(insertedElement.fill).toBe('#FFEAA7');
+      expect(insertedElement.strokeColor).toBe('#F1C40F');
+      expect(insertedElement.strokeWidth).toBe(1);
+      expect(insertedElement.fillStyle).toBe('solid');
     });
   });
 });

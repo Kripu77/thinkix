@@ -23,7 +23,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should drag element back after moving', async ({ page }) => {
@@ -48,7 +49,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -69,7 +71,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should resize element smaller', async ({ page }) => {
@@ -88,7 +91,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -114,7 +118,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.up('Control');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should undo element resize', async ({ page }) => {
@@ -138,7 +143,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.up('Control');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -168,7 +174,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.type(' Extended');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should enter edit mode with double-click on sticky note', async ({ page }) => {
@@ -191,7 +198,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.dblclick(box.x + 200, box.y + 200);
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -211,7 +219,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await clickOnCanvas(page, 400, 400);
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 });

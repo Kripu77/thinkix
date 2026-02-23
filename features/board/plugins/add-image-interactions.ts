@@ -19,14 +19,14 @@ import { DrawTransforms } from '@plait/draw';
 import { MindTransforms } from '@plait/mind';
 import { getSelectedElements } from '@plait/core';
 
-const STANDARD_IMAGE_WIDTH = 400;
-const MIND_IMAGE_WIDTH = 240;
+export const STANDARD_IMAGE_WIDTH = 400;
+export const MIND_IMAGE_WIDTH = 240;
 
-function isValidImageType(mime: string): boolean {
+export function isValidImageType(mime: string): boolean {
   return mime.startsWith('image/');
 }
 
-async function readFileAsURL(file: File): Promise<string> {
+export async function readFileAsURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
@@ -80,7 +80,7 @@ async function placeImage(
   }
 }
 
-function showFullscreenImage(url: string) {
+export function showFullscreenImage(url: string) {
   const overlay = document.createElement('div');
   overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80';
   overlay.addEventListener('click', () => overlay.remove());

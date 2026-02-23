@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, clickOnCanvas, hasElementOnCanvas, getSelectionToolbar } from './utils';
+import { waitForBoard, selectTool, clickOnCanvas, hasElementOnCanvas, getSelectionToolbar } from './utils';
 
 test.describe('Text Formatting E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -67,16 +67,13 @@ test.describe('Text Formatting E2E Tests', () => {
       
       const toolbar = getSelectionToolbar(page);
       const isVisible = await toolbar.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(isVisible || true).toBeTruthy();
+      expect(typeof isVisible).toBe('boolean');
     });
 
     test('should toggle bold formatting', async ({ page }) => {
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
       await page.waitForTimeout(500);
-      
-      const boldButton = page.getByRole('button').filter({ has: page.locator('svg') })
-        .locator('visible=true').first();
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -87,7 +84,8 @@ test.describe('Text Formatting E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should toggle italic formatting', async ({ page }) => {
@@ -105,7 +103,8 @@ test.describe('Text Formatting E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should toggle underline formatting', async ({ page }) => {
@@ -123,7 +122,8 @@ test.describe('Text Formatting E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should toggle strikethrough formatting', async ({ page }) => {
@@ -141,7 +141,8 @@ test.describe('Text Formatting E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -179,7 +180,8 @@ test.describe('Text Formatting E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -218,7 +220,8 @@ test.describe('Text Formatting E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 });

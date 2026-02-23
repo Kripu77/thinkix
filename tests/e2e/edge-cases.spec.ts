@@ -14,7 +14,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.click(box.x + 200, box.y + 200);
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
 
     test('should handle very small shape', async ({ page }) => {
@@ -23,7 +24,8 @@ test.describe('Edge Cases E2E Tests', () => {
       
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -54,7 +56,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should draw shape at right edge', async ({ page }) => {
@@ -67,7 +70,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should draw shape at top edge', async ({ page }) => {
@@ -80,7 +84,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should draw shape at bottom edge', async ({ page }) => {
@@ -93,7 +98,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -124,7 +130,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.click(box.x + 400, box.y + 400);
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -141,7 +148,8 @@ test.describe('Edge Cases E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 

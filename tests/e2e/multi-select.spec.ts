@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, clickOnCanvas, getCanvasBoundingBox } from './utils';
+import { waitForBoard, selectTool, drawShape, clickOnCanvas, getCanvasBoundingBox, hasElementOnCanvas } from './utils';
 
 test.describe('Multi-Select E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -14,6 +14,9 @@ test.describe('Multi-Select E2E Tests', () => {
       if (!await selectTool(page, 'ellipse')) { test.skip(); return; }
       await drawShape(page, 200, 50, 300, 150);
       
+      const hasElements = await hasElementOnCanvas(page);
+      expect(hasElements).toBe(true);
+      
       await selectTool(page, 'select');
       await clickOnCanvas(page, 100, 100);
       await page.waitForTimeout(500);
@@ -23,7 +26,8 @@ test.describe('Multi-Select E2E Tests', () => {
       await page.keyboard.up('Shift');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
 
     test('should remove element from selection with Shift+Click', async ({ page }) => {
@@ -32,6 +36,9 @@ test.describe('Multi-Select E2E Tests', () => {
       
       if (!await selectTool(page, 'ellipse')) { test.skip(); return; }
       await drawShape(page, 200, 50, 300, 150);
+      
+      const hasElements = await hasElementOnCanvas(page);
+      expect(hasElements).toBe(true);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 100, 100);
@@ -47,7 +54,8 @@ test.describe('Multi-Select E2E Tests', () => {
       await page.keyboard.up('Shift');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -62,12 +70,16 @@ test.describe('Multi-Select E2E Tests', () => {
       if (!await selectTool(page, 'diamond')) { test.skip(); return; }
       await drawShape(page, 350, 50, 450, 150);
       
+      const hasElements = await hasElementOnCanvas(page);
+      expect(hasElements).toBe(true);
+      
       await page.keyboard.down('Control');
       await page.keyboard.press('KeyA');
       await page.keyboard.up('Control');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -79,6 +91,9 @@ test.describe('Multi-Select E2E Tests', () => {
       if (!await selectTool(page, 'ellipse')) { test.skip(); return; }
       await drawShape(page, 220, 100, 320, 200);
       
+      const hasElements = await hasElementOnCanvas(page);
+      expect(hasElements).toBe(true);
+      
       await selectTool(page, 'select');
       
       const box = await getCanvasBoundingBox(page);
@@ -89,7 +104,8 @@ test.describe('Multi-Select E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(500);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -100,6 +116,9 @@ test.describe('Multi-Select E2E Tests', () => {
       
       if (!await selectTool(page, 'ellipse')) { test.skip(); return; }
       await drawShape(page, 220, 100, 320, 200);
+      
+      const hasElementsBefore = await hasElementOnCanvas(page);
+      expect(hasElementsBefore).toBe(true);
       
       await selectTool(page, 'select');
       await page.keyboard.down('Control');
@@ -115,7 +134,8 @@ test.describe('Multi-Select E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElementsAfter = await hasElementOnCanvas(page);
+      expect(hasElementsAfter).toBe(true);
     });
 
     test('should delete multiple selected elements', async ({ page }) => {
@@ -124,6 +144,9 @@ test.describe('Multi-Select E2E Tests', () => {
       
       if (!await selectTool(page, 'ellipse')) { test.skip(); return; }
       await drawShape(page, 220, 100, 320, 200);
+      
+      const hasElementsBefore = await hasElementOnCanvas(page);
+      expect(hasElementsBefore).toBe(true);
       
       await selectTool(page, 'select');
       await page.keyboard.down('Control');
@@ -134,7 +157,8 @@ test.describe('Multi-Select E2E Tests', () => {
       await page.keyboard.press('Delete');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
 
     test('should copy and paste multiple elements', async ({ page }) => {
@@ -143,6 +167,9 @@ test.describe('Multi-Select E2E Tests', () => {
       
       if (!await selectTool(page, 'ellipse')) { test.skip(); return; }
       await drawShape(page, 220, 100, 320, 200);
+      
+      const hasElementsBefore = await hasElementOnCanvas(page);
+      expect(hasElementsBefore).toBe(true);
       
       await selectTool(page, 'select');
       await page.keyboard.down('Control');
@@ -160,7 +187,8 @@ test.describe('Multi-Select E2E Tests', () => {
       await page.keyboard.up('Control');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElementsAfter = await hasElementOnCanvas(page);
+      expect(hasElementsAfter).toBe(true);
     });
   });
 });
