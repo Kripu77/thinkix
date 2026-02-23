@@ -13,7 +13,7 @@
         "@plait-board/react-text": "^0.4.0-0",
         "@plait/common": "^0.92.1",
         "@plait/core": "^0.92.1",
-        "@plait/draw": "^0.92.1",
+        "@plait/draw": "0.92.3",
         "@plait/layouts": "0.92.3",
         "@plait/mind": "^0.92.1",
         "@plait/text": "^0.60.4",
@@ -95,6 +95,7 @@
       "peerDependencies": {
         "@plait/common": "^0.92.1",
         "@plait/core": "^0.92.1",
+        "@plait/layouts": "^0.92.1",
         "@plait/mind": "^0.92.1",
       },
     },
