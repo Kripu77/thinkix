@@ -5,10 +5,13 @@ tsconfig.tsbuildinfo
 tsconfig.tsbuildinfo
 
 
-
 .nx/cache
 .nx/workspace-data
 .serena/project.yml
 plans/
 scratch
 coverage
+
+playwright-report/
+test-results/
+playwright/.cache/
