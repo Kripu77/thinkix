@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu } from 'lucide-react';
+import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, FileText } from 'lucide-react';
 import { useBoard, useListRender } from '@plait-board/react-board';
 import {
   BoardTransforms,
@@ -36,6 +36,7 @@ import {
   exportAsPng,
   exportAsJpg,
 } from '@thinkix/file-utils';
+import { MarkdownToMindmapDialog } from '@/features/dialogs';
 
 interface AppMenuProps {
   boardName?: string;
@@ -46,6 +47,7 @@ export function AppMenu({ boardName }: AppMenuProps) {
   const listRender = useListRender();
   const [isOpen, setIsOpen] = useState(false);
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+  const [isMarkdownDialogOpen, setIsMarkdownDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -187,6 +189,13 @@ export function AppMenu({ boardName }: AppMenuProps) {
           </DropdownMenuSub>
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            onSelect={() => { setIsOpen(false); setIsMarkdownDialogOpen(true); }}
+          >
+            <FileText className="h-5 w-5 mr-2" />
+            Markdown To Mind Map
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
             onSelect={handleClearBoard}
             className="text-destructive focus:text-destructive"
           >
@@ -221,6 +230,11 @@ export function AppMenu({ boardName }: AppMenuProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MarkdownToMindmapDialog
+        open={isMarkdownDialogOpen}
+        onOpenChange={setIsMarkdownDialogOpen}
+      />
     </>
   );
 }
