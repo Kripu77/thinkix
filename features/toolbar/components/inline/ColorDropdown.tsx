@@ -53,10 +53,11 @@ export function ColorDropdown({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" data-testid={`${type}-dropdown`}>
       <button
         ref={triggerRef}
         type="button"
+        data-testid={`${type}-button`}
         className={cn(
           'inline-flex items-center gap-1.5 h-8 px-2 rounded-md text-sm font-medium transition-colors',
           'hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
@@ -90,6 +91,8 @@ export function ColorDropdown({
               <button
                 key={color}
                 type="button"
+                data-testid={`color-swatch-${color.replace('#', '')}`}
+                data-color={color}
                 className={cn(
                   'relative rounded transition-all hover:scale-110 focus-visible:outline-none h-6 w-6',
                   color === NO_COLOR_SWATCH && 'bg-background'
@@ -113,8 +116,8 @@ export function ColorDropdown({
             <>
               <div className="h-px bg-border my-2" />
               <div className="text-xs text-muted-foreground mb-2">Stroke Width</div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground w-6">{strokeWidth}px</span>
+              <div className="flex items-center gap-3" data-testid="stroke-width-control">
+                <span className="text-xs text-muted-foreground w-6" data-testid="stroke-width-value">{strokeWidth}px</span>
                 <Slider
                   value={[strokeWidth]}
                   onValueChange={([value]) => onStrokeWidthChange(value)}
@@ -122,6 +125,7 @@ export function ColorDropdown({
                   max={20}
                   step={1}
                   className="flex-1"
+                  data-testid="stroke-width-slider"
                 />
               </div>
             </>
@@ -131,11 +135,12 @@ export function ColorDropdown({
             <>
               <div className="h-px bg-border my-2" />
               <div className="text-xs text-muted-foreground mb-2">Stroke Style</div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" data-testid="stroke-style-options">
                 {STROKE_STYLE_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
+                    data-testid={`stroke-style-${option.value}`}
                     className={cn(
                       'h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors',
                       'hover:bg-accent hover:text-accent-foreground',
@@ -155,11 +160,12 @@ export function ColorDropdown({
             <>
               <div className="h-px bg-border my-2" />
               <div className="text-xs text-muted-foreground mb-2">Fill Pattern</div>
-              <div className="grid grid-cols-6 gap-1">
+              <div className="grid grid-cols-6 gap-1" data-testid="fill-style-options">
                 {FILL_STYLE_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
+                    data-testid={`fill-style-${option.value}`}
                     className={cn(
                       'h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors',
                       'hover:bg-accent hover:text-accent-foreground',

@@ -35,10 +35,11 @@ export function ArrowDropdown({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" data-testid="arrow-dropdown">
       <button
         ref={triggerRef}
         type="button"
+        data-testid="arrow-button"
         className={cn(
           'inline-flex items-center justify-center h-8 w-8 rounded-md text-sm font-medium transition-colors',
           'hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
@@ -59,11 +60,12 @@ export function ArrowDropdown({
           )}
         >
           <div className="text-xs text-muted-foreground mb-2">Line Type</div>
-          <div className="flex items-center gap-1 mb-3">
+          <div className="flex items-center gap-1 mb-3" data-testid="line-shape-options">
             {LINE_SHAPE_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
+                data-testid={`line-shape-${option.value}`}
                 className={cn(
                   'h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors',
                   'hover:bg-accent hover:text-accent-foreground',
@@ -83,6 +85,7 @@ export function ArrowDropdown({
           <div className="flex items-center gap-2">
             <button
               type="button"
+              data-testid="arrow-source-marker"
               className={cn(
                 'h-8 px-3 inline-flex items-center gap-1.5 rounded-md transition-colors text-xs',
                 'hover:bg-accent hover:text-accent-foreground',
@@ -95,6 +98,7 @@ export function ArrowDropdown({
             </button>
             <button
               type="button"
+              data-testid="arrow-target-marker"
               className={cn(
                 'h-8 px-3 inline-flex items-center gap-1.5 rounded-md transition-colors text-xs',
                 'hover:bg-accent hover:text-accent-foreground',
