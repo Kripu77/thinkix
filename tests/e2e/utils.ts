@@ -56,13 +56,14 @@ export async function drawFreehand(page: Page, points: Array<[number, number]>):
 }
 
 export async function selectTool(page: Page, toolName: string): Promise<boolean> {
+  // Dismiss any overlays first
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+
   const shapeTools = ['rectangle', 'ellipse', 'diamond', 'triangle', 'roundRectangle', 
     'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud', 'arrow'];
   
   if (shapeTools.includes(toolName)) {
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(100);
-    
     const shapesDropdown = page.getByRole('button', { name: /shapes/i })
       .or(page.locator('button[aria-label="Shapes"]'))
       .or(page.locator('button:has(svg[class*="chevron"])').first());
@@ -75,7 +76,7 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
         .or(page.getByRole('menuitem', { name: new RegExp(escapeRegExp(toolName), 'i') }));
       
       if (await toolItem.first().isVisible({ timeout: 1000 }).catch(() => false)) {
-        await toolItem.first().click();
+        await toolItem.first().click({ force: true });
         await page.waitForTimeout(100);
         return true;
       }
@@ -89,7 +90,7 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
   
   const toolElement = tool.first();
   if (await toolElement.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await toolElement.click();
+    await toolElement.click({ force: true });
     await page.waitForTimeout(100);
     return true;
   }
@@ -104,6 +105,9 @@ export async function clickOnCanvas(page: Page, x: number, y: number): Promise<v
 export async function waitForBoard(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
+  // Dismiss any dev overlays
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
   const canvas = await getCanvas(page);
   await canvas.waitFor({ state: 'visible', timeout: 10000 });
 }
