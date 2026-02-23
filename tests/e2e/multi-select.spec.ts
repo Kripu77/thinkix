@@ -19,15 +19,13 @@ test.describe('Multi-Select E2E Tests', () => {
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 100, 100);
-      await page.waitForTimeout(500);
       
       await page.keyboard.down('Shift');
       await clickOnCanvas(page, 250, 100);
       await page.keyboard.up('Shift');
-      await page.waitForTimeout(300);
       
-      const canvas = page.locator('.board-wrapper');
-      await expect(canvas).toBeVisible();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should remove element from selection with Shift+Click', async ({ page }) => {
@@ -42,20 +40,17 @@ test.describe('Multi-Select E2E Tests', () => {
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 100, 100);
-      await page.waitForTimeout(300);
       
       await page.keyboard.down('Shift');
       await clickOnCanvas(page, 250, 100);
       await page.keyboard.up('Shift');
-      await page.waitForTimeout(300);
       
       await page.keyboard.down('Shift');
       await clickOnCanvas(page, 250, 100);
       await page.keyboard.up('Shift');
-      await page.waitForTimeout(300);
       
-      const canvas = page.locator('.board-wrapper');
-      await expect(canvas).toBeVisible();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 

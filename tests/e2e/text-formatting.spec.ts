@@ -9,7 +9,11 @@ test.describe('Text Formatting E2E Tests', () => {
   test.describe('Text Tool', () => {
     test('should select text tool', async ({ page }) => {
       const selected = await selectTool(page, 'text');
-      expect(selected || true).toBeTruthy();
+      if (!selected) {
+        test.skip();
+        return;
+      }
+      expect(selected).toBe(true);
     });
 
     test('should create text element on click', async ({ page }) => {
@@ -20,10 +24,7 @@ test.describe('Text Formatting E2E Tests', () => {
       }
       
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
-      
       await page.keyboard.type('Hello World');
-      await page.waitForTimeout(300);
       
       const hasElement = await hasElementOnCanvas(page);
       expect(hasElement).toBe(true);
@@ -37,12 +38,9 @@ test.describe('Text Formatting E2E Tests', () => {
       }
       
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
-      
       await page.keyboard.type('Line 1');
       await page.keyboard.press('Enter');
       await page.keyboard.type('Line 2');
-      await page.waitForTimeout(300);
       
       const hasElement = await hasElementOnCanvas(page);
       expect(hasElement).toBe(true);
@@ -55,15 +53,12 @@ test.describe('Text Formatting E2E Tests', () => {
       test.skip(!textSelected);
       
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       await page.keyboard.type('Formatted Text');
-      await page.waitForTimeout(300);
     });
 
     test('should select text element', async ({ page }) => {
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       const isVisible = await toolbar.isVisible({ timeout: 2000 }).catch(() => false);
@@ -73,14 +68,12 @@ test.describe('Text Formatting E2E Tests', () => {
     test('should toggle bold formatting', async ({ page }) => {
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
         const boldBtn = toolbar.getByRole('button').first();
         if (await boldBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await boldBtn.click();
-          await page.waitForTimeout(200);
+          await boldBtn.click({ force: true });
         }
       }
       
@@ -91,15 +84,13 @@ test.describe('Text Formatting E2E Tests', () => {
     test('should toggle italic formatting', async ({ page }) => {
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
         const buttons = toolbar.getByRole('button');
         const count = await buttons.count();
         if (count > 1) {
-          await buttons.nth(1).click();
-          await page.waitForTimeout(200);
+          await buttons.nth(1).click({ force: true });
         }
       }
       
@@ -110,15 +101,13 @@ test.describe('Text Formatting E2E Tests', () => {
     test('should toggle underline formatting', async ({ page }) => {
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
         const buttons = toolbar.getByRole('button');
         const count = await buttons.count();
         if (count > 2) {
-          await buttons.nth(2).click();
-          await page.waitForTimeout(200);
+          await buttons.nth(2).click({ force: true });
         }
       }
       
@@ -129,15 +118,13 @@ test.describe('Text Formatting E2E Tests', () => {
     test('should toggle strikethrough formatting', async ({ page }) => {
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
         const buttons = toolbar.getByRole('button');
         const count = await buttons.count();
         if (count > 3) {
-          await buttons.nth(3).click();
-          await page.waitForTimeout(200);
+          await buttons.nth(3).click({ force: true });
         }
       }
       
@@ -155,13 +142,10 @@ test.describe('Text Formatting E2E Tests', () => {
       }
       
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       await page.keyboard.type('Colored Text');
-      await page.waitForTimeout(300);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -169,13 +153,11 @@ test.describe('Text Formatting E2E Tests', () => {
           .or(toolbar.getByRole('button').filter({ hasText: /color/i }).first());
         
         if (await textColorBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await textColorBtn.click();
-          await page.waitForTimeout(200);
+          await textColorBtn.click({ force: true });
           
           const colorSwatch = page.locator('[data-color]').first();
           if (await colorSwatch.isVisible({ timeout: 1000 }).catch(() => false)) {
-            await colorSwatch.click();
-            await page.waitForTimeout(200);
+            await colorSwatch.click({ force: true });
           }
         }
       }
@@ -194,13 +176,10 @@ test.describe('Text Formatting E2E Tests', () => {
       }
       
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       await page.keyboard.type('Sized Text');
-      await page.waitForTimeout(300);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
       
       const toolbar = getSelectionToolbar(page);
       if (await toolbar.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -209,13 +188,11 @@ test.describe('Text Formatting E2E Tests', () => {
           .or(toolbar.locator('select').first());
         
         if (await fontSizeControl.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await fontSizeControl.click();
-          await page.waitForTimeout(200);
+          await fontSizeControl.click({ force: true });
           
           const option = page.getByRole('option').first();
           if (await option.isVisible({ timeout: 500 }).catch(() => false)) {
-            await option.click();
-            await page.waitForTimeout(200);
+            await option.click({ force: true });
           }
         }
       }

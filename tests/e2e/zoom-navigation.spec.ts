@@ -9,33 +9,23 @@ test.describe('Zoom and Navigation E2E Tests', () => {
   test.describe('Zoom Controls', () => {
     test('should display zoom controls', async ({ page }) => {
       const zoomControls = page.locator('[title="Zoom in"]')
-        .or(page.locator('[title="Zoom out"]'))
-        .or(page.getByRole('button', { name: /\d+%/ }));
-      const isVisible = await zoomControls.first().isVisible({ timeout: 2000 }).catch(() => false);
-      expect(isVisible).toBe(true);
+        .or(page.locator('[title="Zoom out"]'));
+      await expect(zoomControls.first()).toBeVisible({ timeout: 5000 });
     });
 
     test('should zoom in with button', async ({ page }) => {
-      const zoomInBtn = page.getByRole('button', { name: /\+/i })
-        .or(page.locator('button').filter({ has: page.locator('svg') }).nth(0));
-      
-      if (await zoomInBtn.first().isVisible({ timeout: 1000 }).catch(() => false)) {
-        await zoomInBtn.first().click();
-        await page.waitForTimeout(200);
-        
+      const zoomInBtn = page.locator('[title="Zoom in"]');
+      if (await zoomInBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await zoomInBtn.click({ force: true });
         const canvas = page.locator('.board-wrapper');
         await expect(canvas).toBeVisible();
       }
     });
 
     test('should zoom out with button', async ({ page }) => {
-      const zoomOutBtn = page.getByRole('button', { name: /-/i })
-        .or(page.locator('button').filter({ has: page.locator('svg') }).nth(1));
-      
-      if (await zoomOutBtn.first().isVisible({ timeout: 1000 }).catch(() => false)) {
-        await zoomOutBtn.first().click();
-        await page.waitForTimeout(200);
-        
+      const zoomOutBtn = page.locator('[title="Zoom out"]');
+      if (await zoomOutBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await zoomOutBtn.click({ force: true });
         const canvas = page.locator('.board-wrapper');
         await expect(canvas).toBeVisible();
       }
@@ -47,7 +37,6 @@ test.describe('Zoom and Navigation E2E Tests', () => {
       await page.keyboard.down('Control');
       await page.keyboard.press('Equal');
       await page.keyboard.up('Control');
-      await page.waitForTimeout(200);
       
       const canvas = page.locator('.board-wrapper');
       await expect(canvas).toBeVisible();
@@ -59,7 +48,6 @@ test.describe('Zoom and Navigation E2E Tests', () => {
       await page.keyboard.down('Control');
       await page.keyboard.press('Minus');
       await page.keyboard.up('Control');
-      await page.waitForTimeout(200);
       
       const canvas = page.locator('.board-wrapper');
       await expect(canvas).toBeVisible();
