@@ -17,17 +17,14 @@ test.describe('Board Canvas E2E Tests', () => {
     });
 
     test('should display the toolbar', async ({ page }) => {
-      const toolbar = page.locator('nav').first()
-        .or(page.locator('[class*="toolbar"]').first());
-      const isVisible = await toolbar.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(isVisible || true).toBeTruthy();
+      const toolbar = page.locator('div.absolute.top-4').first();
+      await expect(toolbar).toBeVisible({ timeout: 5000 });
     });
 
     test('should have select tool available', async ({ page }) => {
-      const selectTool = page.getByRole('button', { name: /select/i })
-        .or(page.locator('[data-tool="select"]'));
-      const isVisible = await selectTool.first().isVisible({ timeout: 2000 }).catch(() => false);
-      expect(isVisible || true).toBeTruthy();
+      const toolbar = page.locator('div.absolute.top-4').first();
+      const selectToolButton = toolbar.locator('[aria-label="Select"]').first();
+      await expect(selectToolButton).toBeVisible({ timeout: 5000 });
     });
   });
 

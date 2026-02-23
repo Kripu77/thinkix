@@ -8,10 +8,11 @@ test.describe('Zoom and Navigation E2E Tests', () => {
 
   test.describe('Zoom Controls', () => {
     test('should display zoom controls', async ({ page }) => {
-      const zoomControls = page.locator('[class*="zoom"]').first()
-        .or(page.getByRole('button', { name: /\+/i }).first());
-      const isVisible = await zoomControls.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(isVisible || true).toBeTruthy();
+      const zoomControls = page.locator('[title="Zoom in"]')
+        .or(page.locator('[title="Zoom out"]'))
+        .or(page.getByRole('button', { name: /\d+%/ }));
+      const isVisible = await zoomControls.first().isVisible({ timeout: 2000 }).catch(() => false);
+      expect(isVisible).toBe(true);
     });
 
     test('should zoom in with button', async ({ page }) => {

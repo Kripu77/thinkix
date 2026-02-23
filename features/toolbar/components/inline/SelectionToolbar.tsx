@@ -263,6 +263,7 @@ export function SelectionToolbar() {
     <div
       ref={refs.setFloating}
       style={floatingStyles}
+      data-testid="selection-toolbar"
       className={cn(
         'inline-flex items-center gap-0.5 rounded-lg border bg-background/95 backdrop-blur px-1 py-1 shadow-lg',
         ATTACHED_ELEMENT_CLASS_NAME

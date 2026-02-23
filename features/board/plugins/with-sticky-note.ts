@@ -8,12 +8,13 @@ import {
   PlaitPointerType,
 } from '@plait/core';
 import { createGeometryElement, BasicShapes } from '@plait/draw';
-import { STICKY_NOTE_POINTER } from '@/shared/constants';
+import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER } from '@/shared/constants';
 
-const STICKY_NOTE_FILL = '#FFEAA7';
-const STICKY_NOTE_STROKE = '#F1C40F';
-const STICKY_NOTE_WIDTH = 160;
-const STICKY_NOTE_HEIGHT = 160;
+export const STICKY_NOTE_POINTER = _STICKY_NOTE_POINTER;
+export const STICKY_NOTE_FILL = '#FFEAA7';
+export const STICKY_NOTE_STROKE = '#F1C40F';
+export const STICKY_NOTE_WIDTH = 160;
+export const STICKY_NOTE_HEIGHT = 160;
 
 export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
   const pointerUp = board.pointerUp?.bind(board);

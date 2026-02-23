@@ -1,4 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  isValidImageType,
+  readFileAsURL,
+  STANDARD_IMAGE_WIDTH,
+  MIND_IMAGE_WIDTH,
+  showFullscreenImage,
+} from '@/features/board/plugins/add-image-interactions';
 
 vi.mock('@plait/core', async () => ({
   getHitElementByPoint: vi.fn(() => null),
@@ -30,19 +37,6 @@ vi.mock('@plait/draw', async () => ({
     insertImage: vi.fn(),
   },
 }));
-
-function isValidImageType(mime: string): boolean {
-  return mime.startsWith('image/');
-}
-
-async function readFileAsURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 describe('image-interactions', () => {
   describe('isValidImageType', () => {
@@ -112,12 +106,10 @@ describe('image-interactions', () => {
 
   describe('image placement constants', () => {
     it('should have standard image width', () => {
-      const STANDARD_IMAGE_WIDTH = 400;
       expect(STANDARD_IMAGE_WIDTH).toBe(400);
     });
 
     it('should have mind image width', () => {
-      const MIND_IMAGE_WIDTH = 240;
       expect(MIND_IMAGE_WIDTH).toBe(240);
     });
   });
@@ -125,7 +117,7 @@ describe('image-interactions', () => {
   describe('image dimension calculation', () => {
     it('should scale down image that exceeds max width', () => {
       const bitmap = { width: 800, height: 600 };
-      const maxWidth = 400;
+      const maxWidth = STANDARD_IMAGE_WIDTH;
       
       const width = bitmap.width > maxWidth ? maxWidth : bitmap.width;
       const height = (width / bitmap.width) * bitmap.height;
@@ -136,7 +128,7 @@ describe('image-interactions', () => {
 
     it('should keep original size if within max width', () => {
       const bitmap = { width: 300, height: 200 };
-      const maxWidth = 400;
+      const maxWidth = STANDARD_IMAGE_WIDTH;
       
       const width = bitmap.width > maxWidth ? maxWidth : bitmap.width;
       const height = (width / bitmap.width) * bitmap.height;
@@ -147,12 +139,16 @@ describe('image-interactions', () => {
 
     it('should maintain aspect ratio', () => {
       const bitmap = { width: 1000, height: 500 };
-      const maxWidth = 400;
+      const maxWidth = STANDARD_IMAGE_WIDTH;
       
       const width = bitmap.width > maxWidth ? maxWidth : bitmap.width;
       const height = (width / bitmap.width) * bitmap.height;
       
       expect(width / height).toBe(2);
+    });
+
+    it('should use smaller max width for mind images', () => {
+      expect(MIND_IMAGE_WIDTH).toBeLessThan(STANDARD_IMAGE_WIDTH);
     });
   });
 
@@ -205,35 +201,72 @@ describe('image-interactions', () => {
   });
 
   describe('fullscreen image viewer', () => {
-    it('should create overlay element', () => {
-      const overlay = document.createElement('div');
-      overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80';
-      
-      expect(overlay.className).toContain('fixed');
-      expect(overlay.className).toContain('bg-black/80');
+    let bodyChildrenCount: number;
+
+    beforeEach(() => {
+      bodyChildrenCount = document.body.children.length;
     });
 
-    it('should create image element', () => {
-      const img = document.createElement('img');
-      img.className = 'max-w-[90vw] max-h-[90vh] object-contain';
-      
-      expect(img.className).toContain('max-w-[90vw]');
+    afterEach(() => {
+      const overlays = document.body.querySelectorAll('.fixed.inset-0');
+      overlays.forEach((overlay) => overlay.remove());
     });
 
-    it('should handle escape key', () => {
-      let removed = false;
-      const overlay = {
-        remove: () => { removed = true; },
-      };
+    it('should create overlay element with correct classes', () => {
+      showFullscreenImage('data:image/png;base64,test');
       
-      const onEscape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          overlay.remove();
-        }
-      };
+      const overlay = document.body.querySelector('.fixed.inset-0');
+      expect(overlay).not.toBeNull();
+      expect(overlay?.className).toContain('fixed');
+      expect(overlay?.className).toContain('bg-black/80');
+    });
+
+    it('should create image element with correct source', () => {
+      const testUrl = 'data:image/png;base64,testurl';
+      showFullscreenImage(testUrl);
       
-      onEscape({ key: 'Escape' } as KeyboardEvent);
-      expect(removed).toBe(true);
+      const img = document.body.querySelector('img') as HTMLImageElement;
+      expect(img).not.toBeNull();
+      expect(img?.src).toBe(testUrl);
+    });
+
+    it('should create image element with correct max dimensions', () => {
+      showFullscreenImage('data:image/png;base64,test');
+      
+      const img = document.body.querySelector('img');
+      expect(img?.className).toContain('max-w-[90vw]');
+      expect(img?.className).toContain('max-h-[90vh]');
+    });
+
+    it('should remove overlay on click', () => {
+      showFullscreenImage('data:image/png;base64,test');
+      
+      const overlay = document.body.querySelector('.fixed.inset-0') as HTMLElement;
+      expect(overlay).not.toBeNull();
+      
+      overlay.click();
+      
+      expect(document.body.querySelector('.fixed.inset-0')).toBeNull();
+    });
+
+    it('should have close button', () => {
+      showFullscreenImage('data:image/png;base64,test');
+      
+      const closeButton = document.body.querySelector('button');
+      expect(closeButton).not.toBeNull();
+      expect(closeButton?.textContent).toBe('×');
+    });
+
+    it('should remove overlay on escape key', () => {
+      showFullscreenImage('data:image/png;base64,test');
+      
+      const overlay = document.body.querySelector('.fixed.inset-0');
+      expect(overlay).not.toBeNull();
+      
+      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+      window.dispatchEvent(escapeEvent);
+      
+      expect(document.body.querySelector('.fixed.inset-0')).toBeNull();
     });
   });
 });

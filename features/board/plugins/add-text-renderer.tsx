@@ -18,13 +18,13 @@ interface TextNode {
   text: string;
 }
 
-function getTextString(text: SlateElement): string {
+export function getTextString(text: SlateElement): string {
   return text.children
     .map((child) => (child as TextNode).text || '')
     .join('');
 }
 
-function normalizeTextValue(text: SlateElement | undefined): SlateElement {
+export function normalizeTextValue(text: SlateElement | undefined): SlateElement {
   if (!text) {
     return { children: [{ text: '' }] };
   }

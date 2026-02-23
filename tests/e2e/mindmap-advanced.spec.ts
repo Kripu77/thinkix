@@ -92,7 +92,8 @@ test.describe('Mind Map Advanced E2E Tests', () => {
         await page.waitForTimeout(300);
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should expand collapsed node', async ({ page }) => {
@@ -126,7 +127,8 @@ test.describe('Mind Map Advanced E2E Tests', () => {
         await page.waitForTimeout(300);
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -166,7 +168,8 @@ test.describe('Mind Map Advanced E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -197,7 +200,7 @@ test.describe('Mind Map Advanced E2E Tests', () => {
       await page.keyboard.press('Delete');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      await expect(canvas).toBeVisible();
     });
   });
 
@@ -236,7 +239,8 @@ test.describe('Mind Map Advanced E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 });

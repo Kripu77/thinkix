@@ -65,7 +65,8 @@ test.describe('Mind Map E2E Tests', () => {
       await page.keyboard.type('Root Node');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should add child node with Tab key', async ({ page }) => {
@@ -79,7 +80,8 @@ test.describe('Mind Map E2E Tests', () => {
       await page.keyboard.type('Child Node');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should add sibling node with Enter key', async ({ page }) => {
@@ -96,7 +98,8 @@ test.describe('Mind Map E2E Tests', () => {
       await page.keyboard.type('Node 2');
       await page.waitForTimeout(300);
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 
@@ -127,7 +130,8 @@ test.describe('Mind Map E2E Tests', () => {
         }
       }
       
-      expect(true).toBeTruthy();
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
   });
 });

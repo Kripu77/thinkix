@@ -7,6 +7,10 @@ import type { Page, Locator } from '@playwright/test';
  *
  * @returns A Locator referencing the canvas element — the first visible selector found, or the `.board-wrapper` locator if none are visible.
  */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function getCanvas(page: Page): Promise<Locator> {
   const selectors = [
     page.locator('.board-wrapper'),
@@ -93,16 +97,19 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
     'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud', 'arrow'];
   
   if (shapeTools.includes(toolName)) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
+    
     const shapesDropdown = page.getByRole('button', { name: /shapes/i })
       .or(page.locator('button[aria-label="Shapes"]'))
       .or(page.locator('button:has(svg[class*="chevron"])').first());
     
     if (await shapesDropdown.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await shapesDropdown.click();
+      await shapesDropdown.click({ force: true });
       await page.waitForTimeout(200);
       
-      const toolItem = page.getByRole('menuitem', { name: new RegExp(toolName, 'i') })
-        .or(page.locator(`[role="menuitem"]:has-text("${toolName}")`));
+      const toolItem = page.locator(`[role="menuitem"]:has-text("${toolName}")`)
+        .or(page.getByRole('menuitem', { name: new RegExp(escapeRegExp(toolName), 'i') }));
       
       if (await toolItem.first().isVisible({ timeout: 1000 }).catch(() => false)) {
         await toolItem.first().click();
@@ -113,7 +120,7 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
     return false;
   }
   
-  const tool = page.getByRole('button', { name: new RegExp(toolName, 'i') })
+  const tool = page.locator(`[role="button"]:has-text("${toolName}")`)
     .or(page.locator(`[data-tool="${toolName}"]`))
     .or(page.locator(`[aria-label*="${toolName}" i]`));
   
@@ -147,9 +154,9 @@ export async function clickOnCanvas(page: Page, x: number, y: number): Promise<v
 export async function waitForBoard(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(1500);
   const canvas = await getCanvas(page);
-  await canvas.waitFor({ state: 'visible', timeout: 20000 });
+  await canvas.waitFor({ state: 'visible', timeout: 15000 });
 }
 
 /**
@@ -176,8 +183,12 @@ export async function getElementCount(page: Page): Promise<number> {
     }
   }
   
+  if (count > 0) {
+    return count;
+  }
+  
   const svgElements = content.match(/<svg|<path|<rect|<ellipse|<circle|<polygon|<line/g);
-  return svgElements ? svgElements.length : count;
+  return svgElements ? svgElements.length : 0;
 }
 
 /**
@@ -199,7 +210,8 @@ export async function hasElementOnCanvas(page: Page): Promise<boolean> {
  * @returns `true` if the selection toolbar is visible within 2 seconds, `false` otherwise.
  */
 export async function isSelectionToolbarVisible(page: Page): Promise<boolean> {
-  const toolbar = page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border');
+  const toolbar = page.locator('[data-testid="selection-toolbar"]')
+    .or(page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border'));
   return toolbar.isVisible({ timeout: 2000 }).catch(() => false);
 }
 
@@ -209,7 +221,8 @@ export async function isSelectionToolbarVisible(page: Page): Promise<boolean> {
  * @returns A Locator for the first matching selection toolbar element
  */
 export function getSelectionToolbar(page: Page): Locator {
-  return page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border').first();
+  return page.locator('[data-testid="selection-toolbar"]')
+    .or(page.locator('.inline-flex.items-center.gap-0\\.5.rounded-lg.border')).first();
 }
 
 /**
