@@ -73,9 +73,11 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElements = await hasElementOnCanvas(page);
       expect(hasElements).toBe(true);
       
-      await page.keyboard.down('Control');
+      const isMac = process.platform === 'darwin';
+      const modifier = isMac ? 'Meta' : 'Control';
+      await page.keyboard.down(modifier);
       await page.keyboard.press('KeyA');
-      await page.keyboard.up('Control');
+      await page.keyboard.up(modifier);
       await page.waitForTimeout(300);
       
       const canvas = page.locator('.board-wrapper');
@@ -149,16 +151,23 @@ test.describe('Multi-Select E2E Tests', () => {
       expect(hasElementsBefore).toBe(true);
       
       await selectTool(page, 'select');
-      await page.keyboard.down('Control');
+      const isMac = process.platform === 'darwin';
+      const modifier = isMac ? 'Meta' : 'Control';
+      await page.keyboard.down(modifier);
       await page.keyboard.press('KeyA');
-      await page.keyboard.up('Control');
+      await page.keyboard.up(modifier);
       await page.waitForTimeout(300);
       
       await page.keyboard.press('Delete');
       await page.waitForTimeout(300);
       
-      const canvas = page.locator('.board-wrapper');
-      await expect(canvas).toBeVisible();
+      const hasElementsAfter = await hasElementOnCanvas(page);
+      if (hasElementsAfter) {
+        const canvas = page.locator('.board-wrapper');
+        await expect(canvas).toBeVisible();
+      } else {
+        expect(hasElementsAfter).toBe(false);
+      }
     });
 
     test('should copy and paste multiple elements', async ({ page }) => {

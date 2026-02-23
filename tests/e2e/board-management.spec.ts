@@ -12,8 +12,7 @@ test.describe('Board Management E2E Tests', () => {
         .or(page.locator('[class*="board-switcher"]').first())
         .or(page.locator('button').filter({ hasText: /Untitled|Board/ }).first());
       
-      const isVisible = await boardSwitcher.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(typeof isVisible).toBe('boolean');
+      await expect(boardSwitcher).toBeVisible({ timeout: 2000 });
     });
 
     test('should open board list dropdown', async ({ page }) => {
@@ -26,10 +25,9 @@ test.describe('Board Management E2E Tests', () => {
         
         const dropdown = page.locator('[role="menu"]')
           .or(page.locator('[class*="dropdown"]'));
-        const dropdownVisible = await dropdown.isVisible({ timeout: 1000 }).catch(() => false);
-        expect(typeof dropdownVisible).toBe('boolean');
+        await expect(dropdown.first()).toBeVisible({ timeout: 1000 });
       } else {
-        expect(true).toBe(true);
+        test.skip();
       }
     });
   });
@@ -101,11 +99,8 @@ test.describe('Board Management E2E Tests', () => {
       
       await page.waitForTimeout(2000);
       
-      const saveIndicator = page.locator('[class*="save"]')
-        .or(page.getByText(/saved|saving|unsaved/i));
-      
-      const isVisible = await saveIndicator.first().isVisible({ timeout: 3000 }).catch(() => false);
-      expect(isVisible || true).toBeTruthy();
+      const canvas = page.locator('.board-wrapper');
+      await expect(canvas).toBeVisible();
     });
   });
 });

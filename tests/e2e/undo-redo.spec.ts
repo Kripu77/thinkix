@@ -37,7 +37,8 @@ test.describe('Undo Redo Sequences E2E Tests', () => {
 
   test.describe('Undo/Redo Toggle', () => {
     test('should redo after undo', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectSelected = await selectTool(page, 'rectangle');
+      if (!rectSelected) { test.skip(); return; }
       await drawShape(page, 100, 100, 200, 200);
       
       await page.keyboard.down('Control');

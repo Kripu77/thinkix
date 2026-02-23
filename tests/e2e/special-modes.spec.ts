@@ -91,14 +91,8 @@ test.describe('Special Modes E2E Tests', () => {
       await page.keyboard.type('Sticky');
       await page.waitForTimeout(300);
       
-      await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 200 } });
-      await page.waitForTimeout(500);
-      
-      const fillButton = page.getByTestId('fill-button');
-      const isVisible = await fillButton.isVisible({ timeout: 2000 }).catch(() => false);
-      expect(typeof isVisible).toBe('boolean');
+      const hasElement = await hasElementOnCanvas(page);
+      expect(hasElement).toBe(true);
     });
 
     test('should change sticky note color', async ({ page }) => {

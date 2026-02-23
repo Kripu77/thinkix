@@ -11,20 +11,17 @@ test.describe('File Operations E2E Tests', () => {
       const menuButton = page.getByRole('button', { name: /menu|thinkix/i }).first()
         .or(page.locator('button').filter({ hasText: /Thinkix/ }).first());
       
-      const isVisible = await menuButton.isVisible({ timeout: 2000 }).catch(() => false);
-      
       const canvas = page.locator('.board-wrapper');
       await expect(canvas).toBeVisible();
       
-      if (isVisible) {
+      if (await menuButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await menuButton.click();
         await page.waitForTimeout(300);
         
         const menu = page.locator('[role="menu"]').or(page.locator('[data-state="open"]'));
-        const menuVisible = await menu.first().isVisible({ timeout: 1000 }).catch(() => false);
-        expect(menuVisible || isVisible).toBe(true);
+        await expect(menu.first()).toBeVisible({ timeout: 1000 });
       } else {
-        expect(isVisible || true).toBe(true);
+        test.skip();
       }
     });
   });

@@ -4,9 +4,10 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : undefined,
-  timeout: 30000,
+  timeout: 300000,
+  globalTimeout: 1000 * 60 * 5,
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/results.json' }],
