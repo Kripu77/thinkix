@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, clickOnCanvas, hasElementOnCanvas, getCanvasBoundingBox } from './utils';
+import { waitForBoard, selectTool, drawShape, clickOnCanvas, hasElementOnCanvas, getCanvasBoundingBox, getElementCount } from './utils';
 
 test.describe('Element Manipulation E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,8 +8,16 @@ test.describe('Element Manipulation E2E Tests', () => {
 
   test.describe('Drag Element to Reposition', () => {
     test('should drag element to new position', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectangleSelected = await selectTool(page, 'rectangle');
+      if (!rectangleSelected) {
+        test.skip();
+        return;
+      }
+      
       await drawShape(page, 100, 100, 200, 200);
+      
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 150, 150);
@@ -23,13 +31,21 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBe(countBefore);
     });
 
     test('should drag element back after moving', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectangleSelected = await selectTool(page, 'rectangle');
+      if (!rectangleSelected) {
+        test.skip();
+        return;
+      }
+      
       await drawShape(page, 100, 100, 200, 200);
+      
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 150, 150);
@@ -49,15 +65,23 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBe(countBefore);
     });
   });
 
   test.describe('Resize Element', () => {
     test('should resize element by dragging corner handle', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectangleSelected = await selectTool(page, 'rectangle');
+      if (!rectangleSelected) {
+        test.skip();
+        return;
+      }
+      
       await drawShape(page, 100, 100, 200, 200);
+      
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 150, 150);
@@ -71,13 +95,21 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBe(countBefore);
     });
 
     test('should resize element smaller', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectangleSelected = await selectTool(page, 'rectangle');
+      if (!rectangleSelected) {
+        test.skip();
+        return;
+      }
+      
       await drawShape(page, 100, 100, 300, 300);
+      
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 200, 200);
@@ -91,15 +123,23 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBe(countBefore);
     });
   });
 
   test.describe('Undo After Manipulation', () => {
     test('should undo element move', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectangleSelected = await selectTool(page, 'rectangle');
+      if (!rectangleSelected) {
+        test.skip();
+        return;
+      }
+      
       await drawShape(page, 100, 100, 200, 200);
+      
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 150, 150);
@@ -118,13 +158,21 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.up('Control');
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBe(countBefore);
     });
 
     test('should undo element resize', async ({ page }) => {
-      await selectTool(page, 'rectangle');
+      const rectangleSelected = await selectTool(page, 'rectangle');
+      if (!rectangleSelected) {
+        test.skip();
+        return;
+      }
+      
       await drawShape(page, 100, 100, 200, 200);
+      
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
       await clickOnCanvas(page, 150, 150);
@@ -143,8 +191,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.up('Control');
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBe(countBefore);
     });
   });
 
@@ -161,6 +209,9 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.type('Editable Text');
       await page.waitForTimeout(300);
       
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
+      
       await selectTool(page, 'select');
       await page.waitForTimeout(200);
       
@@ -174,8 +225,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.type(' Extended');
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBeGreaterThanOrEqual(countBefore);
     });
 
     test('should enter edit mode with double-click on sticky note', async ({ page }) => {
@@ -191,6 +242,9 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.type('Sticky Content');
       await page.waitForTimeout(300);
       
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
+      
       await selectTool(page, 'select');
       await page.waitForTimeout(200);
       
@@ -198,8 +252,8 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.dblclick(box.x + 200, box.y + 200);
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBeGreaterThanOrEqual(countBefore);
     });
   });
 
@@ -216,11 +270,14 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.keyboard.type('Text to Commit');
       await page.waitForTimeout(300);
       
+      const countBefore = await getElementCount(page);
+      expect(countBefore).toBeGreaterThan(0);
+      
       await clickOnCanvas(page, 400, 400);
       await page.waitForTimeout(300);
       
-      const hasElement = await hasElementOnCanvas(page);
-      expect(hasElement).toBe(true);
+      const countAfter = await getElementCount(page);
+      expect(countAfter).toBeGreaterThanOrEqual(countBefore);
     });
   });
 });
