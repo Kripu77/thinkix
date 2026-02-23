@@ -57,12 +57,15 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
     'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud', 'arrow'];
   
   if (shapeTools.includes(toolName)) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
+    
     const shapesDropdown = page.getByRole('button', { name: /shapes/i })
       .or(page.locator('button[aria-label="Shapes"]'))
       .or(page.locator('button:has(svg[class*="chevron"])').first());
     
     if (await shapesDropdown.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await shapesDropdown.click();
+      await shapesDropdown.click({ force: true });
       await page.waitForTimeout(200);
       
       const toolItem = page.getByRole('menuitem', { name: new RegExp(toolName, 'i') })
@@ -99,9 +102,9 @@ export async function clickOnCanvas(page: Page, x: number, y: number): Promise<v
 export async function waitForBoard(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(1500);
   const canvas = await getCanvas(page);
-  await canvas.waitFor({ state: 'visible', timeout: 20000 });
+  await canvas.waitFor({ state: 'visible', timeout: 15000 });
 }
 
 export async function getElementCount(page: Page): Promise<number> {
