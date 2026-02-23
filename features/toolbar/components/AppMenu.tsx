@@ -152,6 +152,7 @@ export function AppMenu({ boardName }: AppMenuProps) {
             size="default"
             className="gap-2 h-11 px-3"
             disabled={isExporting || isSaving || isLoading}
+            data-testid="app-menu-button"
           >
             <Menu className="h-5 w-5" />
           </Button>
