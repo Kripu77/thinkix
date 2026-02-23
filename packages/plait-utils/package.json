@@ -19,7 +19,8 @@
   "peerDependencies": {
     "@plait/core": "^0.92.1",
     "@plait/mind": "^0.92.1",
-    "@plait/common": "^0.92.1"
+    "@plait/common": "^0.92.1",
+    "@plait/layouts": "^0.92.1"
   },
   "dependencies": {
     "@thinkix/shared": "workspace:*"
