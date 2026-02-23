@@ -37,7 +37,6 @@ export async function drawShape(page: Page, startX: number, startY: number, endX
   await page.mouse.down();
   await page.mouse.move(box.x + endX, box.y + endY, { steps: 10 });
   await page.mouse.up();
-  await page.waitForTimeout(300);
 }
 
 export async function drawFreehand(page: Page, points: Array<[number, number]>): Promise<void> {
@@ -100,15 +99,13 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
 export async function clickOnCanvas(page: Page, x: number, y: number): Promise<void> {
   const box = await getCanvasBoundingBox(page);
   await page.mouse.click(box.x + x, box.y + y);
-  await page.waitForTimeout(200);
 }
 
 export async function waitForBoard(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(1500);
   const canvas = await getCanvas(page);
-  await canvas.waitFor({ state: 'visible', timeout: 15000 });
+  await canvas.waitFor({ state: 'visible', timeout: 10000 });
 }
 
 export async function getElementCount(page: Page): Promise<number> {
