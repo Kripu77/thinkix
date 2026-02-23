@@ -14,6 +14,16 @@ interface ArrowDropdownProps {
   onMarkerChange: (end: 'source' | 'target', marker: ArrowLineMarkerType) => void;
 }
 
+/**
+ * Renders a compact dropdown control for selecting an arrow's line shape and toggling start/end markers.
+ *
+ * @param lineShape - Currently selected line shape (defaults to `ArrowLineShape.straight`)
+ * @param onLineShapeChange - Called with a new `ArrowLineShape` when the user selects a different line type
+ * @param sourceMarker - Current marker type for the start of the line
+ * @param targetMarker - Current marker type for the end of the line
+ * @param onMarkerChange - Called with the marker end (`'source' | 'target'`) and new `ArrowLineMarkerType` when the user toggles a marker
+ * @returns The dropdown React element that shows the line-shape options and start/end marker toggles
+ */
 export function ArrowDropdown({
   lineShape = ArrowLineShape.straight,
   onLineShapeChange,

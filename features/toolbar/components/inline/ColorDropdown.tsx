@@ -27,6 +27,23 @@ interface ColorDropdownProps {
   onStrokeWidthChange?: (width: number) => void;
 }
 
+/**
+ * Renders a color picker dropdown for either fill or stroke with optional style and width controls.
+ *
+ * @param type - 'fill' to render fill controls and icon, 'stroke' to render stroke controls and icon
+ * @param currentColor - The currently selected color value (or special no-color marker)
+ * @param onColorChange - Callback invoked with the new color when a swatch is selected
+ * @param showFillStyle - When true, shows fill pattern options
+ * @param fillStyle - Currently selected fill pattern value
+ * @param onFillStyleChange - Callback invoked with the new fill pattern when selected
+ * @param showStrokeStyle - When true, shows stroke style options
+ * @param strokeStyle - Currently selected stroke style value
+ * @param onStrokeStyleChange - Callback invoked with the new stroke style when selected
+ * @param showStrokeWidth - When true, shows the stroke width slider
+ * @param strokeWidth - Currently selected stroke width in pixels
+ * @param onStrokeWidthChange - Callback invoked with the new stroke width (number) when changed
+ * @returns A JSX element containing the dropdown trigger and panel that allows selecting a color, and optionally stroke width, stroke style, and fill pattern
+ */
 export function ColorDropdown({
   type,
   currentColor,
