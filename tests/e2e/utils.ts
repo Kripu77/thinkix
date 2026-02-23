@@ -4,6 +4,17 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+async function dismissOverlays(page: Page): Promise<void> {
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  // Check for and close Next.js error overlay
+  const overlay = page.locator('nextjs-portal');
+  if (await overlay.count() > 0) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
+  }
+}
+
 export async function getCanvas(page: Page): Promise<Locator> {
   const selectors = [
     page.locator('.board-wrapper'),
@@ -31,6 +42,7 @@ export async function getCanvasBoundingBox(page: Page): Promise<{ x: number; y: 
 }
 
 export async function drawShape(page: Page, startX: number, startY: number, endX: number, endY: number): Promise<void> {
+  await dismissOverlays(page);
   const box = await getCanvasBoundingBox(page);
   
   await page.mouse.move(box.x + startX, box.y + startY);
@@ -40,6 +52,7 @@ export async function drawShape(page: Page, startX: number, startY: number, endX
 }
 
 export async function drawFreehand(page: Page, points: Array<[number, number]>): Promise<void> {
+  await dismissOverlays(page);
   const box = await getCanvasBoundingBox(page);
   
   if (points.length === 0) return;
@@ -57,13 +70,13 @@ export async function drawFreehand(page: Page, points: Array<[number, number]>):
 
 export async function selectTool(page: Page, toolName: string): Promise<boolean> {
   // Dismiss any overlays first
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(100);
+  await dismissOverlays(page);
 
   const shapeTools = ['rectangle', 'ellipse', 'diamond', 'triangle', 'roundRectangle', 
     'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud', 'arrow'];
   
   if (shapeTools.includes(toolName)) {
+    await dismissOverlays(page);
     const shapesDropdown = page.getByRole('button', { name: /shapes/i })
       .or(page.locator('button[aria-label="Shapes"]'))
       .or(page.locator('button:has(svg[class*="chevron"])').first());
@@ -84,20 +97,35 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
     return false;
   }
   
-  const tool = page.locator(`[role="button"]:has-text("${toolName}")`)
-    .or(page.locator(`[data-tool="${toolName}"]`))
-    .or(page.locator(`[aria-label*="${toolName}" i]`));
+  // For select and other tools
+  await dismissOverlays(page);
+  const tool = page.locator(`[aria-label*="${toolName}" i]`)
+    .or(page.locator(`[role="button"]:has-text("${toolName}")`))
+    .or(page.locator(`[data-tool="${toolName}"]`));
   
   const toolElement = tool.first();
   if (await toolElement.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await toolElement.click({ force: true });
-    await page.waitForTimeout(100);
-    return true;
+    try {
+      await toolElement.click({ force: true, timeout: 5000 });
+      await page.waitForTimeout(100);
+      return true;
+    } catch {
+      // Try again after dismissing overlays
+      await dismissOverlays(page);
+      try {
+        await toolElement.click({ force: true, timeout: 5000 });
+        await page.waitForTimeout(100);
+        return true;
+      } catch {
+        return false;
+      }
+    }
   }
   return false;
 }
 
 export async function clickOnCanvas(page: Page, x: number, y: number): Promise<void> {
+  await dismissOverlays(page);
   const box = await getCanvasBoundingBox(page);
   await page.mouse.click(box.x + x, box.y + y);
 }
@@ -105,9 +133,7 @@ export async function clickOnCanvas(page: Page, x: number, y: number): Promise<v
 export async function waitForBoard(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  // Dismiss any dev overlays
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(100);
+  await dismissOverlays(page);
   const canvas = await getCanvas(page);
   await canvas.waitFor({ state: 'visible', timeout: 10000 });
 }

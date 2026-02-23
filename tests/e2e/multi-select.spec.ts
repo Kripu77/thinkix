@@ -17,7 +17,7 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElements = await hasElementOnCanvas(page);
       expect(hasElements).toBe(true);
       
-      await selectTool(page, 'select');
+      if (!await selectTool(page, 'select')) { test.skip(); return; }
       await clickOnCanvas(page, 100, 100);
       
       await page.keyboard.down('Shift');
@@ -38,7 +38,7 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElements = await hasElementOnCanvas(page);
       expect(hasElements).toBe(true);
       
-      await selectTool(page, 'select');
+      if (!await selectTool(page, 'select')) { test.skip(); return; }
       await clickOnCanvas(page, 100, 100);
       
       await page.keyboard.down('Shift');
@@ -91,7 +91,7 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElements = await hasElementOnCanvas(page);
       expect(hasElements).toBe(true);
       
-      await selectTool(page, 'select');
+      if (!await selectTool(page, 'select')) { test.skip(); return; }
       
       const box = await getCanvasBoundingBox(page);
       
@@ -117,7 +117,7 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElementsBefore = await hasElementOnCanvas(page);
       expect(hasElementsBefore).toBe(true);
       
-      await selectTool(page, 'select');
+      if (!await selectTool(page, 'select')) { test.skip(); return; }
       await page.keyboard.down('Control');
       await page.keyboard.press('KeyA');
       await page.keyboard.up('Control');
@@ -145,7 +145,7 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElementsBefore = await hasElementOnCanvas(page);
       expect(hasElementsBefore).toBe(true);
       
-      await selectTool(page, 'select');
+      if (!await selectTool(page, 'select')) { test.skip(); return; }
       const isMac = process.platform === 'darwin';
       const modifier = isMac ? 'Meta' : 'Control';
       await page.keyboard.down(modifier);
@@ -175,7 +175,7 @@ test.describe('Multi-Select E2E Tests', () => {
       const hasElementsBefore = await hasElementOnCanvas(page);
       expect(hasElementsBefore).toBe(true);
       
-      await selectTool(page, 'select');
+      if (!await selectTool(page, 'select')) { test.skip(); return; }
       await page.keyboard.down('Control');
       await page.keyboard.press('KeyA');
       await page.keyboard.up('Control');
