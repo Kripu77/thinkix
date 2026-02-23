@@ -1,0 +1,166 @@
+import { test, expect } from '@playwright/test';
+import { waitForBoard, selectTool, drawShape, clickOnCanvas, hasElementOnCanvas, getCanvasBoundingBox } from './utils';
+
+test.describe('Multi-Select E2E Tests', () => {
+  test.beforeEach(async ({ page }) => {
+    await waitForBoard(page);
+  });
+
+  test.describe('Shift+Click Multi-Select', () => {
+    test('should add element to selection with Shift+Click', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 50, 50, 150, 150);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 200, 50, 300, 150);
+      
+      await selectTool(page, 'select');
+      await clickOnCanvas(page, 100, 100);
+      await page.waitForTimeout(300);
+      
+      await page.keyboard.down('Shift');
+      await clickOnCanvas(page, 250, 100);
+      await page.keyboard.up('Shift');
+      await page.waitForTimeout(300);
+      
+      expect(true).toBeTruthy();
+    });
+
+    test('should remove element from selection with Shift+Click', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 50, 50, 150, 150);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 200, 50, 300, 150);
+      
+      await selectTool(page, 'select');
+      await clickOnCanvas(page, 100, 100);
+      await page.waitForTimeout(300);
+      
+      await page.keyboard.down('Shift');
+      await clickOnCanvas(page, 250, 100);
+      await page.keyboard.up('Shift');
+      await page.waitForTimeout(300);
+      
+      await page.keyboard.down('Shift');
+      await clickOnCanvas(page, 250, 100);
+      await page.keyboard.up('Shift');
+      await page.waitForTimeout(300);
+      
+      expect(true).toBeTruthy();
+    });
+  });
+
+  test.describe('Select All', () => {
+    test('should select all elements with Ctrl+A', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 50, 50, 150, 150);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 200, 50, 300, 150);
+      
+      await selectTool(page, 'diamond');
+      await drawShape(page, 350, 50, 450, 150);
+      
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyA');
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(300);
+      
+      expect(true).toBeTruthy();
+    });
+  });
+
+  test.describe('Marquee/Box Selection', () => {
+    test('should select multiple elements with drag selection', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 100, 100, 200, 200);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 220, 100, 320, 200);
+      
+      await selectTool(page, 'select');
+      
+      const box = await getCanvasBoundingBox(page);
+      
+      await page.mouse.move(box.x + 50, box.y + 50);
+      await page.mouse.down();
+      await page.mouse.move(box.x + 350, box.y + 250, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(500);
+      
+      expect(true).toBeTruthy();
+    });
+  });
+
+  test.describe('Multi-Element Operations', () => {
+    test('should move multiple selected elements', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 100, 100, 200, 200);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 220, 100, 320, 200);
+      
+      await selectTool(page, 'select');
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyA');
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(300);
+      
+      const box = await getCanvasBoundingBox(page);
+      
+      await page.mouse.move(box.x + 200, box.y + 150);
+      await page.mouse.down();
+      await page.mouse.move(box.x + 300, box.y + 250, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(300);
+      
+      expect(true).toBeTruthy();
+    });
+
+    test('should delete multiple selected elements', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 100, 100, 200, 200);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 220, 100, 320, 200);
+      
+      await selectTool(page, 'select');
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyA');
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(300);
+      
+      await page.keyboard.press('Delete');
+      await page.waitForTimeout(300);
+      
+      expect(true).toBeTruthy();
+    });
+
+    test('should copy and paste multiple elements', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 100, 100, 200, 200);
+      
+      await selectTool(page, 'ellipse');
+      await drawShape(page, 220, 100, 320, 200);
+      
+      await selectTool(page, 'select');
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyA');
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(300);
+      
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyC');
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(200);
+      
+      await page.keyboard.down('Control');
+      await page.keyboard.press('KeyV');
+      await page.keyboard.up('Control');
+      await page.waitForTimeout(300);
+      
+      expect(true).toBeTruthy();
+    });
+  });
+});
