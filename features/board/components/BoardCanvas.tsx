@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, type ReactNode, useMemo } from 'react';
-import { Board, Wrapper, type BoardChangeData } from '@plait-board/react-board';
+import { useState, useEffect, type ReactNode, useMemo, useCallback } from 'react';
+import { Board, Wrapper, type BoardChangeData, withPinchZoom } from '@plait-board/react-board';
 import {
   type PlaitElement,
   type PlaitBoardOptions,
@@ -13,10 +13,10 @@ import {
 import { withGroup, withText } from '@plait/common';
 import { withDraw } from '@plait/draw';
 import { withMind, MindThemeColors } from '@plait/mind';
+import { addPenMode } from '../plugins/add-pen-mode';
 import { addImageRenderer } from '../plugins/add-image-renderer';
 import { addEmojiRenderer } from '../plugins/add-emoji-renderer';
 import { addMindNodeResize } from '../plugins/add-mind-node-resize';
-import { addPenMode } from '../plugins/add-pen-mode';
 import { addImageInteractions } from '../plugins/add-image-interactions';
 import { addTextRenderer } from '../plugins/add-text-renderer';
 import { withTextNormalization } from '../plugins/with-text-normalization';
@@ -27,6 +27,7 @@ import { withHanddrawn } from '../plugins/handdrawn-mode';
 import { useBoardState } from '../hooks/use-board-state';
 import { SelectionToolbar, ZoomToolbar } from '@/features/toolbar';
 import { useAutoSave } from '@/features/storage';
+import { PencilModeIndicator } from './PencilModeIndicator';
 import type { Board as StorageBoard } from '@thinkix/storage';
 
 import '@/app/styles/plait-react-board.css';
@@ -49,7 +50,7 @@ const DEFAULT_THEME: PlaitTheme = {
   themeColorMode: ThemeColorMode.default,
 };
 
-const createPlugins = (): PlaitPlugin[] => [
+const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): PlaitPlugin[] => [
   withDraw,
   withTextNormalization(),
   withText,
@@ -59,12 +60,13 @@ const createPlugins = (): PlaitPlugin[] => [
   withMind,
   addEmojiRenderer,
   addMindNodeResize,
-  addPenMode,
+  (board: PlaitBoard) => addPenMode(board, onPencilModeChange),
   addImageInteractions,
   withScribble,
   withEraser,
   withStickyNote,
   withHanddrawn,
+  withPinchZoom,
 ];
 
 export function BoardCanvas({
@@ -73,7 +75,7 @@ export function BoardCanvas({
   children,
   boardData,
 }: BoardCanvasProps) {
-  const { board, setBoard, setCurrentBoardId } = useBoardState();
+  const { board, setBoard, setCurrentBoardId, setPencilMode } = useBoardState();
   
   const initialElements = useMemo(() => {
     return boardData?.elements ?? initialValue;
@@ -104,13 +106,19 @@ export function BoardCanvas({
     setBoard(board);
   };
 
+  const handlePencilModeChange = useCallback((isPencilMode: boolean) => {
+    setPencilMode(isPencilMode);
+  }, [setPencilMode]);
+
+  const plugins = useMemo(() => createPlugins(handlePencilModeChange), [handlePencilModeChange]);
+
   return (
     <div className={`relative w-full h-full board-wrapper ${className || ''}`}>
       <Wrapper
         key={boardData?.id ?? 'default'}
         value={value}
         options={DEFAULT_BOARD_OPTIONS}
-        plugins={createPlugins()}
+        plugins={plugins}
         theme={DEFAULT_THEME}
         onChange={handleChange}
       >
@@ -118,6 +126,7 @@ export function BoardCanvas({
           className="w-full h-full bg-background"
           afterInit={handleBoardInit}
         />
+        <PencilModeIndicator />
         <SelectionToolbar />
         <ZoomToolbar />
         {children}
