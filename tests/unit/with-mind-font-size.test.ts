@@ -170,4 +170,49 @@ describe('withMindFontSize', () => {
     
     expect(capturedOperation).toBe(operation);
   });
+
+  it('should not mutate the original operation node (immutability)', () => {
+    const mockBoard = createMockBoard();
+    let capturedOperation: PlaitOperation | null = null;
+    
+    mockBoard.apply = vi.fn((op: PlaitOperation) => {
+      capturedOperation = op;
+    });
+    
+    const enhancedBoard = withMindFontSize(mockBoard);
+    
+    const mindElement: PlaitElement = {
+      id: 'test-id',
+      type: 'mind',
+      data: {
+        topic: {
+          type: 'paragraph',
+          children: [{ text: 'Test Topic' }],
+        },
+      },
+      points: [[0, 0]],
+    };
+    
+    const operation: PlaitOperation = {
+      type: 'insert_node',
+      path: [0],
+      node: mindElement,
+    };
+    
+    const originalNode = operation.node;
+    const originalNodeJSON = JSON.stringify(originalNode);
+    
+    enhancedBoard.apply(operation);
+    
+    // Original operation node should not be mutated
+    expect(JSON.stringify(originalNode)).toBe(originalNodeJSON);
+    
+    // The operation passed to apply should have the modified node
+    expect(capturedOperation).not.toBeNull();
+    const appliedOp = capturedOperation as unknown as { node: PlaitElement };
+    expect(appliedOp.node.data.topic.children[0].fontSize).toBe(18);
+    
+    // Verify they are different objects
+    expect(appliedOp.node).not.toBe(originalNode);
+  });
 });

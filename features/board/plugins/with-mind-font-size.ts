@@ -43,8 +43,11 @@ export function withMindFontSize(board: PlaitBoard): PlaitBoard {
 
   board.apply = (operation: PlaitOperation) => {
     if (operation.type === 'insert_node') {
-      const node = operation.node;
-      setFontSizeRecursive(node);
+      // Deep clone the node to preserve operation immutability for history/undo
+      const clonedNode = JSON.parse(JSON.stringify(operation.node)) as PlaitElement;
+      setFontSizeRecursive(clonedNode);
+      apply({ ...operation, node: clonedNode });
+      return;
     }
     apply(operation);
   };
