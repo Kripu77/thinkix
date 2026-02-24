@@ -7,6 +7,8 @@ export interface BoardState {
   currentBoardId: string | null;
   saveStatus: SaveStatus;
   handdrawn: boolean;
+  isMobile: boolean;
+  isPencilMode: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,4 +21,5 @@ export interface BoardContextValue<T = any> {
   setCurrentBoardId: (id: string | null) => void;
   setSaveStatus: (status: SaveStatus) => void;
   toggleHanddrawn: () => void;
+  setPencilMode: (enabled: boolean) => void;
 }

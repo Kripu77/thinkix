@@ -2,12 +2,9 @@
 
 import { useState } from 'react';
 import {
-  Undo,
-  Redo,
   Copy,
   Trash2,
   ChevronDown,
-  Pencil,
 } from 'lucide-react';
 
 import { useBoard } from '@plait-board/react-board';
@@ -16,7 +13,7 @@ import {
   deleteFragment,
   duplicateElements,
 } from '@plait/core';
-import { Button } from '@thinkix/ui';
+import { Button, cn } from '@thinkix/ui';
 import { ToggleGroup, ToggleGroupItem } from '@thinkix/ui';
 import {
   Tooltip,
@@ -39,6 +36,10 @@ import {
   OTHER_TOOL_CONFIGS,
   TOOLBAR_ITEM_CLASS,
   BUTTON_CLASS,
+  SHAPE_DROPDOWN_ICON,
+  ARROW_TOOL,
+  HANDRAWN_ICON,
+  DRAWING_SECTION_TOOLS,
 } from '@/shared/constants';
 
 export function BoardToolbar() {
@@ -46,13 +47,12 @@ export function BoardToolbar() {
   const { state, setActiveTool, toggleHanddrawn } = useBoardState();
   const activeTool = state.activeTool;
   const handdrawn = state.handdrawn;
+  const isMobile = state.isMobile;
   const [isShapeMenuOpen, setIsShapeMenuOpen] = useState(false);
 
   if (!board) return null;
 
   const selectedElements = getSelectedElements(board);
-  const isUndoDisabled = board.history ? board.history.undos.length === 0 : true;
-  const isRedoDisabled = board.history ? board.history.redos.length === 0 : true;
 
   const handleToolChange = (value: string) => {
     if (!value) return;
@@ -62,14 +62,23 @@ export function BoardToolbar() {
   const isShapeActive = SHAPE_TOOLS.some((t) => t === activeTool);
   const activeShapeTool = SHAPE_TOOL_CONFIGS.find((t) => t.id === activeTool);
 
+  const toolbarPositionClass = isMobile 
+    ? 'absolute top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-2rem)]' 
+    : 'absolute top-4 left-1/2 -translate-x-1/2 z-50';
+
+  const buttonSizeClass = isMobile ? 'h-8 w-8' : 'h-9 w-9';
+  const iconSizeClass = isMobile ? 'h-4 w-4' : 'h-5 w-5';
+  const separatorClass = isMobile ? 'mx-1 h-5 w-px bg-border' : 'mx-1.5 h-6 w-px bg-border';
+
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
-        <div className="inline-flex items-center gap-0.5 rounded-lg border bg-background/95 backdrop-blur p-1.5 shadow-lg">
+      <div className={toolbarPositionClass}>
+        <div className="inline-flex items-center rounded-lg border bg-background/95 backdrop-blur px-1 py-1 shadow-lg overflow-x-auto w-full justify-center">
           <ToggleGroup
             type="single"
             value={activeTool}
             onValueChange={handleToolChange}
+            className="items-center"
           >
             {BASIC_TOOLS.map((tool) => (
               <Tooltip key={tool.id}>
@@ -77,19 +86,47 @@ export function BoardToolbar() {
                   <ToggleGroupItem
                     value={tool.id}
                     aria-label={tool.label}
-                    className={TOOLBAR_ITEM_CLASS}
+                    className={`${TOOLBAR_ITEM_CLASS} ${buttonSizeClass} flex items-center justify-center`}
                   >
-                    {tool.icon}
+                    <span className={iconSizeClass}>{tool.icon}</span>
                   </ToggleGroupItem>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>{tool.label}</p>
-                </TooltipContent>
+                {!isMobile && (
+                  <TooltipContent side="bottom">
+                    <p>{tool.label}</p>
+                  </TooltipContent>
+                )}
               </Tooltip>
             ))}
           </ToggleGroup>
 
-          <div className="mx-1 h-7 w-px bg-border" />
+          <div className={separatorClass} />
+
+          <ToggleGroup
+            type="single"
+            value={activeTool}
+            onValueChange={handleToolChange}
+            className="items-center"
+          >
+            {DRAWING_SECTION_TOOLS.map((tool: typeof DRAWING_SECTION_TOOLS[number]) => (
+              <Tooltip key={tool.id}>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem
+                    value={tool.id}
+                    aria-label={tool.label}
+                    className={`${TOOLBAR_ITEM_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                  >
+                    <span className={iconSizeClass}>{tool.icon}</span>
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                {!isMobile && (
+                  <TooltipContent side="bottom">
+                    <p>{tool.label}</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            ))}
+          </ToggleGroup>
 
           <DropdownMenu
             open={isShapeMenuOpen}
@@ -99,15 +136,13 @@ export function BoardToolbar() {
               <Button
                 variant={isShapeActive ? 'default' : 'ghost'}
                 size="icon"
-                className={BUTTON_CLASS}
+                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center relative`}
                 aria-label="Shapes"
               >
-                {activeShapeTool ? (
-                  activeShapeTool.icon
-                ) : (
-                  <ChevronDown className="h-6 w-6" />
-                )}
-                <ChevronDown className="h-2.5 w-2.5 absolute bottom-0.5 right-0.5 opacity-50" />
+                <span className={iconSizeClass}>
+                  {activeShapeTool ? activeShapeTool.icon : SHAPE_DROPDOWN_ICON}
+                </span>
+                {!isMobile && <ChevronDown className="h-2.5 w-2.5 absolute bottom-0 right-0.5 opacity-50" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -133,12 +168,35 @@ export function BoardToolbar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="mx-1 h-7 w-px bg-border" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={activeTool === 'arrow' ? 'default' : 'ghost'}
+                size="icon"
+                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                onPointerDown={(e: React.PointerEvent) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToolChange('arrow');
+                }}
+              >
+                <span className={iconSizeClass}>{ARROW_TOOL.icon}</span>
+              </Button>
+            </TooltipTrigger>
+            {!isMobile && (
+              <TooltipContent side="bottom">
+                <p>{ARROW_TOOL.label}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+
+          <div className={separatorClass} />
 
           <ToggleGroup
             type="single"
             value={activeTool}
             onValueChange={handleToolChange}
+            className="items-center"
           >
             {OTHER_TOOL_CONFIGS.map((tool) => (
               <Tooltip key={tool.id}>
@@ -146,105 +204,67 @@ export function BoardToolbar() {
                   <ToggleGroupItem
                     value={tool.id}
                     aria-label={tool.label}
-                    className={TOOLBAR_ITEM_CLASS}
+                    className={`${TOOLBAR_ITEM_CLASS} ${buttonSizeClass} flex items-center justify-center`}
                   >
-                    {tool.icon}
+                    <span className={iconSizeClass}>{tool.icon}</span>
                   </ToggleGroupItem>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>{tool.label}</p>
-                </TooltipContent>
+                {!isMobile && (
+                  <TooltipContent side="bottom">
+                    <p>{tool.label}</p>
+                  </TooltipContent>
+                )}
               </Tooltip>
             ))}
           </ToggleGroup>
 
-          <div className="mx-1 h-7 w-px bg-border" />
+          <div className={separatorClass} />
 
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${BUTTON_CLASS} ${handdrawn ? 'bg-accent text-accent-foreground' : ''}`}
+                className={`${buttonSizeClass} flex items-center justify-center ${handdrawn ? 'bg-accent text-accent-foreground' : ''}`}
                 onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
                   toggleHanddrawn();
                 }}
               >
-                <Pencil className="h-6 w-6" />
+                <span className={iconSizeClass}>{HANDRAWN_ICON}</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{handdrawn ? 'Disable Handdrawn Mode' : 'Enable Handdrawn Mode'}</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <div className="mx-1 h-7 w-px bg-border" />
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={BUTTON_CLASS}
-                disabled={isUndoDisabled}
-                onPointerDown={(e: React.PointerEvent) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  board.undo();
-                }}
-              >
-                <Undo className="h-6 w-6" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Undo</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={BUTTON_CLASS}
-                disabled={isRedoDisabled}
-                onPointerDown={(e: React.PointerEvent) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  board.redo();
-                }}
-              >
-                <Redo className="h-6 w-6" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Redo</p>
-            </TooltipContent>
+            {!isMobile && (
+              <TooltipContent side="bottom">
+                <p>{handdrawn ? 'Disable Handdrawn Mode' : 'Enable Handdrawn Mode'}</p>
+              </TooltipContent>
+            )}
           </Tooltip>
 
           {selectedElements.length > 0 && (
             <>
-              <div className="mx-1 h-5 w-px bg-border" />
+              <div className={separatorClass} />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={BUTTON_CLASS}
+                    className={`${buttonSizeClass} flex items-center justify-center`}
                     onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
                       duplicateElements(board);
                     }}
                   >
-                    <Copy className="h-6 w-6" />
+                    <Copy className={iconSizeClass} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>Duplicate</p>
-                </TooltipContent>
+                {!isMobile && (
+                  <TooltipContent side="bottom">
+                    <p>Duplicate</p>
+                  </TooltipContent>
+                )}
               </Tooltip>
 
               <Tooltip>
@@ -252,19 +272,21 @@ export function BoardToolbar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={`${BUTTON_CLASS} hover:bg-destructive/10 hover:text-destructive`}
+                    className={`${buttonSizeClass} flex items-center justify-center hover:bg-destructive/10 hover:text-destructive`}
                     onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
                       deleteFragment(board);
                     }}
                   >
-                    <Trash2 className="h-6 w-6" />
+                    <Trash2 className={iconSizeClass} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>Delete</p>
-                </TooltipContent>
+                {!isMobile && (
+                  <TooltipContent side="bottom">
+                    <p>Delete</p>
+                  </TooltipContent>
+                )}
               </Tooltip>
             </>
           )}

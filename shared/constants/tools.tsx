@@ -18,6 +18,8 @@ import {
   PenTool,
   Eraser,
   StickyNote,
+  Shapes,
+  Paintbrush,
 } from 'lucide-react';
 import { MindMapIcon } from './icons';
 
@@ -87,47 +89,54 @@ export const SHAPE_TOOLS: DrawingTool[] = [
   'octagon',
   'star',
   'cloud',
-  'arrow',
 ];
 export const OTHER_TOOLS: DrawingTool[] = ['text', 'image', 'stickyNote'];
 
 export const DEFAULT_TOOL: DrawingTool = 'select';
 
 export const BASIC_TOOLS: ToolConfig[] = [
-  { id: 'select', icon: <MousePointer2 className="h-6 w-6" />, label: 'Select' },
-  { id: 'hand', icon: <Hand className="h-6 w-6" />, label: 'Pan' },
-  { id: 'laser', icon: <PenTool className="h-6 w-6" />, label: 'Laser' },
-  { id: 'eraser', icon: <Eraser className="h-6 w-6" />, label: 'Eraser' },
+  { id: 'select', icon: <MousePointer2 />, label: 'Select' },
+  { id: 'hand', icon: <Hand />, label: 'Pan' },
+  { id: 'laser', icon: <PenTool />, label: 'Laser' },
+  { id: 'eraser', icon: <Eraser />, label: 'Eraser' },
 ];
 
+export const DRAWING_SECTION_TOOLS: ToolConfig[] = [
+  { id: 'draw', icon: <Pencil />, label: 'Freehand' },
+];
+
+export const ARROW_TOOL: ToolConfig = { id: 'arrow', icon: <ArrowRight />, label: 'Arrow' };
+
+export const HANDRAWN_ICON = <Paintbrush />;
+
+export const SHAPE_DROPDOWN_ICON = <Shapes />;
+
 export const SHAPE_TOOL_CONFIGS: ToolConfig[] = [
-  { id: 'draw', icon: <Pencil className="h-6 w-6" />, label: 'Freehand' },
-  { id: 'rectangle', icon: <Square className="h-6 w-6" />, label: 'Rectangle' },
-  { id: 'ellipse', icon: <Circle className="h-6 w-6" />, label: 'Ellipse' },
-  { id: 'diamond', icon: <Diamond className="h-6 w-6" />, label: 'Diamond' },
-  { id: 'triangle', icon: <Triangle className="h-6 w-6" />, label: 'Triangle' },
+  { id: 'rectangle', icon: <Square />, label: 'Rectangle' },
+  { id: 'ellipse', icon: <Circle />, label: 'Ellipse' },
+  { id: 'diamond', icon: <Diamond />, label: 'Diamond' },
+  { id: 'triangle', icon: <Triangle />, label: 'Triangle' },
   {
     id: 'roundRectangle',
-    icon: <Square className="h-4 w-4 rounded-[2px]" />,
+    icon: <Square className="rounded-[2px]" />,
     label: 'Rounded Rect',
   },
   {
     id: 'parallelogram',
-    icon: <Minus className="h-4 w-4 -rotate-12" />,
+    icon: <Minus className="-rotate-12" />,
     label: 'Parallelogram',
   },
-  { id: 'trapezoid', icon: <Minus className="h-4 w-4 rotate-12" />, label: 'Trapezoid' },
-  { id: 'pentagon', icon: <Hexagon className="h-6 w-6" />, label: 'Pentagon' },
-  { id: 'hexagon', icon: <Hexagon className="h-6 w-6" />, label: 'Hexagon' },
-  { id: 'octagon', icon: <Hexagon className="h-6 w-6" />, label: 'Octagon' },
-  { id: 'star', icon: <Star className="h-6 w-6" />, label: 'Star' },
-  { id: 'cloud', icon: <Cloud className="h-6 w-6" />, label: 'Cloud' },
-  { id: 'arrow', icon: <ArrowRight className="h-6 w-6" />, label: 'Arrow' },
+  { id: 'trapezoid', icon: <Minus className="rotate-12" />, label: 'Trapezoid' },
+  { id: 'pentagon', icon: <Hexagon />, label: 'Pentagon' },
+  { id: 'hexagon', icon: <Hexagon />, label: 'Hexagon' },
+  { id: 'octagon', icon: <Hexagon />, label: 'Octagon' },
+  { id: 'star', icon: <Star />, label: 'Star' },
+  { id: 'cloud', icon: <Cloud />, label: 'Cloud' },
 ];
 
 export const OTHER_TOOL_CONFIGS: ToolConfig[] = [
-  { id: 'mind', icon: <MindMapIcon className="h-6 w-6" />, label: 'Mind Map' },
-  { id: 'stickyNote', icon: <StickyNote className="h-6 w-6" />, label: 'Sticky Note' },
-  { id: 'text', icon: <Type className="h-6 w-6" />, label: 'Text' },
-  { id: 'image', icon: <ImageIcon className="h-6 w-6" />, label: 'Image' },
+  { id: 'mind', icon: <MindMapIcon />, label: 'Mind Map' },
+  { id: 'stickyNote', icon: <StickyNote />, label: 'Sticky Note' },
+  { id: 'text', icon: <Type />, label: 'Text' },
+  { id: 'image', icon: <ImageIcon />, label: 'Image' },
 ];

@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
+import { useBoardState } from '@/features/board/hooks/use-board-state';
 
 const ZOOM_STEP = 0.1;
 const MIN_ZOOM = 0.1;
@@ -19,9 +20,10 @@ const MAX_ZOOM = 5;
 
 export function ZoomToolbar() {
   const board = useBoard();
+  const { state } = useBoardState();
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!board) return null;
+  if (!board || state.isMobile) return null;
 
   const currentZoom = board.viewport?.zoom || 1;
   const zoomPercentage = Math.round(currentZoom * 100);
@@ -49,7 +51,7 @@ export function ZoomToolbar() {
   return (
     <div
       className={cn(
-        'absolute bottom-4 left-4 z-50 inline-flex items-center gap-0.5 rounded-lg border bg-background/95 backdrop-blur p-1 shadow-lg',
+        'inline-flex items-center gap-0.5 rounded-lg border bg-background/95 backdrop-blur p-1 shadow-lg',
         ATTACHED_ELEMENT_CLASS_NAME
       )}
     >

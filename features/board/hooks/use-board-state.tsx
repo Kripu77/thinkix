@@ -18,11 +18,13 @@ import {
   DRAWING_TOOLS,
   DEFAULT_TOOL,
   STICKY_NOTE_POINTER,
+  MOBILE_BREAKPOINT,
 } from '@/shared/constants';
 import type { BoardState, BoardContextValue, DrawingTool } from '@thinkix/shared';
 import type { SaveStatus } from '@thinkix/storage';
 import { LaserPointer } from '../utils';
 import { setHanddrawn, isHanddrawn } from '../plugins/handdrawn-mode';
+import { setIsPenMode } from '../plugins/add-pen-mode';
 
 type BoardContextValueTyped = BoardContextValue<PlaitBoard>;
 
@@ -52,19 +54,56 @@ function setStoredHanddrawn(enabled: boolean): void {
 }
 
 
+function detectMobile(): boolean {
+  if (typeof window === 'undefined') return false;
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const isSmallScreen = window.innerWidth < MOBILE_BREAKPOINT;
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return isMobileUA || (isTouchDevice && isSmallScreen);
+}
+
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number): T {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return ((...args: unknown[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  }) as T;
+}
+
 export function BoardProvider({ children }: BoardProviderProps) {
   const [board, setBoard] = useState<PlaitBoard | null>(null);
-  const [state, setState] = useState<BoardState>({
+  const [state, setState] = useState<BoardState>(() => ({
     activeTool: DEFAULT_TOOL,
     zoom: 100,
     currentBoardId: null,
     saveStatus: 'idle',
     handdrawn: getStoredHanddrawn(),
-  });
+    isMobile: detectMobile(),
+    isPencilMode: false,
+  }));
 
   const boardRef = useRef<PlaitBoard | null>(null);
   const laserPointerRef = useRef<LaserPointer | null>(null);
   const handdrawnAppliedRef = useRef(false);
+
+  useEffect(() => {
+    const handleResize = debounce(() => {
+      const isMobile = detectMobile();
+      setState((prev) => {
+        if (prev.isMobile !== isMobile) {
+          return { ...prev, isMobile };
+        }
+        return prev;
+      });
+    }, 150);
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     boardRef.current = board;
@@ -147,6 +186,14 @@ export function BoardProvider({ children }: BoardProviderProps) {
     setState((prev) => ({ ...prev, handdrawn: !prev.handdrawn }));
   }, []);
 
+  const setPencilMode = useCallback((enabled: boolean) => {
+    const currentBoard = boardRef.current;
+    if (currentBoard) {
+      setIsPenMode(currentBoard, enabled);
+    }
+    setState((prev) => ({ ...prev, isPencilMode: enabled }));
+  }, []);
+
   useEffect(() => {
     const handleToolChange = (e: CustomEvent<{ tool: DrawingTool }>) => {
       if (e.detail?.tool) {
@@ -170,8 +217,9 @@ export function BoardProvider({ children }: BoardProviderProps) {
       setCurrentBoardId,
       setSaveStatus,
       toggleHanddrawn,
+      setPencilMode,
     }),
-    [board, state, setActiveTool, setCurrentBoardId, setSaveStatus, toggleHanddrawn]
+    [board, state, setActiveTool, setCurrentBoardId, setSaveStatus, toggleHanddrawn, setPencilMode]
   );
 
   return (

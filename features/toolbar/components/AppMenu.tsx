@@ -10,7 +10,7 @@ import {
   PlaitTheme,
   Viewport,
 } from '@plait/core';
-import { Button } from '@thinkix/ui';
+import { Button, cn } from '@thinkix/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -150,11 +150,14 @@ export function AppMenu({ boardName }: AppMenuProps) {
           <Button
             variant="outline"
             size="default"
-            className="gap-2 h-11 px-3"
+            className={cn(
+              "gap-2 h-11 px-3",
+              "max-[1024px]:h-9 max-[1024px]:px-2"
+            )}
             disabled={isExporting || isSaving || isLoading}
             data-testid="app-menu-button"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 max-[1024px]:h-4 max-[1024px]:w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48" side="bottom" sideOffset={4}>

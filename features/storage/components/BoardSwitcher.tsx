@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { FileText, ChevronDown, Plus, Trash2, Pencil, Check } from 'lucide-react';
 import { Button } from '@thinkix/ui';
+import { cn } from '@thinkix/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,12 +100,15 @@ export function BoardSwitcher({
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="default" className="gap-2 min-w-[200px] h-11 justify-start text-base">
-            <FileText className="h-5 w-5 shrink-0" />
+          <Button variant="outline" size="default" className={cn(
+            "gap-2 min-w-[200px] h-11 justify-start text-base",
+            "max-[1024px]:min-w-[140px] max-[1024px]:h-9 max-[1024px]:text-sm"
+          )}>
+            <FileText className="h-5 w-5 shrink-0 max-[1024px]:h-4 max-[1024px]:w-4" />
             <span className="truncate">
               {currentBoard?.name ?? (loading ? 'Loading...' : 'Select Board')}
             </span>
-            <ChevronDown className="h-5 w-5 shrink-0 opacity-50 ml-auto" />
+            <ChevronDown className="h-5 w-5 shrink-0 opacity-50 ml-auto max-[1024px]:h-4 max-[1024px]:w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuPortal>

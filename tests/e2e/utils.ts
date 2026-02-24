@@ -72,8 +72,27 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
   // Dismiss any overlays first
   await dismissOverlays(page);
 
+  // Arrow is now a standalone button, not in the shapes dropdown
+  if (toolName === 'arrow') {
+    await dismissOverlays(page);
+    const arrowButton = page.locator('button[aria-label="Arrow"]')
+      .or(page.locator(`button:has(svg[class*="lucide-arrow-right"])`))
+      .or(page.getByRole('button', { name: /arrow/i }));
+    
+    if (await arrowButton.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+      try {
+        await arrowButton.first().click({ force: true, timeout: 5000 });
+        await page.waitForTimeout(100);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
   const shapeTools = ['rectangle', 'ellipse', 'diamond', 'triangle', 'roundRectangle', 
-    'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud', 'arrow'];
+    'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud'];
   
   if (shapeTools.includes(toolName)) {
     await dismissOverlays(page);
