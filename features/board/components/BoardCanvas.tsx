@@ -24,6 +24,7 @@ import { withScribble } from '../plugins/scribble';
 import { withEraser } from '../plugins/with-eraser';
 import { withStickyNote } from '../plugins/with-sticky-note';
 import { withHanddrawn } from '../plugins/handdrawn-mode';
+import { withMindFontSize } from '../plugins/with-mind-font-size';
 import { useBoardState } from '../hooks/use-board-state';
 import { SelectionToolbar, ZoomToolbar } from '@/features/toolbar';
 import { useAutoSave } from '@/features/storage';
@@ -67,6 +68,7 @@ const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): Pl
   withStickyNote,
   withHanddrawn,
   withPinchZoom,
+  withMindFontSize,
 ];
 
 export function BoardCanvas({

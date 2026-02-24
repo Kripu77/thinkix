@@ -10,7 +10,7 @@ export function PencilModeIndicator() {
   if (!state.isPencilMode) return null;
   
   const positionClass = state.isMobile 
-    ? 'absolute top-4 right-4 z-50' 
+    ? 'absolute top-20 right-4 z-50' 
     : 'absolute top-16 left-4 z-50';
   
   return (

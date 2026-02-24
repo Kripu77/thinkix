@@ -58,7 +58,7 @@ describe('PencilModeIndicator', () => {
     const { container } = render(<PencilModeIndicator />);
     const indicator = container.firstChild as HTMLElement;
     
-    expect(indicator.className).toContain('top-4');
+    expect(indicator.className).toContain('top-20');
     expect(indicator.className).toContain('right-4');
   });
 

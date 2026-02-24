@@ -1,3 +1,1 @@
 export const MOBILE_BREAKPOINT = 1024;
-
-export const MOBILE_BREAKPOINT_CSS = `max-[${MOBILE_BREAKPOINT}px]`;

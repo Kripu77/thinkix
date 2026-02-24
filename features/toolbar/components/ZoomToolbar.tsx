@@ -23,6 +23,7 @@ export function ZoomToolbar() {
   const { state } = useBoardState();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Hidden on mobile: touch devices use pinch-to-zoom gesture instead
   if (!board || state.isMobile) return null;
 
   const currentZoom = board.viewport?.zoom || 1;
