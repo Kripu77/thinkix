@@ -2,30 +2,33 @@ import { isPencilEvent, PlaitBoard } from '@plait/core';
 
 const PEN_MODE_BOARDS = new WeakMap<PlaitBoard, boolean>();
 
-function isPenModeEnabled(board: PlaitBoard): boolean {
+export function isPenModeActive(board: PlaitBoard): boolean {
   return PEN_MODE_BOARDS.get(board) === true;
 }
 
-function enablePenMode(board: PlaitBoard, enabled: boolean): void {
+export function setIsPenMode(board: PlaitBoard, enabled: boolean): void {
   PEN_MODE_BOARDS.set(board, enabled);
 }
 
-export function isPenModeActive(board: PlaitBoard): boolean {
-  return isPenModeEnabled(board);
+type PenModeChangeCallback = (isPencilMode: boolean) => void;
+
+function isTouchEvent(event: PointerEvent): boolean {
+  return event.pointerType === 'touch';
 }
 
-export function addPenMode(board: PlaitBoard): PlaitBoard {
+export function addPenMode(board: PlaitBoard, onPencilModeChange?: PenModeChangeCallback): PlaitBoard {
   const { pointerDown } = board;
 
   board.pointerDown = (event: PointerEvent) => {
     const isPenInput = isPencilEvent(event);
-    const currentlyInPenMode = isPenModeEnabled(board);
+    const currentlyInPenMode = isPenModeActive(board);
 
     if (isPenInput && !currentlyInPenMode) {
-      enablePenMode(board, true);
+      setIsPenMode(board, true);
+      onPencilModeChange?.(true);
     }
 
-    if (currentlyInPenMode && !isPenInput) {
+    if (currentlyInPenMode && !isPenInput && isTouchEvent(event)) {
       return;
     }
 
