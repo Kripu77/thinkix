@@ -25,6 +25,20 @@ const BoardToolbar = dynamic(
   }
 );
 
+const UndoRedoButtons = dynamic(
+  () => import('@/features/toolbar').then((mod) => mod.UndoRedoButtons),
+  {
+    ssr: false,
+  }
+);
+
+const ZoomToolbar = dynamic(
+  () => import('@/features/toolbar').then((mod) => mod.ZoomToolbar),
+  {
+    ssr: false,
+  }
+);
+
 function BoardApp() {
   const { initialize, boards, currentBoard, isLoading, createBoard, switchBoard, deleteBoard, renameBoard } = useBoardStore();
 
@@ -48,7 +62,10 @@ function BoardApp() {
     <main className="w-screen h-screen overflow-hidden bg-background">
       <BoardCanvas boardData={currentBoard}>
         <BoardToolbar />
-        <div className="absolute top-4 left-4 z-50 flex items-center gap-2" data-no-autosave>
+        <div 
+          className="absolute z-[60] flex items-center gap-1.5 top-4 left-4 max-[1024px]:top-auto max-[1024px]:bottom-4 max-[1024px]:left-4" 
+          data-no-autosave
+        >
           <BoardSwitcher
             boards={boards}
             currentBoardId={currentBoard?.id ?? null}
@@ -58,6 +75,10 @@ function BoardApp() {
             onRenameBoard={renameBoard}
           />
           <AppMenu boardName={currentBoard?.name} />
+        </div>
+        <div className="absolute bottom-4 left-4 z-50 flex items-center gap-3 max-[1024px]:bottom-4 max-[1024px]:right-4 max-[1024px]:left-auto">
+          <ZoomToolbar />
+          <UndoRedoButtons />
         </div>
       </BoardCanvas>
     </main>
