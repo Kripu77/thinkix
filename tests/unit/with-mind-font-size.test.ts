@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { withMindFontSize } from '@/features/board/plugins/with-mind-font-size';
 import type { PlaitBoard, PlaitOperation, PlaitElement } from '@plait/core';
 

@@ -57,7 +57,7 @@ test.describe('Mind Node Font Size', () => {
     expect(fontSizeData).not.toBeNull();
     expect(fontSizeData!.length).toBeGreaterThan(0);
     
-    const hasCorrectFontSize = fontSizeData!.some((el: any) => el.fontSize === '18px');
+    const hasCorrectFontSize = fontSizeData!.some((el: { text: string; fontSize: string }) => el.fontSize === '18px');
     expect(hasCorrectFontSize).toBe(true);
   });
 
@@ -101,7 +101,7 @@ test.describe('Mind Node Font Size', () => {
     expect(fontSizeData).not.toBeNull();
     expect(fontSizeData!.length).toBeGreaterThan(0);
     
-    const hasCorrectFontSize = fontSizeData!.some((el: any) => el.fontSize === '18px');
+    const hasCorrectFontSize = fontSizeData!.some((el: { text: string; fontSize: string }) => el.fontSize === '18px');
     expect(hasCorrectFontSize).toBe(true);
   });
 });
