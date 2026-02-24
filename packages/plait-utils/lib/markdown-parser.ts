@@ -1,17 +1,17 @@
 import { createMindElement } from '@plait/mind';
 import { MindLayoutType } from '@plait/layouts';
 import type { MindElement, BaseData } from '@plait/mind';
-
-const DEFAULT_MIND_FONT_SIZE = 18;
+import { DEFAULT_MIND_FONT_SIZE } from '@thinkix/shared';
 
 function createMindElementWithFontSize(text: string, options: Record<string, unknown>): MindElement {
   const element = createMindElement(text, options) as MindElement;
   if (element.data?.topic && typeof element.data.topic === 'object') {
-    const topic = element.data.topic as { children: Array<{ text: string; fontSize?: number }>; type: string };
+    const topic = element.data.topic as { children: Array<{ text: string; fontSize?: number; 'font-size'?: number }>; type: string };
     if (topic.children && Array.isArray(topic.children)) {
       topic.children = topic.children.map(child => ({
         ...child,
         fontSize: DEFAULT_MIND_FONT_SIZE,
+        'font-size': DEFAULT_MIND_FONT_SIZE,
       }));
     }
   }

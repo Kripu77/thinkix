@@ -227,3 +227,33 @@ export async function zoomOut(page: Page): Promise<void> {
     await page.waitForTimeout(200);
   }
 }
+
+export interface FontSizeData {
+  text: string;
+  fontSize: string;
+}
+
+export async function getFontSizeDataFromBoard(page: Page): Promise<FontSizeData[] | null> {
+  return page.evaluate(() => {
+    const boardWrapper = document.querySelector('.board-wrapper');
+    if (!boardWrapper) return null;
+    
+    const allSpans: { text: string; fontSize: string }[] = [];
+    
+    const foreignObjects = boardWrapper.querySelectorAll('foreignObject');
+    foreignObjects.forEach((fo) => {
+      const spans = fo.querySelectorAll('span');
+      spans.forEach((span) => {
+        if (span.textContent) {
+          const style = window.getComputedStyle(span);
+          allSpans.push({
+            text: span.textContent.trim().substring(0, 20),
+            fontSize: style.fontSize,
+          });
+        }
+      });
+    });
+    
+    return allSpans.length > 0 ? allSpans : null;
+  });
+}

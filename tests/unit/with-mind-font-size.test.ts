@@ -1,49 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { withMindFontSize } from '@/features/board/plugins/with-mind-font-size';
-import type { PlaitBoard, PlaitOperation, PlaitElement } from '@plait/core';
-
-function createMockBoard(): PlaitBoard {
-  return {
-    children: [],
-    viewport: { zoom: 1, x: 0, y: 0 },
-    selection: null,
-    isReadonly: false,
-    isMoving: false,
-    isDragging: false,
-    isSpaceDown: false,
-    isHand: false,
-    isSelecting: false,
-    pointer: 'default',
-    actions: [],
-    selectedAction: null,
-    apply: vi.fn(),
-    pointerDown: vi.fn(),
-    pointerMove: vi.fn(),
-    pointerUp: vi.fn(),
-    touchStart: vi.fn(),
-    touchMove: vi.fn(),
-    touchEnd: vi.fn(),
-    wheel: vi.fn(),
-    keydown: vi.fn(),
-    keyup: vi.fn(),
-    focus: vi.fn(),
-    blur: vi.fn(),
-    undo: vi.fn(),
-    redo: vi.fn(),
-    fitViewport: vi.fn(),
-    setViewport: vi.fn(),
-    setSelection: vi.fn(),
-    clearSelection: vi.fn(),
-    deleteFragment: vi.fn(),
-    insertFragment: vi.fn(),
-    getSelection: vi.fn(),
-    isCollapsed: vi.fn(),
-    isFocused: vi.fn(),
-    hasBeenTextEditing: vi.fn(),
-    getElementHost: vi.fn(),
-    getRoughSVG: vi.fn(),
-  } as unknown as PlaitBoard;
-}
+import { createMockBoard } from '../__utils__/test-utils';
+import type { PlaitOperation, PlaitElement } from '@plait/core';
 
 describe('withMindFontSize', () => {
   it('should set fontSize to 18 on mind elements when inserted', () => {

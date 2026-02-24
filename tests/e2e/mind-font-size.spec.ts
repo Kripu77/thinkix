@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, clickOnCanvas, hasElementOnCanvas } from './utils';
+import { waitForBoard, selectTool, clickOnCanvas, hasElementOnCanvas, getFontSizeDataFromBoard } from './utils';
 
 test.describe('Mind Node Font Size', () => {
   test.beforeEach(async ({ page }) => {
@@ -31,33 +31,12 @@ test.describe('Mind Node Font Size', () => {
     await clickOnCanvas(page, 300, 300);
     await page.waitForTimeout(500);
 
-    const fontSizeData = await page.evaluate(() => {
-      const boardWrapper = document.querySelector('.board-wrapper');
-      if (!boardWrapper) return null;
-      
-      const allSpans: { text: string; fontSize: string }[] = [];
-      
-      const foreignObjects = boardWrapper.querySelectorAll('foreignObject');
-      foreignObjects.forEach((fo) => {
-        const spans = fo.querySelectorAll('span');
-        spans.forEach((span) => {
-          if (span.textContent) {
-            const style = window.getComputedStyle(span);
-            allSpans.push({
-              text: span.textContent.trim().substring(0, 20),
-              fontSize: style.fontSize,
-            });
-          }
-        });
-      });
-      
-      return allSpans.length > 0 ? allSpans : null;
-    });
+    const fontSizeData = await getFontSizeDataFromBoard(page);
 
     expect(fontSizeData).not.toBeNull();
     expect(fontSizeData!.length).toBeGreaterThan(0);
     
-    const hasCorrectFontSize = fontSizeData!.some((el: { text: string; fontSize: string }) => el.fontSize === '18px');
+    const hasCorrectFontSize = fontSizeData!.some((el) => el.fontSize === '18px');
     expect(hasCorrectFontSize).toBe(true);
   });
 
@@ -75,33 +54,12 @@ test.describe('Mind Node Font Size', () => {
     await page.keyboard.press('Tab');
     await page.waitForTimeout(500);
 
-    const fontSizeData = await page.evaluate(() => {
-      const boardWrapper = document.querySelector('.board-wrapper');
-      if (!boardWrapper) return null;
-      
-      const allSpans: { text: string; fontSize: string }[] = [];
-      
-      const foreignObjects = boardWrapper.querySelectorAll('foreignObject');
-      foreignObjects.forEach((fo) => {
-        const spans = fo.querySelectorAll('span');
-        spans.forEach((span) => {
-          if (span.textContent) {
-            const style = window.getComputedStyle(span);
-            allSpans.push({
-              text: span.textContent.trim().substring(0, 20),
-              fontSize: style.fontSize,
-            });
-          }
-        });
-      });
-      
-      return allSpans.length > 0 ? allSpans : null;
-    });
+    const fontSizeData = await getFontSizeDataFromBoard(page);
 
     expect(fontSizeData).not.toBeNull();
     expect(fontSizeData!.length).toBeGreaterThan(0);
     
-    const hasCorrectFontSize = fontSizeData!.some((el: { text: string; fontSize: string }) => el.fontSize === '18px');
+    const hasCorrectFontSize = fontSizeData!.some((el) => el.fontSize === '18px');
     expect(hasCorrectFontSize).toBe(true);
   });
 });

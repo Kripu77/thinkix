@@ -1,7 +1,6 @@
 import { PlaitBoard, PlaitElement, PlaitOperation } from '@plait/core';
 import { MindElement } from '@plait/mind';
-
-const DEFAULT_MIND_FONT_SIZE = 18;
+import { DEFAULT_MIND_FONT_SIZE } from '@thinkix/shared';
 
 function isMindElement(element: PlaitElement): boolean {
   return (
@@ -30,22 +29,22 @@ function setFontSizeOnTopic(element: PlaitElement): void {
   }
 }
 
+function setFontSizeRecursive(element: PlaitElement): void {
+  if (isMindElement(element)) {
+    setFontSizeOnTopic(element);
+    if (element.children && Array.isArray(element.children)) {
+      element.children.forEach(setFontSizeRecursive);
+    }
+  }
+}
+
 export function withMindFontSize(board: PlaitBoard): PlaitBoard {
   const { apply } = board;
 
   board.apply = (operation: PlaitOperation) => {
     if (operation.type === 'insert_node') {
       const node = operation.node;
-      if (isMindElement(node)) {
-        setFontSizeOnTopic(node);
-        if (node.children && Array.isArray(node.children)) {
-          node.children.forEach((child) => {
-            if (isMindElement(child)) {
-              setFontSizeOnTopic(child);
-            }
-          });
-        }
-      }
+      setFontSizeRecursive(node);
     }
     apply(operation);
   };
