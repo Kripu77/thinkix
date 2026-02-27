@@ -134,6 +134,7 @@ export function BoardToolbar() {
                 size="icon"
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
                 aria-label="Shapes"
+                data-testid="shapes-dropdown-trigger"
               >
                 <span className={iconSizeClass}>
                   {activeShapeTool ? activeShapeTool.icon : SHAPE_DROPDOWN_ICON}

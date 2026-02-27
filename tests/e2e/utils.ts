@@ -96,22 +96,35 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
   
   if (shapeTools.includes(toolName)) {
     await dismissOverlays(page);
-    const shapesDropdown = page.getByRole('button', { name: /shapes/i })
-      .or(page.locator('button[aria-label="Shapes"]'))
-      .or(page.locator('button:has(svg[class*="chevron"])').first());
     
-    if (await shapesDropdown.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await shapesDropdown.click({ force: true });
-      await page.waitForTimeout(200);
+    // Try multiple ways to find the shapes dropdown trigger
+    const shapesDropdown = page.getByTestId('shapes-dropdown-trigger')
+      .or(page.locator('button[aria-label="Shapes"]'))
+      .or(page.getByRole('button', { name: /shapes/i }))
+      .or(page.locator('button').filter({ has: page.locator('svg.lucide-shapes') }));
+    
+    const dropdownButton = shapesDropdown.first();
+    
+    if (await dropdownButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await dropdownButton.click({ force: true });
+      await page.waitForTimeout(300);
       
-      const toolItem = page.locator(`[role="menuitem"]:has-text("${toolName}")`)
-        .or(page.getByRole('menuitem', { name: new RegExp(escapeRegExp(toolName), 'i') }));
+      // Try to find the menu item with case-insensitive matching
+      const toolItem = page.getByRole('menuitem', { name: new RegExp(escapeRegExp(toolName), 'i') })
+        .or(page.locator(`[role="menuitem"]`).filter({ hasText: new RegExp(escapeRegExp(toolName), 'i') }));
       
-      if (await toolItem.first().isVisible({ timeout: 1000 }).catch(() => false)) {
+      if (await toolItem.first().isVisible({ timeout: 2000 }).catch(() => false)) {
         await toolItem.first().click({ force: true });
-        await page.waitForTimeout(100);
+        await page.waitForTimeout(200);
         return true;
       }
+      
+      // Fallback: try keyboard navigation
+      await page.keyboard.type(toolName.charAt(0).toUpperCase() + toolName.slice(1));
+      await page.waitForTimeout(100);
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(200);
+      return true;
     }
     return false;
   }
