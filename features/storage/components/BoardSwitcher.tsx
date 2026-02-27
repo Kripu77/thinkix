@@ -101,8 +101,8 @@ export function BoardSwitcher({
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="default" className={cn(
-            "gap-2 min-w-[200px] h-11 justify-start text-base",
-            "max-[1024px]:min-w-[140px] max-[1024px]:h-9 max-[1024px]:text-sm"
+            "gap-2 min-w-[200px] h-9 justify-start text-base",
+            "max-[1024px]:min-w-[140px] max-[1024px]:h-8 max-[1024px]:text-sm"
           )}>
             <FileText className="h-5 w-5 shrink-0 max-[1024px]:h-4 max-[1024px]:w-4" />
             <span className="truncate">

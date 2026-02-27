@@ -10,7 +10,7 @@ import { MindElement } from '@plait/mind';
 
 const HANDLE_CLASS = 'mind-resize-handle';
 const MIN_SIZE = 40;
-const HANDLE_SIZE = 8;
+const HANDLE_SIZE = 22;
 
 type HandlePosition = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 

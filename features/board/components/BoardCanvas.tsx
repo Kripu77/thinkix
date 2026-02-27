@@ -25,6 +25,7 @@ import { withEraser } from '../plugins/with-eraser';
 import { withStickyNote } from '../plugins/with-sticky-note';
 import { withHanddrawn } from '../plugins/handdrawn-mode';
 import { useBoardState } from '../hooks/use-board-state';
+import { DRAWING_TOOLS } from '@/shared/constants';
 import { SelectionToolbar, ZoomToolbar } from '@/features/toolbar';
 import { useAutoSave } from '@/features/storage';
 import { PencilModeIndicator } from './PencilModeIndicator';
@@ -75,7 +76,7 @@ export function BoardCanvas({
   children,
   boardData,
 }: BoardCanvasProps) {
-  const { board, setBoard, setCurrentBoardId, setPencilMode } = useBoardState();
+  const { board, setBoard, state, setCurrentBoardId, setPencilMode } = useBoardState();
   
   const initialElements = useMemo(() => {
     return boardData?.elements ?? initialValue;
@@ -112,8 +113,20 @@ export function BoardCanvas({
 
   const plugins = useMemo(() => createPlugins(handlePencilModeChange), [handlePencilModeChange]);
 
+  const getCursorClass = () => {
+    const tool = state.activeTool;
+    if (tool === 'eraser') return 'eraser-cursor';
+    if (tool === 'hand') return 'pan-cursor';
+    if (DRAWING_TOOLS.has(tool) || tool === 'text' || tool === 'stickyNote') {
+      return 'crosshair-cursor';
+    }
+    return '';
+  };
+
+  const boardCursorClass = getCursorClass();
+
   return (
-    <div className={`relative w-full h-full board-wrapper ${className || ''}`}>
+    <div className={`relative w-full h-full board-wrapper ${className || ''} ${boardCursorClass}`}>
       <Wrapper
         key={boardData?.id ?? 'default'}
         value={value}

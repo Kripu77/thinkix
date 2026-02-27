@@ -4,7 +4,6 @@ import { useState } from 'react';
 import {
   Copy,
   Trash2,
-  ChevronDown,
 } from 'lucide-react';
 
 import { useBoard } from '@plait-board/react-board';
@@ -61,19 +60,17 @@ export function BoardToolbar() {
 
   const isShapeActive = SHAPE_TOOLS.some((t) => t === activeTool);
   const activeShapeTool = SHAPE_TOOL_CONFIGS.find((t) => t.id === activeTool);
+  const imageToolConfig = OTHER_TOOL_CONFIGS.find((t) => t.id === 'image');
 
-  const toolbarPositionClass = isMobile 
-    ? 'absolute top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-2rem)]' 
-    : 'absolute top-4 left-1/2 -translate-x-1/2 z-50';
-
-  const buttonSizeClass = isMobile ? 'h-8 w-8' : 'h-9 w-9';
-  const iconSizeClass = isMobile ? 'h-4 w-4' : 'h-5 w-5';
+  const buttonSizeClass = 'h-11 w-11';
+  const iconSizeClass = 'h-5 w-5';
   const separatorClass = isMobile ? 'mx-1 h-5 w-px bg-border' : 'mx-1.5 h-6 w-px bg-border';
+  const toolbarWidthClass = isMobile ? 'max-w-[calc(100vw-2rem)]' : '';
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className={toolbarPositionClass}>
-        <div className="inline-flex items-center rounded-lg border bg-background/95 backdrop-blur px-1 py-1 shadow-lg overflow-x-auto w-full justify-center">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
+        <div className={`inline-flex items-center rounded-lg border bg-background/95 backdrop-blur px-2 py-2 ${toolbarWidthClass} shadow-lg overflow-x-auto justify-center`}>
           <ToggleGroup
             type="single"
             value={activeTool}
@@ -136,13 +133,13 @@ export function BoardToolbar() {
               <Button
                 variant={isShapeActive ? 'default' : 'ghost'}
                 size="icon"
-                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center relative`}
+                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
                 aria-label="Shapes"
+                data-testid="shapes-dropdown-trigger"
               >
                 <span className={iconSizeClass}>
                   {activeShapeTool ? activeShapeTool.icon : SHAPE_DROPDOWN_ICON}
                 </span>
-                {!isMobile && <ChevronDown className="h-2.5 w-2.5 absolute bottom-0 right-0.5 opacity-50" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -174,6 +171,7 @@ export function BoardToolbar() {
                 variant={activeTool === 'arrow' ? 'default' : 'ghost'}
                 size="icon"
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                aria-label="Arrow"
                 onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -198,7 +196,7 @@ export function BoardToolbar() {
             onValueChange={handleToolChange}
             className="items-center"
           >
-            {OTHER_TOOL_CONFIGS.map((tool) => (
+            {OTHER_TOOL_CONFIGS.filter((tool) => tool.id !== 'image').map((tool) => (
               <Tooltip key={tool.id}>
                 <TooltipTrigger asChild>
                   <ToggleGroupItem
@@ -217,6 +215,29 @@ export function BoardToolbar() {
               </Tooltip>
             ))}
           </ToggleGroup>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                aria-label="Image"
+                onPointerDown={(e: React.PointerEvent) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToolChange('image');
+                }}
+              >
+                <span className={iconSizeClass}>{imageToolConfig?.icon}</span>
+              </Button>
+            </TooltipTrigger>
+            {!isMobile && (
+              <TooltipContent side="bottom">
+                <p>Image</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
 
           <div className={separatorClass} />
 

@@ -63,7 +63,7 @@ function BoardApp() {
       <BoardCanvas boardData={currentBoard}>
         <BoardToolbar />
         <div 
-          className="absolute z-[60] flex items-center gap-1.5 top-4 left-4 max-[1024px]:top-auto max-[1024px]:bottom-4 max-[1024px]:left-4" 
+          className="absolute z-[60] flex items-center gap-1.5 top-4 left-4 max-[1280px]:top-auto max-[1280px]:bottom-4 max-[1280px]:left-4" 
           data-no-autosave
         >
           <BoardSwitcher

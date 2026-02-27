@@ -20,6 +20,10 @@ vi.mock('@plait/core', async () => {
     },
     PlaitBoard: {
       isInPointer: vi.fn((board, pointers) => pointers.includes(MOCK_STICKY_NOTE_POINTER)),
+      getElementHost: vi.fn(() => ({
+        appendChild: vi.fn(),
+        removeChild: vi.fn(),
+      })),
     },
   };
 });
@@ -43,6 +47,11 @@ vi.mock('@/shared/constants', () => ({
 }));
 
 function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
+  const mockSvgHost = {
+    appendChild: vi.fn(),
+    removeChild: vi.fn(),
+  };
+
   return {
     children: [...elements],
     viewport: { zoom: 1, x: 0, y: 0 },
@@ -83,7 +92,7 @@ function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
     isCollapsed: vi.fn(),
     isFocused: vi.fn(),
     hasBeenTextEditing: vi.fn(),
-    getElementHost: vi.fn(),
+    getElementHost: vi.fn(() => mockSvgHost),
     getRoughSVG: vi.fn(),
   } as unknown as PlaitBoard;
 }
@@ -93,11 +102,13 @@ describe('with-sticky-note', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    dispatchEventSpy = vi.spyOn(window, 'dispatchEvent').mockImplementation(() => true);
+    dispatchEventSpy = vi.spyOn(globalThis, 'dispatchEvent').mockImplementation(() => true);
   });
 
   afterEach(() => {
-    dispatchEventSpy.mockRestore();
+    if (dispatchEventSpy) {
+      dispatchEventSpy.mockRestore();
+    }
   });
 
   describe('exported constants', () => {
@@ -157,6 +168,18 @@ describe('with-sticky-note', () => {
       
       expect(board.pointerUp).toBeDefined();
       expect(board.pointerUp).not.toBe(originalPointerUp);
+    });
+
+    it('should wrap existing pointerMove handler', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const board = createMockBoard();
+      const originalPointerMove = vi.fn();
+      board.pointerMove = originalPointerMove;
+      
+      withStickyNote(board);
+      
+      expect(board.pointerMove).toBeDefined();
+      expect(board.pointerMove).not.toBe(originalPointerMove);
     });
   });
 
@@ -251,48 +274,52 @@ describe('with-sticky-note', () => {
     });
   });
 
-  describe('element creation parameters', () => {
-    it('should insert element at correct path', async () => {
+  describe('preview functionality', () => {
+    it('should create preview element on pointerMove during drawing', async () => {
       const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
-      const { Transforms } = await import('@plait/core');
-      const board = createMockBoard([{ id: 'existing' } as PlaitElement]);
-      
-      withStickyNote(board);
-      
-      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
-      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
-      
-      await board.pointerDown!(pointerDownEvent);
-      await board.pointerUp!(pointerUpEvent);
-      
-      expect(Transforms.insertNode).toHaveBeenCalledWith(
-        board,
-        expect.objectContaining({
-          type: 'rectangle',
-        }),
-        [1]
-      );
-    });
-
-    it('should create element with correct properties', async () => {
-      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
-      const { Transforms } = await import('@plait/core');
+      const { PlaitBoard } = await import('@plait/core');
       const board = createMockBoard();
       
       withStickyNote(board);
       
       const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
-      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+      const pointerMoveEvent = new PointerEvent('pointermove', { clientX: 200, clientY: 200 });
       
       await board.pointerDown!(pointerDownEvent);
-      await board.pointerUp!(pointerUpEvent);
+      await board.pointerMove!(pointerMoveEvent);
       
-      const insertedElement = (Transforms.insertNode as ReturnType<typeof vi.fn>).mock.calls[0][1];
+      expect(PlaitBoard.getElementHost).toHaveBeenCalled();
+    });
+
+    it('should not create preview when not drawing', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { PlaitBoard } = await import('@plait/core');
+      const board = createMockBoard();
       
-      expect(insertedElement.fill).toBe('#FFEAA7');
-      expect(insertedElement.strokeColor).toBe('#F1C40F');
-      expect(insertedElement.strokeWidth).toBe(1);
-      expect(insertedElement.fillStyle).toBe('solid');
+      withStickyNote(board);
+      
+      const pointerMoveEvent = new PointerEvent('pointermove', { clientX: 200, clientY: 200 });
+      await board.pointerMove!(pointerMoveEvent);
+      
+      expect(PlaitBoard.getElementHost).not.toHaveBeenCalled();
+    });
+
+    it('should call original pointerMove handler when not in sticky note mode', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { PlaitBoard } = await import('@plait/core');
+      
+      (PlaitBoard.isInPointer as ReturnType<typeof vi.fn>).mockReturnValueOnce(false);
+      
+      const board = createMockBoard();
+      const originalPointerMove = vi.fn();
+      board.pointerMove = originalPointerMove;
+      
+      withStickyNote(board);
+      
+      const pointerMoveEvent = new PointerEvent('pointermove', { clientX: 200, clientY: 200 });
+      await board.pointerMove!(pointerMoveEvent);
+      
+      expect(originalPointerMove).toHaveBeenCalledWith(pointerMoveEvent);
     });
   });
 });

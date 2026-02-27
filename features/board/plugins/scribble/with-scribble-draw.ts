@@ -71,7 +71,11 @@ export const withScribbleDraw = (board: PlaitBoard) => {
     if (isScribbleTool && isDrawingMode(board)) {
       isDrawingActive = true;
       startScreenPoint = [event.x, event.y];
-      const processed = processor.addPoint(startScreenPoint) as Point;
+      const processed = processor.addPoint(startScreenPoint, {
+        pressure: event.pressure,
+        tiltX: event.tiltX,
+        tiltY: event.tiltY,
+      }) as Point;
       const viewPoint = toViewBoxPoint(
         board,
         toHostPoint(board, processed[0], processed[1])
@@ -99,7 +103,11 @@ export const withScribbleDraw = (board: PlaitBoard) => {
         shouldCloseLoop = false;
       }
 
-      const processed = processor.addPoint(currentScreen);
+      const processed = processor.addPoint(currentScreen, {
+        pressure: event.pressure,
+        tiltX: event.tiltX,
+        tiltY: event.tiltY,
+      });
       if (processed) {
         pathRenderer?.destroy();
         const newViewPoint = toViewBoxPoint(

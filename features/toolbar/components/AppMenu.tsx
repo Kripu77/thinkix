@@ -151,8 +151,8 @@ export function AppMenu({ boardName }: AppMenuProps) {
             variant="outline"
             size="default"
             className={cn(
-              "gap-2 h-11 px-3",
-              "max-[1024px]:h-9 max-[1024px]:px-2"
+              "gap-2 h-9 px-3",
+              "max-[1024px]:h-8 max-[1024px]:px-2"
             )}
             disabled={isExporting || isSaving || isLoading}
             data-testid="app-menu-button"
