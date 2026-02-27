@@ -170,6 +170,7 @@ export function BoardToolbar() {
                 variant={activeTool === 'arrow' ? 'default' : 'ghost'}
                 size="icon"
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                aria-label="Arrow"
                 onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
