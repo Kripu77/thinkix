@@ -33,6 +33,8 @@ export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
       previewRect.setAttribute('stroke', STICKY_NOTE_STROKE);
       previewRect.setAttribute('stroke-width', '1');
       previewRect.setAttribute('opacity', '0.7');
+      previewRect.setAttribute('pointer-events', 'none');
+      previewRect.setAttribute('data-testid', 'sticky-preview-rect');
       svg.appendChild(previewRect);
     }
     

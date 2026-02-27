@@ -83,6 +83,10 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     const selected = await selectTool(page, 'arrow');
     expect(selected).toBe(true);
     await page.waitForTimeout(100);
+    
+    const arrowButton = page.locator('button[aria-label="Arrow"]');
+    const className = await arrowButton.getAttribute('class');
+    expect(className).toMatch(/bg-primary|bg-accent/);
   });
 
   test('should show selection indicator on Shape dropdown when shape is selected', async ({ page }) => {

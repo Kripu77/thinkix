@@ -178,6 +178,6 @@ describe('BoardToolbar', () => {
     
     const container = document.querySelector('.absolute');
     expect(container?.className).toContain('top-4');
-    expect(container?.className).not.toContain('max-w-[95vw]');
+    expect(container?.className).not.toContain('max-w-[calc(100vw-2rem)]');
   });
 });

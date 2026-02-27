@@ -62,7 +62,7 @@ export function BoardToolbar() {
   const activeShapeTool = SHAPE_TOOL_CONFIGS.find((t) => t.id === activeTool);
 
   const buttonSizeClass = 'h-11 w-11';
-  const iconSizeClass = isMobile ? 'h-5 w-5' : 'h-5 w-5';
+  const iconSizeClass = 'h-5 w-5';
   const separatorClass = isMobile ? 'mx-1 h-5 w-px bg-border' : 'mx-1.5 h-6 w-px bg-border';
   const toolbarWidthClass = isMobile ? 'max-w-[calc(100vw-2rem)]' : '';
 
@@ -220,6 +220,7 @@ export function BoardToolbar() {
                 variant="ghost"
                 size="icon"
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                aria-label="Image"
                 onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
