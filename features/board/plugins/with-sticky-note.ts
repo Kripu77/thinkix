@@ -19,9 +19,35 @@ export const STICKY_NOTE_HEIGHT = 160;
 export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
   const pointerUp = board.pointerUp?.bind(board);
   const pointerDown = board.pointerDown?.bind(board);
+  const pointerMove = board.pointerMove?.bind(board);
   
   let isCreating = false;
   let startPoint: [number, number] | null = null;
+  let previewRect: SVGRectElement | null = null;
+
+  const drawPreview = (x: number, y: number, width: number, height: number) => {
+    if (!previewRect) {
+      const svg = PlaitBoard.getElementHost(board);
+      previewRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      previewRect.setAttribute('fill', STICKY_NOTE_FILL);
+      previewRect.setAttribute('stroke', STICKY_NOTE_STROKE);
+      previewRect.setAttribute('stroke-width', '1');
+      previewRect.setAttribute('opacity', '0.7');
+      svg.appendChild(previewRect);
+    }
+    
+    previewRect.setAttribute('x', String(x));
+    previewRect.setAttribute('y', String(y));
+    previewRect.setAttribute('width', String(width));
+    previewRect.setAttribute('height', String(height));
+  };
+
+  const clearPreview = () => {
+    if (previewRect && previewRect.parentNode) {
+      previewRect.remove();
+    }
+    previewRect = null;
+  };
 
   board.pointerDown = (event: PointerEvent) => {
     if (PlaitBoard.isInPointer(board, [STICKY_NOTE_POINTER])) {
@@ -34,8 +60,26 @@ export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
     if (pointerDown) pointerDown(event);
   };
 
+  board.pointerMove = (event: PointerEvent) => {
+    if (isCreating && startPoint) {
+      const hostPoint = toHostPoint(board, event.x, event.y);
+      const viewPoint = toViewBoxPoint(board, hostPoint);
+      
+      const x = Math.min(startPoint[0], viewPoint[0]);
+      const y = Math.min(startPoint[1], viewPoint[1]);
+      const width = Math.max(Math.abs(viewPoint[0] - startPoint[0]), STICKY_NOTE_WIDTH);
+      const height = Math.max(Math.abs(viewPoint[1] - startPoint[1]), STICKY_NOTE_HEIGHT);
+      
+      drawPreview(x, y, width, height);
+      return;
+    }
+    if (pointerMove) pointerMove(event);
+  };
+
   board.pointerUp = (event: PointerEvent) => {
     if (isCreating && startPoint) {
+      clearPreview();
+      
       const hostPoint = toHostPoint(board, event.x, event.y);
       const viewPoint = toViewBoxPoint(board, hostPoint);
       

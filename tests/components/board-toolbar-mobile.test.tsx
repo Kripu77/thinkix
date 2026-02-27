@@ -85,7 +85,7 @@ describe('BoardToolbar', () => {
     expect(buttons.length).toBeGreaterThan(0);
   });
 
-  it('should use smaller buttons on mobile', () => {
+  it('should use stylus-friendly 44px buttons on mobile', () => {
     vi.mocked(boardStateModule.useBoardState).mockReturnValue({
       state: { 
         isMobile: true, 
@@ -99,13 +99,13 @@ describe('BoardToolbar', () => {
     render(<BoardToolbar />);
     
     const buttons = screen.getAllByRole('button');
-    const smallButtons = buttons.filter(btn => 
-      btn.className.includes('h-8') && btn.className.includes('w-8')
+    const stylusButtons = buttons.filter(btn => 
+      btn.className.includes('h-11') && btn.className.includes('w-11')
     );
-    expect(smallButtons.length).toBeGreaterThan(0);
+    expect(stylusButtons.length).toBeGreaterThan(0);
   });
 
-  it('should use larger buttons on desktop', () => {
+  it('should use stylus-friendly 44px buttons on desktop', () => {
     vi.mocked(boardStateModule.useBoardState).mockReturnValue({
       state: { 
         isMobile: false, 
@@ -119,10 +119,10 @@ describe('BoardToolbar', () => {
     render(<BoardToolbar />);
     
     const buttons = screen.getAllByRole('button');
-    const largeButtons = buttons.filter(btn => 
-      btn.className.includes('h-9') && btn.className.includes('w-9')
+    const stylusButtons = buttons.filter(btn => 
+      btn.className.includes('h-11') && btn.className.includes('w-11')
     );
-    expect(largeButtons.length).toBeGreaterThan(0);
+    expect(stylusButtons.length).toBeGreaterThan(0);
   });
 
   it('should hide tooltips on mobile', () => {
@@ -155,10 +155,12 @@ describe('BoardToolbar', () => {
 
     render(<BoardToolbar />);
     
-    const container = document.querySelector('.absolute');
-    expect(container?.className).toContain('left-1/2');
-    expect(container?.className).toContain('-translate-x-1/2');
-    expect(container?.className).toContain('w-[calc(100vw-2rem)]');
+    const outerContainer = document.querySelector('.absolute');
+    expect(outerContainer?.className).toContain('left-1/2');
+    expect(outerContainer?.className).toContain('-translate-x-1/2');
+    
+    const innerContainer = document.querySelector('.inline-flex');
+    expect(innerContainer?.className).toContain('max-w-[calc(100vw-2rem)]');
   });
 
   it('should have correct desktop positioning class', () => {
