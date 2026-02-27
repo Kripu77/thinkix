@@ -35,6 +35,7 @@ vi.mock('@/shared/constants', () => ({
   ],
   OTHER_TOOL_CONFIGS: [
     { id: 'pen', label: 'Pen', icon: '<svg></svg>' },
+    { id: 'image', label: 'Image', icon: '<svg></svg>' },
   ],
   TOOLBAR_ITEM_CLASS: 'toolbar-item',
   BUTTON_CLASS: 'button-class',
@@ -176,8 +177,10 @@ describe('BoardToolbar', () => {
 
     render(<BoardToolbar />);
     
-    const container = document.querySelector('.absolute');
-    expect(container?.className).toContain('top-4');
-    expect(container?.className).not.toContain('max-w-[calc(100vw-2rem)]');
+    const outerContainer = document.querySelector('.absolute');
+    expect(outerContainer?.className).toContain('top-4');
+    
+    const innerContainer = document.querySelector('.inline-flex');
+    expect(innerContainer?.className).not.toContain('max-w-[calc(100vw-2rem)]');
   });
 });

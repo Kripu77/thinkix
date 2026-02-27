@@ -60,6 +60,7 @@ export function BoardToolbar() {
 
   const isShapeActive = SHAPE_TOOLS.some((t) => t === activeTool);
   const activeShapeTool = SHAPE_TOOL_CONFIGS.find((t) => t.id === activeTool);
+  const imageToolConfig = OTHER_TOOL_CONFIGS.find((t) => t.id === 'image');
 
   const buttonSizeClass = 'h-11 w-11';
   const iconSizeClass = 'h-5 w-5';
@@ -228,7 +229,7 @@ export function BoardToolbar() {
                   handleToolChange('image');
                 }}
               >
-                <span className={iconSizeClass}>{OTHER_TOOL_CONFIGS.find(t => t.id === 'image')?.icon}</span>
+                <span className={iconSizeClass}>{imageToolConfig?.icon}</span>
               </Button>
             </TooltipTrigger>
             {!isMobile && (
