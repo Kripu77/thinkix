@@ -7,6 +7,10 @@ export function getIsometricPoints(
   maxY: number,
   spacing: number
 ): { leftDiagonals: Array<{ start: { x: number; y: number }; end: { x: number; y: number } }>; rightDiagonals: Array<{ start: { x: number; y: number }; end: { x: number; y: number } }> } {
+  if (!Number.isFinite(spacing) || spacing <= 0) {
+    return { leftDiagonals: [], rightDiagonals: [] }
+  }
+  
   const leftDiagonals: Array<{ start: { x: number; y: number }; end: { x: number; y: number } }> = [];
   const rightDiagonals: Array<{ start: { x: number; y: number }; end: { x: number; y: number } }> = [];
   
@@ -58,6 +62,10 @@ export function getIsometricTriangleCenters(
   maxY: number,
   spacing: number
 ): Array<{ x: number; y: number }> {
+  if (!Number.isFinite(spacing) || spacing <= 0) {
+    return []
+  }
+  
   const centers: Array<{ x: number; y: number }> = [];
   
   const rowHeight = spacing * Math.sin(ISOMETRIC_ANGLE_RAD);
