@@ -72,12 +72,6 @@ export function getGridThemeColors(theme: ThemeColorMode): GridThemeColors {
 export function getBlueprintColors(theme: ThemeColorMode): GridThemeColors {
   switch (theme) {
     case ThemeColorMode.dark:
-      return {
-        primary: '#3a6080',
-        secondary: '#2a4a60',
-        major: '#4a80a0',
-        background: GRID_BACKGROUND_COLORS.blueprint.dark,
-      };
     case ThemeColorMode.starry:
       return {
         primary: '#3a6080',
