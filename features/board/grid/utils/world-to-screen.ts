@@ -29,7 +29,7 @@ export function screenToWorld(
 
 export function getViewportBounds(board: PlaitBoard): ViewportBounds {
   const viewBox = getViewBox(board);
-  const { zoom } = board.viewport;
+  const zoom = Number.isFinite(board.viewport.zoom) && board.viewport.zoom > 0 ? board.viewport.zoom : 1;
   
   const padding = 200 / zoom;
   
@@ -42,6 +42,9 @@ export function getViewportBounds(board: PlaitBoard): ViewportBounds {
 }
 
 export function snapToGrid(value: number, gridSize: number): number {
+  if (!Number.isFinite(gridSize) || gridSize <= 0) {
+    return value;
+  }
   return Math.round(value / gridSize) * gridSize;
 }
 
@@ -50,6 +53,10 @@ export function getGridLines(
   max: number,
   spacing: number
 ): number[] {
+  if (!Number.isFinite(spacing) || spacing <= 0) {
+    return [];
+  }
+  
   const lines: number[] = [];
   const start = Math.floor(min / spacing) * spacing;
   const end = Math.ceil(max / spacing) * spacing;
