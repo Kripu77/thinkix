@@ -6,7 +6,7 @@ if (posthogKey) {
   posthog.init(posthogKey, {
     api_host: "/ingest",
     ui_host: "https://us.posthog.com",
-    defaults: "2025-11-30",
+    defaults: "2026-01-30",
     
     // Error tracking
     capture_exceptions: true,

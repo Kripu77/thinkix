@@ -55,7 +55,8 @@ export function ZoomToolbar() {
   const handleFitToScreen = () => {
     BoardTransforms.fitViewport(board);
     setIsOpen(false);
-    posthog.capture('zoom_fit_to_screen');
+    const newZoom = board.viewport?.zoom || 1;
+    posthog.capture('zoom_fit_to_screen', { zoom: Math.round(newZoom * 100) });
   };
 
   const handleResetZoom = () => {

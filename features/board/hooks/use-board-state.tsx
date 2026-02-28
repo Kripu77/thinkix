@@ -118,11 +118,13 @@ export function BoardProvider({ children }: BoardProviderProps) {
 
   const setActiveTool = useCallback(
     (tool: DrawingTool) => {
-      setState((prev) => ({ ...prev, activeTool: tool }));
-      posthog.capture('tool_selected', { tool });
-
       const currentBoard = boardRef.current;
+      
+      setState((prev) => ({ ...prev, activeTool: tool }));
+
       if (!currentBoard) return;
+
+      posthog.capture('tool_selected', { tool });
 
       if (laserPointerRef.current) {
         laserPointerRef.current.destroy();
@@ -186,7 +188,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
       setStoredHanddrawn(newMode);
     }
     posthog.capture('handdrawn_mode_toggled', { enabled: newMode });
-    setState((prev) => ({ ...prev, handdrawn: !prev.handdrawn }));
+    setState((prev) => ({ ...prev, handdrawn: newMode }));
   }, []);
 
   const setPencilMode = useCallback((enabled: boolean) => {
