@@ -160,7 +160,7 @@ describe('world-to-screen', () => {
       });
       getViewBoxSpy.mockReturnValue({ x: 0, y: 0, width: 800, height: 600 } as SVGRect);
       
-      const bounds = getViewportBounds(board, 800, 600);
+      const bounds = getViewportBounds(board);
       
       expect(bounds.minX).toBeLessThan(0);
       expect(bounds.maxX).toBeGreaterThan(800);
@@ -179,10 +179,10 @@ describe('world-to-screen', () => {
       });
       
       getViewBoxSpy.mockReturnValue({ x: 0, y: 0, width: 800, height: 600 } as SVGRect);
-      const bounds1 = getViewportBounds(board1, 800, 600);
+      const bounds1 = getViewportBounds(board1);
       
       getViewBoxSpy.mockReturnValue({ x: 0, y: 0, width: 400, height: 300 } as SVGRect);
-      const bounds2 = getViewportBounds(board2, 800, 600);
+      const bounds2 = getViewportBounds(board2);
       
       const padding1 = 200;
       const padding2 = 100;
