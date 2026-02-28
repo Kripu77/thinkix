@@ -25,6 +25,7 @@ import type { SaveStatus } from '@thinkix/storage';
 import { LaserPointer } from '../utils';
 import { setHanddrawn, isHanddrawn } from '../plugins/handdrawn-mode';
 import { setIsPenMode } from '../plugins/add-pen-mode';
+import posthog from 'posthog-js';
 
 type BoardContextValueTyped = BoardContextValue<PlaitBoard>;
 
@@ -117,10 +118,13 @@ export function BoardProvider({ children }: BoardProviderProps) {
 
   const setActiveTool = useCallback(
     (tool: DrawingTool) => {
+      const currentBoard = boardRef.current;
+      
       setState((prev) => ({ ...prev, activeTool: tool }));
 
-      const currentBoard = boardRef.current;
       if (!currentBoard) return;
+
+      posthog.capture('tool_selected', { tool });
 
       if (laserPointerRef.current) {
         laserPointerRef.current.destroy();
@@ -178,12 +182,13 @@ export function BoardProvider({ children }: BoardProviderProps) {
 
   const toggleHanddrawn = useCallback(() => {
     const currentBoard = boardRef.current;
+    const newMode = currentBoard ? !isHanddrawn(currentBoard) : true;
     if (currentBoard) {
-      const newMode = !isHanddrawn(currentBoard);
       setHanddrawn(currentBoard, newMode);
       setStoredHanddrawn(newMode);
     }
-    setState((prev) => ({ ...prev, handdrawn: !prev.handdrawn }));
+    posthog.capture('handdrawn_mode_toggled', { enabled: newMode });
+    setState((prev) => ({ ...prev, handdrawn: newMode }));
   }, []);
 
   const setPencilMode = useCallback((enabled: boolean) => {
@@ -191,6 +196,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
     if (currentBoard) {
       setIsPenMode(currentBoard, enabled);
     }
+    posthog.capture('pencil_mode_toggled', { enabled });
     setState((prev) => ({ ...prev, isPencilMode: enabled }));
   }, []);
 

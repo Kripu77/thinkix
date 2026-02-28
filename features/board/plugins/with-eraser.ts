@@ -12,6 +12,7 @@ import { ScribbleElement } from './scribble/types';
 import { checkHitScribble } from './scribble/helpers';
 import { LaserPointer } from '../utils';
 import { ERASER_POINTER } from '@/shared/constants';
+import posthog from 'posthog-js';
 
 export const withEraser = (board: PlaitBoard) => {
   const { pointerDown, pointerMove, pointerUp, globalPointerUp, touchStart } = board;
@@ -56,6 +57,11 @@ export const withEraser = (board: PlaitBoard) => {
 
       if (elementsToRemove.length > 0) {
         CoreTransforms.removeElements(board, elementsToRemove);
+        posthog.capture('elements_deleted', { 
+          count: elementsToRemove.length,
+          element_types: elementsToRemove.map(e => e.type),
+          source: 'eraser_tool',
+        });
       }
     }
   };

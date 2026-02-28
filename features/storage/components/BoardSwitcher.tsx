@@ -22,6 +22,7 @@ import {
 } from '@thinkix/ui';
 import { Input } from '@thinkix/ui';
 import type { BoardMetadata } from '@thinkix/storage';
+import posthog from 'posthog-js';
 
 interface BoardSwitcherProps {
   boards: BoardMetadata[];
@@ -54,6 +55,7 @@ export function BoardSwitcher({
   const handleCreateBoard = () => {
     if (boardName.trim()) {
       onCreateBoard(boardName.trim());
+      posthog.capture('board_created', { board_name: boardName.trim() });
       setIsCreateDialogOpen(false);
       setBoardName('');
     }
@@ -71,6 +73,7 @@ export function BoardSwitcher({
   const handleRename = async (id: string, name: string) => {
     if (!name.trim()) return;
     await onRenameBoard(id, name);
+    posthog.capture('board_renamed', { board_id: id, new_name: name });
     setRenamingId(null);
     setNewName('');
   };
@@ -86,7 +89,9 @@ export function BoardSwitcher({
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const boardToDelete = boards.find((b) => b.id === id);
     await onDeleteBoard(id);
+    posthog.capture('board_deleted', { board_id: id, board_name: boardToDelete?.name });
   };
 
   const handleRenameStart = (id: string, name: string, e: React.MouseEvent) => {
@@ -141,6 +146,7 @@ export function BoardSwitcher({
                           className="flex-1 py-2 text-base"
                           onClick={() => {
                             onSelectBoard(board.id);
+                            posthog.capture('board_switched', { board_id: board.id, board_name: board.name });
                             setIsOpen(false);
                           }}
                         >

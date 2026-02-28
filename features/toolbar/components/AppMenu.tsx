@@ -37,6 +37,7 @@ import {
   exportAsJpg,
 } from '@thinkix/file-utils';
 import { MarkdownToMindmapDialog } from '@/features/dialogs';
+import posthog from 'posthog-js';
 
 interface AppMenuProps {
   boardName?: string;
@@ -77,9 +78,11 @@ export function AppMenu({ boardName }: AppMenuProps) {
       const data = await loadBoardFromFile();
       if (data) {
         clearAndLoad(data.elements, data.viewport, data.theme);
+        posthog.capture('board_file_opened', { board_name: boardName, element_count: data.elements.length });
       }
     } catch (error) {
       console.error('Failed to load file:', error);
+      posthog.captureException(error);
     } finally {
       setIsLoading(false);
     }
@@ -90,8 +93,10 @@ export function AppMenu({ boardName }: AppMenuProps) {
     setIsSaving(true);
     try {
       await saveBoardToFile(board, boardName);
+      posthog.capture('board_file_saved', { board_name: boardName, element_count: board.children.length });
     } catch (error) {
       console.error('Failed to save file:', error);
+      posthog.captureException(error);
     } finally {
       setIsSaving(false);
     }
@@ -102,8 +107,10 @@ export function AppMenu({ boardName }: AppMenuProps) {
     setIsExporting(true);
     try {
       await exportAsSvg(board, boardName);
+      posthog.capture('board_exported', { format: 'svg', board_name: boardName });
     } catch (error) {
       console.error('Failed to export SVG:', error);
+      posthog.captureException(error);
     } finally {
       setIsExporting(false);
     }
@@ -114,8 +121,10 @@ export function AppMenu({ boardName }: AppMenuProps) {
     setIsExporting(true);
     try {
       await exportAsPng(board, transparent, boardName);
+      posthog.capture('board_exported', { format: 'png', transparent, board_name: boardName });
     } catch (error) {
       console.error('Failed to export PNG:', error);
+      posthog.captureException(error);
     } finally {
       setIsExporting(false);
     }
@@ -126,8 +135,10 @@ export function AppMenu({ boardName }: AppMenuProps) {
     setIsExporting(true);
     try {
       await exportAsJpg(board, boardName);
+      posthog.capture('board_exported', { format: 'jpg', board_name: boardName });
     } catch (error) {
       console.error('Failed to export JPG:', error);
+      posthog.captureException(error);
     } finally {
       setIsExporting(false);
     }
@@ -140,7 +151,9 @@ export function AppMenu({ boardName }: AppMenuProps) {
 
   const confirmClearBoard = () => {
     setIsClearDialogOpen(false);
+    const elementCount = board.children.length;
     clearAndLoad([]);
+    posthog.capture('board_cleared', { board_name: boardName, element_count: elementCount });
   };
 
   return (

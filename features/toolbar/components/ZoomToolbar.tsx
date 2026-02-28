@@ -13,6 +13,7 @@ import {
 } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
+import posthog from 'posthog-js';
 
 const ZOOM_STEP = 0.1;
 const MIN_ZOOM = 0.1;
@@ -32,21 +33,36 @@ export function ZoomToolbar() {
   const handleZoomIn = () => {
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
     BoardTransforms.updateZoom(board, newZoom);
+    posthog.capture('zoom_changed', { 
+      action: 'zoom_in',
+      previous_zoom: currentZoom,
+      new_zoom: newZoom,
+      zoom_percentage: Math.round(newZoom * 100),
+    });
   };
 
   const handleZoomOut = () => {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     BoardTransforms.updateZoom(board, newZoom);
+    posthog.capture('zoom_changed', { 
+      action: 'zoom_out',
+      previous_zoom: currentZoom,
+      new_zoom: newZoom,
+      zoom_percentage: Math.round(newZoom * 100),
+    });
   };
 
   const handleFitToScreen = () => {
     BoardTransforms.fitViewport(board);
     setIsOpen(false);
+    const newZoom = board.viewport?.zoom || 1;
+    posthog.capture('zoom_fit_to_screen', { zoom: Math.round(newZoom * 100) });
   };
 
   const handleResetZoom = () => {
     BoardTransforms.updateZoom(board, 1);
     setIsOpen(false);
+    posthog.capture('zoom_reset', { previous_zoom: currentZoom });
   };
 
   return (
