@@ -1,9 +1,9 @@
-import { BaseGridRenderer, type GridRenderContext } from './base-renderer';
+import { BaseGridRenderer } from './base-renderer';
 
 export class BlankRenderer extends BaseGridRenderer {
   readonly type = 'blank';
   
-  render(_: GridRenderContext): void {
+  render(): void {
     this.clear();
   }
 }

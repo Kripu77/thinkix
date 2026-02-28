@@ -1,2 +1,12 @@
 export { GridToolbar } from './GridToolbar';
 export { MobileGridMenu } from './MobileGridMenu';
+export { CanvasModePanel } from './CanvasModePanel';
+export type { CanvasModePanelProps } from './CanvasModePanel';
+export { CanvasModeCard } from './CanvasModeCard';
+export type { CanvasModeCardProps } from './CanvasModeCard';
+export { GridSpacingSelector } from './GridSpacingSelector';
+export type { GridSpacingSelectorProps } from './GridSpacingSelector';
+export { MajorGridSelect } from './MajorGridSelect';
+export type { MajorGridSelectProps } from './MajorGridSelect';
+export { AdvancedSection } from './AdvancedSection';
+export type { AdvancedSectionProps } from './AdvancedSection';

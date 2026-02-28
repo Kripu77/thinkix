@@ -7,6 +7,18 @@ export const DEFAULT_GRID_DENSITY = 16;
 
 export const GRID_DENSITIES: GridDensity[] = [8, 12, 16, 24, 32, 48];
 
+export interface AdvancedSettings {
+  snapStrength: number;
+  fadeGrid: boolean;
+  gridOpacity: number;
+}
+
+export const DEFAULT_ADVANCED_SETTINGS: AdvancedSettings = {
+  snapStrength: 50,
+  fadeGrid: false,
+  gridOpacity: 100,
+};
+
 export interface GridThemeColors {
   primary: string;
   secondary: string;

@@ -1,21 +1,53 @@
 import { test, expect } from '@playwright/test';
 import { waitForBoard, getCanvas, selectTool, drawShape } from './utils';
 
+const GRID_TYPE_MAP: Record<string, string> = {
+  'Dots': 'dot',
+  'Lines': 'square',
+  'Focus': 'blank',
+  'Blank': 'blank',
+  'Blueprint': 'blueprint',
+  'Isometric': 'isometric',
+  'Ruled': 'ruled',
+};
+
 async function selectGridType(page: import('@playwright/test').Page, gridType: string): Promise<void> {
-  const gridButton = page.locator('button[title="Canvas mode"]');
+  const gridButton = page.getByTestId('canvas-mode-trigger').or(page.locator('button[title="Canvas mode"]'));
   
-  // Check if dropdown is already open by looking for the menu content
   const menuContent = page.locator('[role="menu"]').filter({ hasText: 'Canvas Mode' });
   const isMenuOpen = await menuContent.isVisible({ timeout: 500 }).catch(() => false);
   
   if (!isMenuOpen) {
     await gridButton.click();
-    await page.waitForTimeout(200);
+    await page.locator('[data-testid="canvas-mode-panel"]').waitFor({ state: 'visible', timeout: 2000 });
   }
   
-  const option = page.getByRole('button', { name: gridType, exact: true });
+  const gridTypeId = GRID_TYPE_MAP[gridType] || gridType.toLowerCase();
+  const option = page.getByTestId(`canvas-mode-${gridTypeId}`);
   await option.click();
   await page.waitForTimeout(300);
+}
+
+async function selectGridSpacing(page: import('@playwright/test').Page, spacing: number): Promise<void> {
+  const menuContent = page.locator('[data-testid="canvas-mode-panel"]');
+  const isMenuOpen = await menuContent.isVisible({ timeout: 500 }).catch(() => false);
+  
+  if (!isMenuOpen) {
+    const gridButton = page.getByTestId('canvas-mode-trigger').or(page.locator('button[title="Canvas mode"]'));
+    await gridButton.click();
+    await menuContent.waitFor({ state: 'visible', timeout: 2000 });
+  }
+  
+  const spacingOption = page.getByTestId(`grid-spacing-${spacing}`);
+  await spacingOption.click();
+  await page.waitForTimeout(200);
+}
+
+async function toggleMajorGrid(page: import('@playwright/test').Page): Promise<void> {
+  const majorGridContainer = page.getByTestId('major-grid-select');
+  const switchButton = majorGridContainer.getByRole('switch');
+  await switchButton.click();
+  await page.waitForTimeout(200);
 }
 
 async function openExportMenu(page: import('@playwright/test').Page): Promise<boolean> {
@@ -122,7 +154,7 @@ test.describe('Grid Background E2E Tests', () => {
     });
 
     test('should switch to blank (no grid) and have no grid lines', async ({ page }) => {
-      await selectGridType(page, 'Blank');
+      await selectGridType(page, 'Focus');
       
       const canvas = await getCanvas(page);
       const gridLayer = canvas.locator('.grid-layer line');
@@ -382,10 +414,73 @@ test.describe('Grid Background E2E Tests', () => {
       await page.reload();
       await waitForBoard(page);
       
-      // After reload with cleared localStorage, the app uses default (blank)
-      // Check the grid toolbar shows Blank (the default)
-      const gridButton = page.locator('button[title="Canvas mode"]');
-      await expect(gridButton).toContainText('Blank', { timeout: 3000 });
+      const gridButton = page.getByTestId('canvas-mode-trigger').or(page.locator('button[title="Canvas mode"]'));
+      await expect(gridButton).toContainText('Focus', { timeout: 3000 });
+    });
+  });
+
+  test.describe('Grid Spacing Change', () => {
+    test('should change grid spacing and persist', async ({ page }) => {
+      await selectGridType(page, 'Dots');
+      await selectGridSpacing(page, 32);
+      
+      const config = await getLocalStorageGridConfig(page);
+      expect(config?.density).toBe(32);
+    });
+
+    test('should persist grid spacing after reload', async ({ page }) => {
+      await selectGridType(page, 'Lines');
+      await selectGridSpacing(page, 32);
+      
+      await page.reload();
+      await waitForBoard(page);
+      
+      const config = await getLocalStorageGridConfig(page);
+      expect(config?.density).toBe(32);
+    });
+  });
+
+  test.describe('Focus Mode Behavior', () => {
+    test('should hide major grid control in focus mode', async ({ page }) => {
+      await selectGridType(page, 'Blank');
+      
+      const majorGridContainer = page.getByTestId('major-grid-container');
+      await expect(majorGridContainer).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    test('should show major grid control when switching to lines mode', async ({ page }) => {
+      await selectGridType(page, 'Lines');
+      
+      const majorGridContainer = page.getByTestId('major-grid-container');
+      await expect(majorGridContainer).not.toHaveAttribute('aria-hidden', 'true');
+    });
+
+    test('should toggle major grid visibility', async ({ page }) => {
+      await selectGridType(page, 'Lines');
+      
+      await toggleMajorGrid(page);
+      
+      const config = await getLocalStorageGridConfig(page);
+      expect(config?.showMajor).toBe(false);
+    });
+  });
+
+  test.describe('Mode Switching with Persistence', () => {
+    test('should switch to Isometric and persist after reload', async ({ page }) => {
+      await selectGridType(page, 'Isometric');
+      
+      const config = await getLocalStorageGridConfig(page);
+      expect(config?.type).toBe('isometric');
+      
+      await page.reload();
+      await waitForBoard(page);
+      
+      const configAfterReload = await getLocalStorageGridConfig(page);
+      expect(configAfterReload?.type).toBe('isometric');
+      
+      const canvas = await getCanvas(page);
+      const content = await canvas.innerHTML();
+      expect(content).toContain('line');
     });
   });
 });
