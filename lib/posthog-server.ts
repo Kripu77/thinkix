@@ -3,12 +3,20 @@ import { randomUUID } from "crypto";
 
 let posthogClient: PostHog | null = null;
 
-export function getPostHogClient(): PostHog {
+export function getPostHogClient(): PostHog | null {
+  const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+  
+  if (!key) {
+    console.warn('PostHog: Missing NEXT_PUBLIC_POSTHOG_KEY - analytics disabled');
+    return null;
+  }
+  
   if (!posthogClient) {
-    posthogClient = new PostHog(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      flushAt: 1,
-      flushInterval: 0,
+    posthogClient = new PostHog(key, {
+      host: host,
+      flushAt: 10,
+      flushInterval: 5000,
     });
   }
   return posthogClient;
