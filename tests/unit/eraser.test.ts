@@ -120,9 +120,8 @@ describe('with-eraser', () => {
       const { checkHitScribble } = await import('@/features/board/plugins/scribble/helpers');
       const board = createMockBoard();
       const element = { id: 'hit-element', type: 'scribble', points: [[0, 0], [10, 10]] } as PlaitElement;
-      const point: Point = [5, 5];
       
-      const isHit = checkHitScribble(board, element, point);
+      const isHit = checkHitScribble(board, element);
       expect(isHit).toBe(true);
     });
 
@@ -130,9 +129,8 @@ describe('with-eraser', () => {
       const { checkHitScribble } = await import('@/features/board/plugins/scribble/helpers');
       const board = createMockBoard();
       const element = { id: 'other-element', type: 'scribble', points: [[0, 0]] } as PlaitElement;
-      const point: Point = [100, 100];
       
-      const isHit = checkHitScribble(board, element, point);
+      const isHit = checkHitScribble(board, element);
       expect(isHit).toBe(false);
     });
 
