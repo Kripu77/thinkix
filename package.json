@@ -47,6 +47,8 @@
     "laser-pen": "^1.0.1",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
+    "posthog-js": "1.356.1",
+    "posthog-node": "5.26.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "roughjs": "^4.6.6",
