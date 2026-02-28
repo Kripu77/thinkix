@@ -1,15 +1,29 @@
 import { vi } from 'vitest';
 import type { PlaitBoard, PlaitElement, Viewport, PlaitTheme } from '@plait/core';
 
+export interface MockViewBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface MockBoardOptions {
   elements?: PlaitElement[];
   viewport?: Viewport;
+  viewBox?: MockViewBox;
   theme?: PlaitTheme;
   selection?: string[] | null;
 }
 
 export function createMockBoard(options: MockBoardOptions = {}): PlaitBoard {
-  const { elements = [], viewport = { zoom: 1, x: 0, y: 0 }, theme, selection = null } = options;
+  const { 
+    elements = [], 
+    viewport = { zoom: 1 }, 
+    viewBox = { x: 0, y: 0, width: 800, height: 600 },
+    theme, 
+    selection = null 
+  } = options;
 
   return {
     children: elements,
@@ -26,7 +40,7 @@ export function createMockBoard(options: MockBoardOptions = {}): PlaitBoard {
     actions: [],
     selectedAction: null,
     getRectangle: vi.fn().mockReturnValue({ x: 0, y: 0, width: 800, height: 600 }),
-    getViewBox: vi.fn().mockReturnValue({ x: 0, y: 0, width: 800, height: 600 }),
+    getViewBox: vi.fn().mockReturnValue(viewBox),
     toGlobalPoint: vi.fn((point) => point),
     toLocalPoint: vi.fn((point) => point),
     onChange: vi.fn(),
