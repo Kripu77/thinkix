@@ -52,7 +52,7 @@ describe('CanvasModeCard', () => {
       const onSelect = vi.fn();
 
       ALL_GRID_TYPES.forEach((type) => {
-        const { unmount, container } = render(
+        const { unmount } = render(
           <CanvasModeCard
             type={type}
             isSelected={false}
@@ -62,7 +62,7 @@ describe('CanvasModeCard', () => {
         
         const card = screen.getByTestId(`canvas-mode-${type}`);
         expect(card).toBeInTheDocument();
-        const previewContainer = container.querySelector('.relative.w-7.h-7');
+        const previewContainer = screen.getByTestId('canvas-mode-preview');
         expect(previewContainer).toBeInTheDocument();
         unmount();
       });
@@ -103,7 +103,7 @@ describe('CanvasModeCard', () => {
     it('shows checkmark when selected', () => {
       const onSelect = vi.fn();
       
-      const { container } = render(
+      render(
         <CanvasModeCard
           type="blueprint"
           isSelected={true}
@@ -111,14 +111,14 @@ describe('CanvasModeCard', () => {
         />
       );
       
-      const checkmark = container.querySelector('.bg-primary.rounded-full');
+      const checkmark = screen.getByTestId('canvas-mode-checkmark');
       expect(checkmark).toBeInTheDocument();
     });
 
     it('hides checkmark when not selected', () => {
       const onSelect = vi.fn();
       
-      const { container } = render(
+      render(
         <CanvasModeCard
           type="blueprint"
           isSelected={false}
@@ -126,7 +126,7 @@ describe('CanvasModeCard', () => {
         />
       );
       
-      const checkmark = container.querySelector('.bg-primary.rounded-full');
+      const checkmark = screen.queryByTestId('canvas-mode-checkmark');
       expect(checkmark).not.toBeInTheDocument();
     });
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useState, useId } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn, Slider, Toggle } from '@thinkix/ui';
 import type { AdvancedSettings } from '../types';
@@ -17,6 +17,7 @@ export const AdvancedSection = memo(function AdvancedSection({
   disabled = false,
 }: AdvancedSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const contentId = useId();
 
   return (
     <div className="mt-3 pt-3 border-t border-border" data-testid="advanced-section">
@@ -31,7 +32,7 @@ export const AdvancedSection = memo(function AdvancedSection({
           'disabled:opacity-50 disabled:cursor-not-allowed'
         )}
         aria-expanded={isOpen}
-        aria-controls="advanced-content"
+        aria-controls={contentId}
       >
         <ChevronRight
           className={cn(
@@ -43,7 +44,7 @@ export const AdvancedSection = memo(function AdvancedSection({
       </button>
 
       {isOpen && (
-        <div id="advanced-content" className="mt-3 space-y-3 pl-4">
+        <div id={contentId} className="mt-3 space-y-3 pl-4">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Snap Strength</span>
             <div className="flex items-center gap-2 w-24">

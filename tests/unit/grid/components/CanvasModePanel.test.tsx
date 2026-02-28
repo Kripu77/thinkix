@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CanvasModePanel } from '@/features/board/grid/components/CanvasModePanel';
-import type { BoardBackground, GridType } from '@/features/board/grid/types';
+import type { BoardBackground } from '@/features/board/grid/types';
+import { CANVAS_MODE_ORDER, GRID_TYPES_SUPPORTING_MAJOR } from '@/features/board/grid/constants';
 
 const createConfig = (overrides: Partial<BoardBackground> = {}): BoardBackground => ({
   type: 'blank',
@@ -9,9 +10,6 @@ const createConfig = (overrides: Partial<BoardBackground> = {}): BoardBackground
   showMajor: true,
   ...overrides,
 });
-
-const ALL_GRID_TYPES: GridType[] = ['blank', 'dot', 'square', 'blueprint', 'isometric', 'ruled'];
-const GRID_TYPES_WITH_MAJOR: GridType[] = ['square', 'blueprint', 'isometric', 'ruled'];
 
 describe('CanvasModePanel', () => {
   describe('rendering', () => {
@@ -46,7 +44,7 @@ describe('CanvasModePanel', () => {
         />
       );
 
-      ALL_GRID_TYPES.forEach((type) => {
+      CANVAS_MODE_ORDER.forEach((type) => {
         expect(screen.getByTestId(`canvas-mode-${type}`)).toBeInTheDocument();
       });
     });
@@ -73,7 +71,7 @@ describe('CanvasModePanel', () => {
     });
 
     it('shows grid spacing in all non-blank modes', () => {
-      const nonBlankTypes: GridType[] = ['dot', 'square', 'blueprint', 'isometric', 'ruled'];
+      const nonBlankTypes = CANVAS_MODE_ORDER.filter((type) => type !== 'blank');
 
       nonBlankTypes.forEach((type) => {
         const onTypeChange = vi.fn();
@@ -95,7 +93,7 @@ describe('CanvasModePanel', () => {
     });
 
     it('shows major grid selector in modes that support it', () => {
-      GRID_TYPES_WITH_MAJOR.forEach((type) => {
+      GRID_TYPES_SUPPORTING_MAJOR.forEach((type) => {
         const onTypeChange = vi.fn();
         const onDensityChange = vi.fn();
         const onShowMajorChange = vi.fn();

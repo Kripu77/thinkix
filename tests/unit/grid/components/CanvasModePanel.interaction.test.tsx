@@ -219,7 +219,7 @@ describe('CanvasModePanel Interaction', () => {
       );
 
       majorGridContainer = screen.getByTestId('major-grid-container');
-      expect(majorGridContainer).not.toHaveAttribute('aria-hidden', 'true');
+      expect(majorGridContainer).toHaveAttribute('aria-hidden', 'false');
     });
 
     it('hides grid spacing controls in blank mode', () => {
@@ -267,7 +267,7 @@ describe('CanvasModePanel Interaction', () => {
       );
 
       gridSettingsContainer = screen.getByTestId('grid-settings-container');
-      expect(gridSettingsContainer).not.toHaveAttribute('aria-hidden', 'true');
+      expect(gridSettingsContainer).toHaveAttribute('aria-hidden', 'false');
     });
   });
 });

@@ -120,10 +120,13 @@ export const CanvasModeCard = memo(function CanvasModeCard({
         ]
       )}
     >
-      <div className="relative w-7 h-7 flex-shrink-0">
+      <div className="relative w-7 h-7 flex-shrink-0" data-testid="canvas-mode-preview">
         {preview}
         {isSelected && (
-          <div className="absolute -top-0.5 -right-0.5 h-3 w-3 bg-primary rounded-full flex items-center justify-center">
+          <div 
+            className="absolute -top-0.5 -right-0.5 h-3 w-3 bg-primary rounded-full flex items-center justify-center"
+            data-testid="canvas-mode-checkmark"
+          >
             <Check className="h-2 w-2 text-primary-foreground" aria-hidden="true" />
           </div>
         )}

@@ -20,6 +20,7 @@ export const MajorGridSelect = memo(function MajorGridSelect({
       <button
         type="button"
         role="switch"
+        aria-label="Major Grid"
         aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}

@@ -91,6 +91,7 @@ export const CanvasModePanel = memo(function CanvasModePanel({
           isBlankMode && 'opacity-0 pointer-events-none'
         )}
         aria-hidden={isBlankMode}
+        inert={isBlankMode || undefined}
         data-testid="grid-settings-container"
       >
         <div className="mb-3">

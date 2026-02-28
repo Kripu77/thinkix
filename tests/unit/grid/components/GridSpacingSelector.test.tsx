@@ -61,7 +61,7 @@ describe('GridSpacingSelector', () => {
       );
 
       const selectedOption = screen.getByTestId('grid-spacing-16');
-      expect(selectedOption.className).toContain('bg-primary');
+      expect(selectedOption).toHaveAttribute('aria-checked', 'true');
     });
 
     it('applies unselected styling when not selected', () => {
@@ -75,7 +75,7 @@ describe('GridSpacingSelector', () => {
       );
 
       const unselectedOption = screen.getByTestId('grid-spacing-32');
-      expect(unselectedOption.className).not.toContain('bg-primary');
+      expect(unselectedOption).toHaveAttribute('aria-checked', 'false');
     });
   });
 
