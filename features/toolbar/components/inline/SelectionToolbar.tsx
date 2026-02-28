@@ -45,6 +45,7 @@ import {
 } from './utils';
 import type { ElementColors } from '@thinkix/shared';
 import { NO_COLOR_SWATCH } from '@/shared/constants/inline-toolbar';
+import posthog from 'posthog-js';
 
 export function SelectionToolbar() {
   const board = useBoard();
@@ -173,6 +174,7 @@ export function SelectionToolbar() {
       },
     });
     refreshColors();
+    posthog.capture('fill_color_changed', { color: fillColor });
   };
 
   const handleStrokeChange = (color: string) => {
@@ -193,16 +195,19 @@ export function SelectionToolbar() {
       },
     });
     refreshColors();
+    posthog.capture('stroke_color_changed', { color: strokeColor });
   };
 
   const handleStrokeWidthChange = (width: number) => {
     PropertyTransforms.setStrokeWidth(board, width, { getMemorizeKey });
     refreshColors();
+    posthog.capture('stroke_width_changed', { width });
   };
 
   const handleStrokeStyleChange = (style: StrokeStyle) => {
     PropertyTransforms.setStrokeStyle(board, style, { getMemorizeKey });
     refreshColors();
+    posthog.capture('stroke_style_changed', { style });
   };
 
   const handleFillStyleChange = (fillStyle: string) => {
@@ -214,6 +219,7 @@ export function SelectionToolbar() {
       }
     });
     refreshColors();
+    posthog.capture('fill_style_changed', { fillStyle });
   };
 
   const handleArrowMarkerChange = (end: 'source' | 'target', marker: ArrowLineMarkerType) => {

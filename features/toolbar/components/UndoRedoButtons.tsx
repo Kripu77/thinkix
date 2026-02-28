@@ -11,6 +11,7 @@ import {
 } from '@thinkix/ui';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
 import { cn } from '@thinkix/ui';
+import posthog from 'posthog-js';
 
 export function UndoRedoButtons() {
   const board = useBoard();
@@ -20,6 +21,24 @@ export function UndoRedoButtons() {
 
   const isUndoDisabled = board.history ? board.history.undos.length === 0 : true;
   const isRedoDisabled = board.history ? board.history.redos.length === 0 : true;
+
+  const handleUndo = () => {
+    const undoCount = board.history?.undos.length || 0;
+    posthog.capture('undo_triggered', { 
+      undo_stack_size: undoCount,
+      redo_stack_size: board.history?.redos.length || 0,
+    });
+    board.undo();
+  };
+
+  const handleRedo = () => {
+    const redoCount = board.history?.redos.length || 0;
+    posthog.capture('redo_triggered', { 
+      redo_stack_size: redoCount,
+      undo_stack_size: board.history?.undos.length || 0,
+    });
+    board.redo();
+  };
 
   return (
     <div className={cn(
@@ -40,7 +59,7 @@ export function UndoRedoButtons() {
               onPointerDown={(e: React.PointerEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                board.undo();
+                handleUndo();
               }}
             >
               <Undo className={cn("h-4 w-4", state.isMobile && "h-3.5 w-3.5")} />
@@ -64,7 +83,7 @@ export function UndoRedoButtons() {
               onPointerDown={(e: React.PointerEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                board.redo();
+                handleRedo();
               }}
             >
               <Redo className={cn("h-4 w-4", state.isMobile && "h-3.5 w-3.5")} />
