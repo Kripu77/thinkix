@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, FileText } from 'lucide-react';
+import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, FileText, Users, Link2, UserCircle2 } from 'lucide-react';
 import { useBoard, useListRender } from '@plait-board/react-board';
 import {
   BoardTransforms,
@@ -37,18 +37,32 @@ import {
   exportAsJpg,
 } from '@thinkix/file-utils';
 import { MarkdownToMindmapDialog } from '@/features/dialogs';
+import { NicknameDialog, type CollaborationUser } from '@thinkix/collaboration';
 import posthog from 'posthog-js';
+
+export type { CollaborationUser };
 
 interface AppMenuProps {
   boardName?: string;
+  onEnableCollaboration?: () => void;
+  collaboration?: {
+    enabled: boolean;
+    user: CollaborationUser;
+    userCount: number;
+    roomId: string;
+    onShare: () => void;
+    onChangeNickname: (name: string) => void;
+    onLeave: () => void;
+  };
 }
 
-export function AppMenu({ boardName }: AppMenuProps) {
+export function AppMenu({ boardName, onEnableCollaboration, collaboration }: AppMenuProps) {
   const board = useBoard();
   const listRender = useListRender();
   const [isOpen, setIsOpen] = useState(false);
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   const [isMarkdownDialogOpen, setIsMarkdownDialogOpen] = useState(false);
+  const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -219,6 +233,52 @@ export function AppMenu({ boardName }: AppMenuProps) {
             <Trash2 className="h-5 w-5 mr-2" />
             Clear Board
           </DropdownMenuItem>
+          
+          {!collaboration?.enabled && onEnableCollaboration && (
+            <>
+              <DropdownMenuSeparator className="lg:hidden" />
+              <DropdownMenuItem 
+                className="lg:hidden"
+                onSelect={() => { setIsOpen(false); onEnableCollaboration(); }}
+              >
+                <Users className="h-5 w-5 mr-2" />
+                Start Collaborating
+              </DropdownMenuItem>
+            </>
+          )}
+          
+          {collaboration?.enabled && (
+            <>
+              <DropdownMenuSeparator className="lg:hidden" />
+              <div className="lg:hidden">
+                <div className="px-2 py-1.5 text-xs text-muted-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span>{collaboration.userCount} online</span>
+                </div>
+                <DropdownMenuItem 
+                  className="lg:hidden"
+                  onSelect={() => { setIsOpen(false); collaboration.onShare(); }}
+                >
+                  <Link2 className="h-5 w-5 mr-2" />
+                  Share Board
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="lg:hidden"
+                  onSelect={() => { setIsOpen(false); setIsNicknameDialogOpen(true); }}
+                >
+                  <UserCircle2 className="h-5 w-5 mr-2" />
+                  Change Nickname
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="lg:hidden text-destructive focus:text-destructive"
+                  onSelect={() => { setIsOpen(false); collaboration.onLeave(); }}
+                >
+                  <Users className="h-5 w-5 mr-2" />
+                  Leave Collaboration
+                </DropdownMenuItem>
+              </div>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -252,6 +312,17 @@ export function AppMenu({ boardName }: AppMenuProps) {
         open={isMarkdownDialogOpen}
         onOpenChange={setIsMarkdownDialogOpen}
       />
+
+      {collaboration?.enabled && (
+        <NicknameDialog
+          open={isNicknameDialogOpen}
+          onOpenChange={setIsNicknameDialogOpen}
+          currentName={collaboration.user.name}
+          onSave={(name) => {
+            collaboration.onChangeNickname(name);
+          }}
+        />
+      )}
     </>
   );
 }
