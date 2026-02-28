@@ -24,9 +24,11 @@ import { withScribble } from '../plugins/scribble';
 import { withEraser } from '../plugins/with-eraser';
 import { withStickyNote } from '../plugins/with-sticky-note';
 import { withHanddrawn } from '../plugins/handdrawn-mode';
+import { withGrid } from '../grid';
 import { useBoardState } from '../hooks/use-board-state';
 import { DRAWING_TOOLS } from '@/shared/constants';
 import { SelectionToolbar, ZoomToolbar } from '@/features/toolbar';
+import { GridToolbar } from '../grid/components';
 import { useAutoSave } from '@/features/storage';
 import { PencilModeIndicator } from './PencilModeIndicator';
 import type { Board as StorageBoard } from '@thinkix/storage';
@@ -52,6 +54,7 @@ const DEFAULT_THEME: PlaitTheme = {
 };
 
 const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): PlaitPlugin[] => [
+  withGrid,
   withDraw,
   withTextNormalization(),
   withText,
@@ -142,6 +145,7 @@ export function BoardCanvas({
         <PencilModeIndicator />
         <SelectionToolbar />
         <ZoomToolbar />
+        <GridToolbar />
         {children}
       </Wrapper>
     </div>
