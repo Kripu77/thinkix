@@ -16,6 +16,7 @@ import {
 import { Button } from '@thinkix/ui';
 import { insertElementsSafely } from '@/features/board/utils';
 import { parseMarkdownToMindElement } from '@thinkix/plait-utils';
+import posthog from 'posthog-js';
 
 const MARKDOWN_EXAMPLE = `# Project Title
 Brief description of the project or topic.
@@ -114,8 +115,9 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
   const handleInsert = useCallback(() => {
     if (elements.length === 0) return;
     insertElementsSafely(board, elements);
+    posthog.capture('markdown_to_mindmap_inserted', { markdown_length: text.trim().length });
     onOpenChange(false);
-  }, [board, elements, onOpenChange]);
+  }, [board, elements, text, onOpenChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
