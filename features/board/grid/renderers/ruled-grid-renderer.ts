@@ -2,7 +2,7 @@ import { BaseGridRenderer, type GridRenderContext } from './base-renderer';
 import { getMinorGridOpacity, getMajorGridOpacity } from '../utils/visibility';
 import { rgba } from '../utils/theme-colors';
 import { getGridLines } from '../utils/world-to-screen';
-import { GRID_LINE_WIDTH_BASE, GRID_MAJOR_LINE_WIDTH_BASE, GRID_RULED_MARGIN_OFFSET } from '../constants';
+import { GRID_LINE_WIDTH_BASE, GRID_MAJOR_LINE_WIDTH_BASE, GRID_RULED_MARGIN_OFFSET, getMinorGridSpacing, getMajorGridSpacing } from '../constants';
 
 export class RuledGridRenderer extends BaseGridRenderer {
   readonly type = 'ruled';
@@ -20,13 +20,15 @@ export class RuledGridRenderer extends BaseGridRenderer {
     }
     
     const spacing = config.density;
+    const minorSpacing = getMinorGridSpacing(spacing);
+    const majorSpacing = getMajorGridSpacing(spacing);
     const minorLineWidth = Math.max(0.25, GRID_LINE_WIDTH_BASE / zoom);
     const marginLineWidth = Math.max(1, 1.5 / zoom);
     
     const fragment = document.createDocumentFragment();
     
     const minorColor = rgba(colors.primary, minorOpacity);
-    const yLines = getGridLines(bounds.minY, bounds.maxY, spacing);
+    const yLines = getGridLines(bounds.minY, bounds.maxY, minorSpacing);
     
     for (const y of yLines) {
       const line = this.createLine(bounds.minX, y, bounds.maxX, y, minorColor, minorLineWidth);
@@ -34,7 +36,6 @@ export class RuledGridRenderer extends BaseGridRenderer {
     }
     
     if (majorOpacity > 0 && config.showMajor) {
-      const majorSpacing = spacing * 5;
       const majorColor = rgba(colors.major, majorOpacity);
       const majorLineWidth = Math.max(0.5, GRID_MAJOR_LINE_WIDTH_BASE / zoom);
       const majorYLines = getGridLines(bounds.minY, bounds.maxY, majorSpacing);
