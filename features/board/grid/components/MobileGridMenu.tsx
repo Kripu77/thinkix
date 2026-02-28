@@ -60,6 +60,10 @@ export function MobileGridMenu() {
     }
   }, [board]);
 
+  const handleShowMajorChangeWrapper = useCallback((checked: boolean | 'indeterminate') => {
+    handleShowMajorChange(checked === true);
+  }, [handleShowMajorChange]);
+
   const handleOpenChange = useCallback((open: boolean) => {
     setIsOpen(open);
     if (!open) {
@@ -139,7 +143,7 @@ export function MobileGridMenu() {
                 <DropdownMenuSeparator className="my-3" />
                 <DropdownMenuCheckboxItem
                   checked={currentConfig.showMajor}
-                  onCheckedChange={handleShowMajorChange}
+                  onCheckedChange={handleShowMajorChangeWrapper}
                   className="px-1"
                 >
                   <span className="text-sm">Major grid</span>
