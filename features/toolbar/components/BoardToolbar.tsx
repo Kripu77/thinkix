@@ -12,7 +12,7 @@ import {
   deleteFragment,
   duplicateElements,
 } from '@plait/core';
-import { Button, cn } from '@thinkix/ui';
+import { Button } from '@thinkix/ui';
 import { ToggleGroup, ToggleGroupItem } from '@thinkix/ui';
 import {
   Tooltip,
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@thinkix/ui';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
+import { MobileGridMenu } from '@/features/board/grid/components';
 import type { DrawingTool } from '@thinkix/shared';
 import {
   SHAPE_TOOLS,
@@ -262,6 +263,13 @@ export function BoardToolbar() {
               </TooltipContent>
             )}
           </Tooltip>
+
+          {isMobile && (
+            <>
+              <div className={separatorClass} />
+              <MobileGridMenu />
+            </>
+          )}
 
           {selectedElements.length > 0 && (
             <>
