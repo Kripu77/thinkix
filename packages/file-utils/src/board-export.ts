@@ -1,5 +1,5 @@
 import type { PlaitBoard } from '@plait/core';
-import { toSvgData, toImage, getSelectedElements } from '@plait/core';
+import { toSvgData, toImage, getSelectedElements, ThemeColorMode } from '@plait/core';
 import type { ThinkixExportedData } from './types';
 import { CURRENT_VERSION, FILE_EXTENSION, MIME_TYPE } from './types';
 import { fileOpen, fileSave, parseFileContents, normalizeFile, base64ToBlob, download, isAbortError } from './filesystem';
@@ -26,7 +26,7 @@ interface BoardWithGridConfig {
 }
 
 export const getBackgroundColor = (board: PlaitBoard & BoardWithGridConfig): string => {
-  const isDark = board.theme?.themeColorMode === 'dark';
+  const isDark = board.theme?.themeColorMode === ThemeColorMode.dark;
   
   if (board.getGridConfig) {
     const config = board.getGridConfig();
