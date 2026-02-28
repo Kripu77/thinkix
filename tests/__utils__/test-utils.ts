@@ -19,7 +19,7 @@ export interface MockBoardOptions {
 export function createMockBoard(options: MockBoardOptions = {}): PlaitBoard {
   const { 
     elements = [], 
-    viewport = { zoom: 1 }, 
+    viewport = { zoom: 1, x: 0, y: 0 }, 
     viewBox = { x: 0, y: 0, width: 800, height: 600 },
     theme, 
     selection = null 
