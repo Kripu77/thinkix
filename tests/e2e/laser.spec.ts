@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, hasElementOnCanvas, drawFreehand, clickOnCanvas } from './utils';
+import { waitForBoard, selectTool, drawFreehand } from './utils';
 
 test.describe('Laser Tool E2E Tests', () => {
   test.beforeEach(async ({ page }) => {

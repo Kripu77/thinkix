@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, clickOnCanvas, drawShape, getCanvas } from './utils';
+import { waitForBoard, selectTool, getCanvas } from './utils';
 
 test.describe('Board Canvas E2E Tests', () => {
   test.beforeEach(async ({ page }) => {

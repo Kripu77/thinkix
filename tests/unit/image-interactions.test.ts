@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   isValidImageType,
   readFileAsURL,
@@ -201,12 +201,6 @@ describe('image-interactions', () => {
   });
 
   describe('fullscreen image viewer', () => {
-    let bodyChildrenCount: number;
-
-    beforeEach(() => {
-      bodyChildrenCount = document.body.children.length;
-    });
-
     afterEach(() => {
       const overlays = document.body.querySelectorAll('.fixed.inset-0');
       overlays.forEach((overlay) => overlay.remove());

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, pressEscape } from './utils';
+import { waitForBoard, selectTool } from './utils';
 
 test.describe('Toolbar Selection Indicator E2E Tests', () => {
   test.beforeEach(async ({ page }) => {

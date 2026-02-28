@@ -29,7 +29,7 @@ vi.mock('@/features/board/plugins/scribble/types', () => ({
 }));
 
 vi.mock('@/features/board/plugins/scribble/helpers', () => ({
-  checkHitScribble: vi.fn((board, element, point) => {
+  checkHitScribble: vi.fn((board, element) => {
     return element.id === 'hit-element';
   }),
 }));
@@ -61,8 +61,8 @@ function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
     pointer: 'default',
     actions: [],
     selectedAction: null,
-    isHit: vi.fn((_element: PlaitElement, _point: Point, _detailed: boolean) => {
-      return _element.id === 'hit-draw-element';
+    isHit: vi.fn((element: PlaitElement) => {
+      return element.id === 'hit-draw-element';
     }),
     getRectangle: vi.fn(),
     getViewBox: vi.fn(),

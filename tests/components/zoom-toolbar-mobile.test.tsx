@@ -23,8 +23,6 @@ vi.mock('@/features/board/hooks/use-board-state', () => ({
 }));
 
 describe('ZoomToolbar', () => {
-  const mockSetPencilMode = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
   });

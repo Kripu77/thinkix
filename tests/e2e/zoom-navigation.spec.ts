@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, hasElementOnCanvas } from './utils';
+import { waitForBoard, selectTool, drawShape } from './utils';
 
 test.describe('Zoom and Navigation E2E Tests', () => {
   test.beforeEach(async ({ page }) => {

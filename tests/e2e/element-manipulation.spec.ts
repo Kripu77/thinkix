@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, clickOnCanvas, hasElementOnCanvas, getCanvasBoundingBox, getElementCount } from './utils';
+import { waitForBoard, selectTool, drawShape, clickOnCanvas, getCanvasBoundingBox, getElementCount } from './utils';
 
 test.describe('Element Manipulation E2E Tests', () => {
   test.beforeEach(async ({ page }) => {

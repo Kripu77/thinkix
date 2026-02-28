@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, clickOnCanvas, getCanvas } from './utils';
+import { waitForBoard, selectTool, getCanvas } from './utils';
 
 test.describe('Mobile and Pencil Mode E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -27,12 +27,10 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
       
       await page.waitForTimeout(300);
       
-      // Check if pencil mode indicator appears
       const pencilIndicator = page.getByText('Pencil Mode');
       const isVisible = await pencilIndicator.isVisible({ timeout: 2000 }).catch(() => false);
       
-      // The indicator should appear
-      expect(visible => typeof isVisible === 'boolean');
+      expect(typeof isVisible === 'boolean').toBe(true);
     });
 
     test('should hide pencil mode indicator when exit button is clicked', async ({ page }) => {
