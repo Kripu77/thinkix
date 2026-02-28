@@ -48,6 +48,7 @@ export default defineConfig({
       '@thinkix/storage': path.resolve(__dirname, './packages/storage/lib'),
       '@thinkix/shared': path.resolve(__dirname, './packages/shared/src'),
       '@thinkix/file-utils': path.resolve(__dirname, './packages/file-utils/src'),
+      '@thinkix/collaboration': path.resolve(__dirname, './packages/collaboration/src'),
       '@/features': path.resolve(__dirname, './features'),
       '@/shared': path.resolve(__dirname, './shared'),
       '@/packages': path.resolve(__dirname, './packages'),

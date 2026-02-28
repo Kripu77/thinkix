@@ -32,7 +32,8 @@
       "@thinkix/plait-utils": ["./packages/plait-utils/lib"],
       "@thinkix/storage": ["./packages/storage/lib"],
       "@thinkix/shared": ["./packages/shared/src"],
-      "@thinkix/file-utils": ["./packages/file-utils/src"]
+      "@thinkix/file-utils": ["./packages/file-utils/src"],
+      "@thinkix/collaboration": ["./packages/collaboration/src"]
     }
   },
   "include": [
