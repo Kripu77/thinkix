@@ -74,6 +74,7 @@
       "name": "@thinkix/file-utils",
       "version": "0.0.1",
       "dependencies": {
+        "@thinkix/shared": "workspace:*",
         "browser-fs-access": "^0.38.0",
       },
       "devDependencies": {
