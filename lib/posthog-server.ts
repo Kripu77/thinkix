@@ -1,5 +1,4 @@
 import { PostHog } from "posthog-node";
-import { randomUUID } from "crypto";
 
 let posthogClient: PostHog | null = null;
 
@@ -23,7 +22,7 @@ export function getPostHogClient(): PostHog | null {
 }
 
 export function getSessionId(): string {
-  return `session_${randomUUID()}`;
+  return `session_${crypto.randomUUID()}`;
 }
 
 export async function shutdownPostHog(): Promise<void> {
