@@ -17,21 +17,53 @@ import { Button } from '@thinkix/ui';
 import { insertElementsSafely } from '@/features/board/utils';
 import { parseMarkdownToMindElement } from '@thinkix/plait-utils';
 
-const MARKDOWN_EXAMPLE = `# Project Ideas
+const MARKDOWN_EXAMPLE = `# Project Title
+Brief description of the project or topic.
 
-- Mobile App
-  - iOS version
-  - Android version
-- Web Platform
-  - Frontend
-    - React
-    - Vue
-  - Backend
-    - Node.js
-    - Python
-- Documentation
-  - API docs
-  - User guides`;
+## Core Idea
+- Main concept or goal
+- Key objectives
+- Desired outcome
+
+## Sections / Modules
+### Module 1: [Name]
+- Description
+- Key points
+  - Subpoint A
+  - Subpoint B
+- Tasks / Actions
+  - Task 1
+  - Task 2
+
+### Module 2: [Name]
+- Description
+- Key points
+  - Subpoint A
+  - Subpoint B
+- Tasks / Actions
+  - Task 1
+  - Task 2
+
+## Challenges / Risks
+- Challenge 1
+- Challenge 2
+- Mitigation strategies
+  - Strategy A
+  - Strategy B
+
+## Resources / References
+- Resource 1 (link or book)
+- Resource 2 (link or book)
+
+## Next Steps / Timeline
+- Phase 1: [Date] – Tasks
+- Phase 2: [Date] – Tasks
+- Phase 3: [Date] – Tasks
+
+## Notes / Ideas
+- Idea 1
+- Idea 2
+- Idea 3`;
 
 interface MarkdownToMindmapDialogProps {
   open: boolean;
