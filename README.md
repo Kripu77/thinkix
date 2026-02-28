@@ -9,6 +9,7 @@ An AI-powered infinite canvas whiteboard for visual thinking. Create mind maps, 
 - **Freehand Drawing** - Sketch ideas with the pen tool
 - **Shapes & Text** - Add rectangles, ellipses, diamonds, and text elements
 - **Images** - Drag, drop, or paste images with an integrated viewer
+- **Grid Backgrounds** - Choose from dots, lines, blueprint, isometric, or ruled paper styles
 - **AI Assistant** - Chat with AI to organize and structure your thinking (BYOK - Bring Your Own Key)
 - **Board Management** - Open, save, and export boards as `.thinkix` files
 - **Auto-Save** - Automatic saving to IndexedDB with browser-level persistence
@@ -200,6 +201,7 @@ Thinkix extends Plait with custom plugins:
 
 | Plugin | Description |
 |--------|-------------|
+| `withGrid` | Grid background patterns (dots, lines, blueprint, isometric, ruled) |
 | `addTextRenderer` | Custom Slate-based text editor |
 | `addImageRenderer` | React-based image rendering |
 | `addEmojiRenderer` | Emoji rendering for mind maps |
@@ -208,7 +210,7 @@ Thinkix extends Plait with custom plugins:
 | `addImageInteractions` | Drag-drop, paste, view images |
 | `withScribble` | Freehand drawing with smoothing |
 | `withEraser` | Eraser tool |
-| `withStickyNote` | Sticky note support |
+| `withStickyNote` | Sticky note support with drag-preview |
 | `withHanddrawn` | Hand-drawn style mode |
 
 ## Keyboard Shortcuts
