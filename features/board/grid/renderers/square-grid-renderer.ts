@@ -12,6 +12,11 @@ import {
 export class SquareGridRenderer extends BaseGridRenderer {
   readonly type = 'square';
   
+  private isMajorLine(pos: number, majorSpacing: number): boolean {
+    const ratio = pos / majorSpacing;
+    return Math.abs(ratio - Math.round(ratio)) < 1e-6;
+  }
+  
   render(context: GridRenderContext): void {
     const { container, bounds, zoom, colors, config } = context;
     const gridGroup = this.ensureGridGroup(container);
@@ -38,13 +43,13 @@ export class SquareGridRenderer extends BaseGridRenderer {
       const yLines = getGridLines(bounds.minY, bounds.maxY, minorSpacing);
       
       for (const x of xLines) {
-        if (config.showMajor && x % majorSpacing === 0) continue;
+        if (config.showMajor && this.isMajorLine(x, majorSpacing)) continue;
         const line = this.createLine(x, bounds.minY, x, bounds.maxY, minorColor, minorLineWidth);
         fragment.appendChild(line);
       }
       
       for (const y of yLines) {
-        if (config.showMajor && y % majorSpacing === 0) continue;
+        if (config.showMajor && this.isMajorLine(y, majorSpacing)) continue;
         const line = this.createLine(bounds.minX, y, bounds.maxX, y, minorColor, minorLineWidth);
         fragment.appendChild(line);
       }
