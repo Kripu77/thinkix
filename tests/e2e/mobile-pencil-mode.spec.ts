@@ -30,7 +30,7 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
       const pencilIndicator = page.getByText('Pencil Mode');
       const isVisible = await pencilIndicator.isVisible({ timeout: 2000 }).catch(() => false);
       
-      expect(typeof isVisible === 'boolean').toBe(true);
+      expect(isVisible).toBe(true);
     });
 
     test('should hide pencil mode indicator when exit button is clicked', async ({ page }) => {
@@ -53,19 +53,16 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
       
       await page.waitForTimeout(300);
       
-      // Look for exit button
       const exitButton = page.getByRole('button', { name: 'Exit pencil mode' });
       const isExitVisible = await exitButton.isVisible({ timeout: 2000 }).catch(() => false);
       
-      if (isExitVisible) {
-        await exitButton.click();
-        await page.waitForTimeout(200);
-        
-        // Indicator should be gone
-        const pencilIndicator = page.getByText('Pencil Mode');
-        const stillVisible = await pencilIndicator.isVisible({ timeout: 1000 }).catch(() => false);
-        expect(stillVisible).toBe(false);
-      }
+      expect(isExitVisible).toBe(true);
+      await exitButton.click();
+      await page.waitForTimeout(200);
+      
+      const pencilIndicator = page.getByText('Pencil Mode');
+      const stillVisible = await pencilIndicator.isVisible({ timeout: 1000 }).catch(() => false);
+      expect(stillVisible).toBe(false);
     });
 
     test('should have proper accessibility attributes on pencil mode indicator', async ({ page }) => {
@@ -207,8 +204,7 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
       const zoomContainer = page.locator('.absolute.bottom-4.left-4');
       const isVisible = await zoomContainer.isVisible({ timeout: 2000 }).catch(() => false);
       
-      // On desktop, zoom controls should be visible
-      expect(typeof isVisible).toBe('boolean');
+      expect(isVisible).toBe(true);
     });
 
     test('should position toolbar at top center on desktop', async ({ page }) => {
