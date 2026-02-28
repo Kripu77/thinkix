@@ -1,6 +1,9 @@
 import { PlaitBoard, ThemeColorMode } from '@plait/core';
 import type { BoardBackground, GridType, ViewportBounds } from './types';
-import { DEFAULT_BOARD_BACKGROUND, GRID_BACKGROUND_COLORS } from './types';
+import { DEFAULT_BOARD_BACKGROUND, GRID_BACKGROUND_COLORS, GRID_DENSITIES } from './types';
+import type { GridDensity } from '@thinkix/shared';
+
+const VALID_GRID_TYPES: GridType[] = ['dot', 'square', 'blueprint', 'isometric', 'ruled', 'blank'];
 import { getViewportBounds } from './utils/world-to-screen';
 import { getGridThemeColors, getBlueprintColors } from './utils/theme-colors';
 import type { GridRenderer, GridRenderContext } from './renderers';
@@ -47,12 +50,34 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined'
 }
 
+function isValidGridType(type: unknown): type is GridType {
+  return typeof type === 'string' && VALID_GRID_TYPES.includes(type as GridType)
+}
+
+function isValidDensity(density: unknown): density is GridDensity {
+  return typeof density === 'number' && GRID_DENSITIES.includes(density as GridDensity)
+}
+
 function getStoredGridConfig(): BoardBackground | null {
   if (!isBrowser()) return null
   try {
     const stored = localStorage.getItem(GRID_STORAGE_KEY)
     if (stored) {
-      return JSON.parse(stored) as BoardBackground
+      const parsed = JSON.parse(stored)
+      if (
+        parsed &&
+        typeof parsed === 'object' &&
+        isValidGridType(parsed.type) &&
+        (parsed.density === undefined || isValidDensity(parsed.density)) &&
+        (parsed.showMajor === undefined || typeof parsed.showMajor === 'boolean')
+      ) {
+        return {
+          type: parsed.type,
+          density: parsed.density ?? DEFAULT_BOARD_BACKGROUND.density,
+          showMajor: parsed.showMajor ?? DEFAULT_BOARD_BACKGROUND.showMajor,
+        }
+      }
+      localStorage.removeItem(GRID_STORAGE_KEY)
     }
   } catch {
     return null
@@ -174,8 +199,14 @@ function initGrid(state: GridPluginState, board: PlaitBoard): void {
         console.warn(`Grid init failed after ${GRID_MAX_RETRIES} attempts: lowerHost not available`)
         return
     }
+    if (state.initTimeoutId !== null) {
+      return
+    }
     state.initRetryCount++
-    state.initTimeoutId = setTimeout(() => initGrid(state, board), GRID_INIT_DEBOUNCE_MS) as unknown as number
+    state.initTimeoutId = setTimeout(() => {
+      state.initTimeoutId = null
+      initGrid(state, board)
+    }, GRID_INIT_DEBOUNCE_MS) as unknown as number
     return
   }
   
@@ -223,7 +254,7 @@ export function withGrid(board: PlaitBoard): PlaitBoard {
     
     if (newConfig.type !== state.config.type && state.renderer) {
       state.renderer.destroy()
-      state.renderer = createRenderer(newConfig.type)
+      state.renderer = null
       state.container = null
     }
     
