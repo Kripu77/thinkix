@@ -12,6 +12,7 @@ import type { GridType, GridDensity, BoardBackground } from '../types';
 import { DEFAULT_BOARD_BACKGROUND } from '../types';
 import { CANVAS_MODE_LABELS } from '../constants';
 import { CanvasModePanel } from './CanvasModePanel';
+import posthog from 'posthog-js';
 
 const GRID_TYPE_PREVIEWS: Record<GridType, React.ReactNode> = {
   blank: (
@@ -90,15 +91,25 @@ export function GridToolbar() {
 
   const handleGridTypeChange = useCallback((type: GridType) => {
     if (board) {
+      const previousType = getGridConfig(board).type;
       setGridConfig(board, { type });
       setLocalConfig((prev) => (prev ? { ...prev, type } : { ...getGridConfig(board), type }));
+      posthog.capture('grid_type_changed', { 
+        previous_type: previousType,
+        new_type: type,
+      });
     }
   }, [board]);
 
   const handleDensityChange = useCallback((density: GridDensity) => {
     if (board) {
+      const previousDensity = getGridConfig(board).density;
       setGridConfig(board, { density });
       setLocalConfig((prev) => (prev ? { ...prev, density } : { ...getGridConfig(board), density }));
+      posthog.capture('grid_spacing_changed', { 
+        previous_density: previousDensity,
+        new_density: density,
+      });
     }
   }, [board]);
 
@@ -106,6 +117,7 @@ export function GridToolbar() {
     if (board) {
       setGridConfig(board, { showMajor });
       setLocalConfig((prev) => (prev ? { ...prev, showMajor } : { ...getGridConfig(board), showMajor }));
+      posthog.capture('major_grid_toggled', { enabled: showMajor });
     }
   }, [board]);
 

@@ -18,6 +18,7 @@ import { isHitImage, MindElement, ImageData } from '@plait/mind';
 import { DrawTransforms } from '@plait/draw';
 import { MindTransforms } from '@plait/mind';
 import { getSelectedElements } from '@plait/core';
+import posthog from 'posthog-js';
 
 export const STANDARD_IMAGE_WIDTH = 400;
 export const MIND_IMAGE_WIDTH = 240;
@@ -70,17 +71,43 @@ async function placeImage(
 
   if (isDropped && hitTarget && MindElement.isMindElement(board, hitTarget)) {
     MindTransforms.setImage(board, hitTarget, imageData);
+    posthog.capture('image_inserted', { 
+      source: 'drop',
+      target: 'mind_node',
+      file_size: file.size,
+      file_type: file.type,
+      image_width: width,
+      image_height: height,
+    });
     return;
   }
 
   if (target && MindElement.isMindElement(board, target) && !isDropped) {
     MindTransforms.setImage(board, target, imageData);
+    posthog.capture('image_inserted', { 
+      source: 'paste',
+      target: 'mind_node',
+      file_size: file.size,
+      file_type: file.type,
+      image_width: width,
+      image_height: height,
+    });
   } else {
     DrawTransforms.insertImage(board, imageData, atPoint);
+    posthog.capture('image_inserted', { 
+      source: isDropped ? 'drop' : 'paste',
+      target: 'canvas',
+      file_size: file.size,
+      file_type: file.type,
+      image_width: width,
+      image_height: height,
+    });
   }
 }
 
 export function showFullscreenImage(url: string) {
+  posthog.capture('image_viewed_fullscreen');
+  
   const overlay = document.createElement('div');
   overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80';
   overlay.addEventListener('click', () => overlay.remove());
