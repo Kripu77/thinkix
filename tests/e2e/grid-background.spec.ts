@@ -45,9 +45,13 @@ async function getGridBackgroundColor(page: import('@playwright/test').Page): Pr
 
 async function getLocalStorageGridConfig(page: import('@playwright/test').Page): Promise<{ type: string; density?: number; showMajor?: boolean } | null> {
   return page.evaluate(() => {
-    const stored = localStorage.getItem('thinkix:grid-background');
-    if (stored) {
-      return JSON.parse(stored);
+    try {
+      const stored = localStorage.getItem('thinkix:grid-background');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      return null;
     }
     return null;
   });
@@ -358,9 +362,10 @@ test.describe('Grid Background E2E Tests', () => {
       const configBefore = await getLocalStorageGridConfig(page);
       expect(configBefore?.type).toBe('blueprint');
       
-      await page.keyboard.down('Control');
+      const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+      await page.keyboard.down(modifier);
       await page.keyboard.press('KeyS');
-      await page.keyboard.up('Control');
+      await page.keyboard.up(modifier);
       await page.waitForTimeout(300);
       
       const configAfter = await getLocalStorageGridConfig(page);
