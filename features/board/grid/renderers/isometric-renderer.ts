@@ -86,6 +86,7 @@ export class IsometricGridRenderer extends BaseGridRenderer {
   
   private isMajorLine(startX: number, endX: number, majorSpacing: number): boolean {
     const avgX = (startX + endX) / 2;
-    return Math.abs(avgX % majorSpacing) < majorSpacing * 0.1;
+    const rem = ((avgX % majorSpacing) + majorSpacing) % majorSpacing;
+    return rem < majorSpacing * 0.1 || rem > majorSpacing * 0.9;
   }
 }
