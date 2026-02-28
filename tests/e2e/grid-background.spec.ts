@@ -252,8 +252,7 @@ test.describe('Grid Background E2E Tests', () => {
       }
       
       const exportSubMenu = page.getByText(/export/i).first();
-      const exportVisible = await exportSubMenu.isVisible({ timeout: 1000 }).catch(() => false);
-      expect(exportVisible || menuOpened).toBe(true);
+      await expect(exportSubMenu).toBeVisible({ timeout: 2000 });
     });
 
     test('should export PNG with grid background for ruled', async ({ page }) => {
@@ -267,8 +266,7 @@ test.describe('Grid Background E2E Tests', () => {
       }
       
       const exportSubMenu = page.getByText(/export/i).first();
-      const exportVisible = await exportSubMenu.isVisible({ timeout: 1000 }).catch(() => false);
-      expect(exportVisible || menuOpened).toBe(true);
+      await expect(exportSubMenu).toBeVisible({ timeout: 2000 });
     });
 
     test('should export JPG with grid background', async ({ page }) => {
@@ -282,8 +280,7 @@ test.describe('Grid Background E2E Tests', () => {
       }
       
       const exportSubMenu = page.getByText(/export/i).first();
-      const exportVisible = await exportSubMenu.isVisible({ timeout: 1000 }).catch(() => false);
-      expect(exportVisible || menuOpened).toBe(true);
+      await expect(exportSubMenu).toBeVisible({ timeout: 2000 });
     });
   });
 

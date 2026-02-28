@@ -29,7 +29,7 @@ vi.mock('@/features/board/plugins/scribble/types', () => ({
 }));
 
 vi.mock('@/features/board/plugins/scribble/helpers', () => ({
-  checkHitScribble: vi.fn((board, element) => {
+  checkHitScribble: vi.fn((board, element, testPoint) => {
     return element.id === 'hit-element';
   }),
 }));
@@ -61,7 +61,7 @@ function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {
     pointer: 'default',
     actions: [],
     selectedAction: null,
-    isHit: vi.fn((element: PlaitElement) => {
+    isHit: vi.fn((element: PlaitElement, point?: Point, includeSelection?: boolean) => {
       return element.id === 'hit-draw-element';
     }),
     getRectangle: vi.fn(),
@@ -120,8 +120,9 @@ describe('with-eraser', () => {
       const { checkHitScribble } = await import('@/features/board/plugins/scribble/helpers');
       const board = createMockBoard();
       const element = { id: 'hit-element', type: 'scribble', points: [[0, 0], [10, 10]] } as PlaitElement;
+      const testPoint: Point = [5, 5];
       
-      const isHit = checkHitScribble(board, element);
+      const isHit = checkHitScribble(board, element, testPoint);
       expect(isHit).toBe(true);
     });
 
@@ -129,8 +130,9 @@ describe('with-eraser', () => {
       const { checkHitScribble } = await import('@/features/board/plugins/scribble/helpers');
       const board = createMockBoard();
       const element = { id: 'other-element', type: 'scribble', points: [[0, 0]] } as PlaitElement;
+      const testPoint: Point = [100, 100];
       
-      const isHit = checkHitScribble(board, element);
+      const isHit = checkHitScribble(board, element, testPoint);
       expect(isHit).toBe(false);
     });
 
