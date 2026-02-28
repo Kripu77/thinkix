@@ -9,7 +9,7 @@ An AI-powered infinite canvas whiteboard for visual thinking. Create mind maps, 
 - **Freehand Drawing** - Sketch ideas with the pen tool
 - **Shapes & Text** - Add rectangles, ellipses, diamonds, and text elements
 - **Images** - Drag, drop, or paste images with an integrated viewer
-- **Grid Backgrounds** - Choose from dots, lines, blueprint, isometric, or ruled paper styles
+- **Grid Backgrounds** - Choose from dots, square, blueprint, isometric, ruled, or blank paper styles
 - **AI Assistant** - Chat with AI to organize and structure your thinking (BYOK - Bring Your Own Key)
 - **Board Management** - Open, save, and export boards as `.thinkix` files
 - **Auto-Save** - Automatic saving to IndexedDB with browser-level persistence
