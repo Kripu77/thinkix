@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, type ReactNode, useMemo, useCallback } from 'react';
-import { Board, Wrapper, type BoardChangeData, withPinchZoom } from '@plait-board/react-board';
+import { Board, Wrapper, type BoardChangeData, withPinchZoom, useListRender, useBoard } from '@plait-board/react-board';
 import {
   type PlaitElement,
   type PlaitBoardOptions,
   type PlaitPlugin,
-  type PlaitBoard,
+  PlaitBoard,
   type PlaitTheme,
   ThemeColorMode,
 } from '@plait/core';
@@ -73,6 +73,30 @@ const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): Pl
   withPinchZoom,
 ];
 
+function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: PlaitElement[]) => void }) {
+  const board = useBoard();
+  const listRender = useListRender();
+
+  useEffect(() => {
+    const handleRemoteElementsChange = (e: CustomEvent<{ elements: PlaitElement[] }>) => {
+      const remoteElements = e.detail.elements;
+      onElementsChange(remoteElements);
+      listRender.update(remoteElements, {
+        board: board,
+        parent: board,
+        parentG: PlaitBoard.getElementHost(board),
+      });
+    };
+
+    window.addEventListener('thinkix:remote-elements-change', handleRemoteElementsChange as EventListener);
+    return () => {
+      window.removeEventListener('thinkix:remote-elements-change', handleRemoteElementsChange as EventListener);
+    };
+  }, [board, listRender, onElementsChange]);
+
+  return null;
+}
+
 export function BoardCanvas({
   initialValue = [],
   className,
@@ -104,6 +128,9 @@ export function BoardCanvas({
 
   const handleChange = (data: BoardChangeData) => {
     setValue(data.children);
+    window.dispatchEvent(new CustomEvent('thinkix:local-elements-change', {
+      detail: { elements: data.children }
+    }));
   };
 
   const handleBoardInit = (board: PlaitBoard) => {
@@ -142,6 +169,7 @@ export function BoardCanvas({
           className="w-full h-full bg-background"
           afterInit={handleBoardInit}
         />
+        <RemoteSyncHandler onElementsChange={setValue} />
         <PencilModeIndicator />
         <SelectionToolbar />
         <ZoomToolbar />
