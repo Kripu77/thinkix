@@ -12,6 +12,15 @@ vi.mock('@plait/core', async () => {
     toSvgData: vi.fn().mockResolvedValue('<svg></svg>'),
     toImage: vi.fn().mockResolvedValue('data:image/png;base64,mock'),
     getSelectedElements: vi.fn().mockReturnValue([]),
+    ThemeColorMode: {
+      default: 'default',
+      dark: 'dark',
+      light: 'light',
+      soft: 'soft',
+      retro: 'retro',
+      starry: 'starry',
+      colorful: 'colorful',
+    },
   };
 });
 
