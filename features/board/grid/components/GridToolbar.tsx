@@ -75,7 +75,7 @@ const GRID_TYPES: { type: GridType; label: string; icon: React.ReactNode; previe
           <line x1="0" y1="8" x2="24" y2="8" stroke="currentColor" strokeWidth="0.5" />
           <line x1="0" y1="16" x2="24" y2="16" stroke="currentColor" strokeWidth="0.5" />
           <line x1="12" y1="0" x2="12" y2="24" stroke="currentColor" strokeWidth="1" opacity="0.7" />
-          <line x1="12" y1="0" x2="12" y2="24" stroke="currentColor" strokeWidth="1" opacity="0.7" />
+          <line x1="0" y1="12" x2="24" y2="12" stroke="currentColor" strokeWidth="1" opacity="0.7" />
         </svg>
       </div>
     ),
@@ -144,6 +144,10 @@ export function GridToolbar() {
       setLocalConfig((prev) => (prev ? { ...prev, showMajor } : { ...getGridConfig(board), showMajor }));
     }
   }, [board]);
+
+  const handleShowMajorChangeWrapper = useCallback((checked: boolean | 'indeterminate') => {
+    handleShowMajorChange(checked === true);
+  }, [handleShowMajorChange]);
 
   const handleOpenChange = useCallback((open: boolean) => {
     setIsOpen(open);
@@ -240,7 +244,7 @@ export function GridToolbar() {
                   <DropdownMenuSeparator className="my-3" />
                   <DropdownMenuCheckboxItem
                     checked={currentConfig.showMajor}
-                    onCheckedChange={handleShowMajorChange}
+                    onCheckedChange={handleShowMajorChangeWrapper}
                     className="px-1"
                   >
                     <span className="text-sm">Show major grid</span>
