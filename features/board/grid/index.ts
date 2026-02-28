@@ -14,5 +14,6 @@ export {
   SquareGridRenderer,
   BlueprintGridRenderer,
   IsometricGridRenderer,
+  RuledGridRenderer,
 } from './renderers';
 export * from './utils';
