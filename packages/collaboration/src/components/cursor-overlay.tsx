@@ -60,7 +60,7 @@ const AvatarIcon = memo(function AvatarIcon({
   
   return (
     <div 
-      className="rounded-full overflow-hidden bg-white shadow-sm flex-shrink-0"
+      className="rounded-full overflow-hidden bg-white shadow-sm shrink-0"
       style={{ width: size, height: size }}
       dangerouslySetInnerHTML={{ __html: avatarSvg }}
     />
