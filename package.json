@@ -29,6 +29,7 @@
     "@ai-sdk/openai": "^1.2.0",
     "@ai-sdk/react": "^1.1.0",
     "@floating-ui/react": "^0.27.17",
+    "@liveblocks/node": "3.14.1",
     "@plait-board/react-board": "0.4.0-2",
     "@plait-board/react-text": "^0.4.0-0",
     "@plait/common": "^0.92.1",
