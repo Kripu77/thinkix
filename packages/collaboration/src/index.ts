@@ -12,8 +12,6 @@ export {
   YjsRoom,
   useYjsCollaboration,
   useOptionalYjsCollaboration,
-  useYjsSync,
-  useYjsPresence,
   Y,
   DEFAULT_PRESENCE_CONFIG,
   DEFAULT_ADAPTER_CONFIG,
