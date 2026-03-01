@@ -19,7 +19,17 @@ function getLiveblocks() {
 export async function POST(request: NextRequest) {
   try {
     const liveblocks = getLiveblocks();
-    const body = (await request.json()) as AuthRequest;
+    
+    let body: AuthRequest;
+    try {
+      body = (await request.json()) as AuthRequest;
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON body' },
+        { status: 400 }
+      );
+    }
+    
     const { room, userId, userName, userColor } = body;
 
     if (!userId || !userName || !userColor) {
