@@ -4,6 +4,8 @@ export * from './hooks';
 export * from './components';
 export * from './user-identity';
 export * from './cursor-manager';
+export * from './utils';
+export { getSyncBus, resetSyncBus, type SyncBus } from './sync-bus';
 
 export {
   YjsProvider,
