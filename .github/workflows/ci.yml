@@ -47,6 +47,8 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      LIVEBLOCKS_SECRET_KEY: ${{ secrets.LIVEBLOCKS_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun
@@ -66,6 +68,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [lint, typecheck, test, e2e]
+    env:
+      LIVEBLOCKS_SECRET_KEY: ${{ secrets.LIVEBLOCKS_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun
