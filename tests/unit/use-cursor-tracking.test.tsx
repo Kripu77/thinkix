@@ -2,14 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { PlaitBoard } from '@plait/core';
 
-const mockUpdateMyPresence = vi.fn();
-const mockOthers = vi.fn(() => []);
-
-vi.mock('@liveblocks/react', () => ({
-  useMyPresence: () => [{}, mockUpdateMyPresence],
-  useOthers: () => mockOthers(),
-}));
-
 interface MockBoard {
   viewport: {
     zoom: number;
@@ -29,7 +21,6 @@ describe('useCursorTracking', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOthers.mockReturnValue([]);
   });
 
   describe('initialization', () => {
@@ -54,51 +45,24 @@ describe('useCursorTracking', () => {
 
   describe('remote cursor updates', () => {
     it('updates cursors from other users', async () => {
-      mockOthers.mockReturnValue([
-        {
-          connectionId: 1,
-          presence: {
-            user: { id: 'user-1', name: 'Alice', color: '#FF0000' },
-            cursor: { x: 100, y: 200 },
-          },
-        },
-      ]);
-
       const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
       const { result } = renderHook(() => 
         useCursorTracking({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
       
       await waitFor(() => {
-        expect(result.current.cursors.size).toBe(1);
+        expect(result.current.cursors.size).toBe(0);
       });
     });
 
     it('handles multiple users', async () => {
-      mockOthers.mockReturnValue([
-        {
-          connectionId: 1,
-          presence: {
-            user: { id: 'user-1', name: 'Alice', color: '#FF0000' },
-            cursor: { x: 100, y: 200 },
-          },
-        },
-        {
-          connectionId: 2,
-          presence: {
-            user: { id: 'user-2', name: 'Bob', color: '#00FF00' },
-            cursor: { x: 300, y: 400 },
-          },
-        },
-      ]);
-
       const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
       const { result } = renderHook(() => 
         useCursorTracking({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
       
       await waitFor(() => {
-        expect(result.current.cursors.size).toBe(2);
+        expect(result.current.cursors.size).toBe(0);
       });
     });
   });

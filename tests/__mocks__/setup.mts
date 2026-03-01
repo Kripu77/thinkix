@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import { vi, afterEach, afterAll } from 'vitest';
 import { TextEncoder, TextDecoder } from 'util';
 
 global.TextEncoder = TextEncoder;
@@ -197,6 +197,34 @@ vi.mock('roughjs', () => ({
 
 vi.mock('is-hotkey', () => ({
   isKeyHotkey: vi.fn().mockReturnValue(false),
+}));
+
+const mockUpdateMyPresence = vi.fn();
+const mockOthers = vi.fn(() => []);
+const mockStatus = vi.fn(() => 'connected');
+const mockRoom = { id: 'test-room' };
+const mockStorage = { elements: [] };
+const mockMutationFn = vi.fn();
+const mockSelf = { connectionId: 'test-conn' };
+
+vi.mock('@liveblocks/react', () => ({
+  useMyPresence: () => [{}, mockUpdateMyPresence],
+  useOthers: () => mockOthers(),
+  useStatus: () => mockStatus(),
+  useRoom: () => mockRoom,
+  useStorage: (selector: (root: { elements: unknown[] }) => unknown) => selector(mockStorage),
+  useMutation: () => mockMutationFn,
+  useSelf: () => mockSelf,
+}));
+
+vi.mock('@liveblocks/react/suspense', () => ({
+  useMyPresence: () => [{}, mockUpdateMyPresence],
+  useOthers: () => mockOthers(),
+  useStatus: () => mockStatus(),
+  useRoom: () => mockRoom,
+  useStorage: (selector: (root: { elements: unknown[] }) => unknown) => selector(mockStorage),
+  useMutation: () => mockMutationFn,
+  useSelf: () => mockSelf,
 }));
 
 const originalFetch = globalThis.fetch;
