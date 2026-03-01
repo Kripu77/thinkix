@@ -32,8 +32,6 @@ export {
   Y,
 } from './yjs-provider';
 
-export { useYjsSync, useYjsPresence } from './yjs-hooks';
-
 export {
   useCollaborationRoom,
   useOptionalCollaborationRoom,
