@@ -16,19 +16,23 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@dicebear/avataaars": "9.3.2",
+    "@dicebear/core": "9.3.2",
+    "@liveblocks/client": "3.14.1",
+    "@liveblocks/node": "3.14.1",
+    "@liveblocks/react": "3.14.1",
+    "@liveblocks/yjs": "3.14.1",
+    "lucide-react": "^0.469.0",
+    "unique-names-generator": "4.7.1",
+    "yjs": "13.6.29"
+  },
   "peerDependencies": {
-    "@liveblocks/client": "^3.0.0",
-    "@liveblocks/react": "^3.0.0",
-    "@liveblocks/yjs": "^3.0.0",
     "@plait/core": "^0.92.1",
     "@thinkix/ui": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "yjs": "^13.0.0",
     "zustand": "^5.0.0"
-  },
-  "dependencies": {
-    "lucide-react": "^0.469.0"
   },
   "devDependencies": {
     "@types/react": "^19",
