@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)
 
 # Get actual installed version of @plait/draw
 DRAW_VERSION=$(node -p "require('$PROJECT_ROOT/node_modules/@plait/draw/package.json').version" 2>/dev/null || echo "unknown")
@@ -24,13 +24,18 @@ if [ ! -f "$TARGET_FILE" ]; then
     exit 0
 fi
 
-if grep -q "fillStyle: element.fillStyle" "$TARGET_FILE" 2>/dev/null; then
-    echo "✓ Patch already applied to @plait/draw v$DRAW_VERSION"
-else
+# Check if patch is already applied by looking for removed patterns
+# The patch removes "fillStyle: 'solid'" - if we find it, patch is NOT applied
+if grep -q "fillStyle: 'solid'" "$TARGET_FILE" 2>/dev/null; then
     echo "Applying patch to @plait/draw v$DRAW_VERSION..."
     cd "$TARGET_DIR"
-    patch -p0 < "$PATCH_FILE" --forward 2>/dev/null || {
-        echo "⚠ Patch may have failed or already been applied"
-    }
+    # Use --batch to avoid prompts, --backup to save original
+    if patch -p0 < "$PATCH_FILE" --batch --backup 2>&1; then
+        echo "✓ Patch applied successfully to @plait/draw v$DRAW_VERSION"
+    else
+        echo "⚠ Patch application had issues (may be partial or already applied)"
+    fi
     cd - > /dev/null
+else
+    echo "✓ Patch already applied to @plait/draw v$DRAW_VERSION"
 fi
