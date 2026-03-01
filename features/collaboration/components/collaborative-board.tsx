@@ -14,7 +14,7 @@ import {
   type BoardElement,
 } from '@thinkix/collaboration';
 import { Button } from '@thinkix/ui';
-import { UserCircle2, Wifi, WifiOff } from 'lucide-react';
+import { UserCircle2, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
 
 interface CollaborativeBoardProps {
@@ -36,11 +36,24 @@ function UserAvatar({ avatarDataUrl, size = 20 }: { avatarDataUrl?: string; size
   );
 }
 
+function generateElementsHash(elements: BoardElement[]): string {
+  let hash = 0;
+  const str = elements.map(el => `${el.id}:${el.type || ''}`).join('|');
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
 function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
   const { board } = useBoardState();
   const { elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
-  const lastElementsJsonRef = useRef<string>('');
+  const lastElementsHashRef = useRef<string>('');
   const isSyncingRef = useRef(false);
+  const offlineQueueRef = useRef<BoardElement[][]>([]);
+  const [showOfflineWarning, setShowOfflineWarning] = useState(false);
 
   const { cursors } = useCursorTracking({
     board,
@@ -53,10 +66,10 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
     if (!board || isLocalChange || isSyncingRef.current) return;
     if (elements.length === 0) return;
     
-    const elementsJson = JSON.stringify(elements);
-    if (elementsJson === lastElementsJsonRef.current) return;
+    const hash = generateElementsHash(elements);
+    if (hash === lastElementsHashRef.current) return;
     
-    lastElementsJsonRef.current = elementsJson;
+    lastElementsHashRef.current = hash;
     
     // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
     board.children = elements as unknown as typeof board.children;
@@ -71,14 +84,21 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
     const syncBus = getSyncBus();
     
     const unsubscribe = syncBus.subscribeToLocalChanges((localElements: BoardElement[]) => {
-      if (!syncState.isConnected || isSyncingRef.current) return;
+      const hash = generateElementsHash(localElements);
       
-      const json = JSON.stringify(localElements);
+      if (hash === lastElementsHashRef.current) return;
+
+      if (!syncState.isConnected) {
+        offlineQueueRef.current.push([...localElements]);
+        setShowOfflineWarning(true);
+        lastElementsHashRef.current = hash;
+        return;
+      }
       
-      if (json === lastElementsJsonRef.current) return;
+      if (isSyncingRef.current) return;
       
       isSyncingRef.current = true;
-      lastElementsJsonRef.current = json;
+      lastElementsHashRef.current = hash;
       setElements(localElements);
       
       queueMicrotask(() => {
@@ -89,10 +109,39 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
     return unsubscribe;
   }, [board, syncState.isConnected, setElements]);
 
+  useEffect(() => {
+    if (syncState.isConnected && offlineQueueRef.current.length > 0) {
+      const queuedElements = offlineQueueRef.current.pop();
+      offlineQueueRef.current = [];
+      setShowOfflineWarning(false);
+      
+      if (queuedElements) {
+        const hash = generateElementsHash(queuedElements);
+        lastElementsHashRef.current = hash;
+        setElements(queuedElements);
+      }
+    }
+  }, [syncState.isConnected, setElements]);
+
+  useEffect(() => {
+    if (!syncState.isConnected) {
+      const timer = setTimeout(() => setShowOfflineWarning(true), 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowOfflineWarning(false);
+    }
+  }, [syncState.isConnected]);
+
   return (
     <>
       {children}
       <CursorOverlay cursors={cursors} board={board} />
+      {showOfflineWarning && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 shadow-lg">
+          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <span className="text-sm text-yellow-700">Changes will sync when reconnected</span>
+        </div>
+      )}
     </>
   );
 }
