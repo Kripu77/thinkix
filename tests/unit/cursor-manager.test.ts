@@ -2,7 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   CursorManager,
   createCursorManager,
+  getVisibleCursors,
+  paginateCursors,
+  getActiveCursors,
   type Viewport,
+  type CursorState,
 } from '@thinkix/collaboration/hooks';
 import { screenToDocument, documentToScreen } from '@thinkix/collaboration/utils';
 import type { Cursor, CollaborationUser } from '@thinkix/collaboration';
@@ -334,5 +338,222 @@ describe('CursorManager', () => {
       expect(screenState.screenX).toBe(500);
       expect(screenState.screenY).toBe(350);
     });
+  });
+});
+
+describe('getVisibleCursors', () => {
+  const viewport: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+  const screenWidth = 800;
+  const screenHeight = 600;
+
+  function createCursorState(id: string, x: number, y: number): CursorState {
+    return {
+      userId: id,
+      userName: `User ${id}`,
+      userColor: '#FF0000',
+      documentX: x,
+      documentY: y,
+      lastUpdated: Date.now(),
+    };
+  }
+
+  it('returns empty map for empty input', () => {
+    const result = getVisibleCursors(new Map(), viewport, screenWidth, screenHeight);
+    expect(result.size).toBe(0);
+  });
+
+  it('returns cursors within viewport', () => {
+    const cursors = new Map<string, CursorState>();
+    cursors.set('1', createCursorState('1', 100, 100));
+    cursors.set('2', createCursorState('2', 400, 300));
+
+    const result = getVisibleCursors(cursors, viewport, screenWidth, screenHeight);
+    expect(result.size).toBe(2);
+  });
+
+  it('filters out cursors outside screen bounds', () => {
+    const cursors = new Map<string, CursorState>();
+    cursors.set('inside', createCursorState('inside', 400, 300));
+    cursors.set('outside-left', createCursorState('outside-left', -200, 300));
+    cursors.set('outside-right', createCursorState('outside-right', 1000, 300));
+    cursors.set('outside-top', createCursorState('outside-top', 400, -200));
+    cursors.set('outside-bottom', createCursorState('outside-bottom', 400, 800));
+
+    const result = getVisibleCursors(cursors, viewport, screenWidth, screenHeight);
+    expect(result.size).toBe(1);
+    expect(result.has('inside')).toBe(true);
+  });
+
+  it('includes cursors within margin of screen bounds', () => {
+    const cursors = new Map<string, CursorState>();
+    cursors.set('near-left', createCursorState('near-left', -50, 300));
+    cursors.set('near-right', createCursorState('near-right', 850, 300));
+    cursors.set('near-top', createCursorState('near-top', 400, -50));
+    cursors.set('near-bottom', createCursorState('near-bottom', 400, 650));
+
+    const result = getVisibleCursors(cursors, viewport, screenWidth, screenHeight);
+    expect(result.size).toBe(4);
+  });
+
+  it('filters cursors outside margin', () => {
+    const cursors = new Map<string, CursorState>();
+    cursors.set('far-left', createCursorState('far-left', -150, 300));
+    cursors.set('far-right', createCursorState('far-right', 950, 300));
+
+    const result = getVisibleCursors(cursors, viewport, screenWidth, screenHeight);
+    expect(result.size).toBe(0);
+  });
+
+  it('accounts for zoom in visibility calculation', () => {
+    const zoomedViewport: Viewport = { zoom: 2, offsetX: 0, offsetY: 0 };
+    const cursors = new Map<string, CursorState>();
+    cursors.set('1', createCursorState('1', 200, 150));
+
+    const result = getVisibleCursors(cursors, zoomedViewport, screenWidth, screenHeight);
+    expect(result.size).toBe(1);
+  });
+
+  it('accounts for pan offset in visibility calculation', () => {
+    const pannedViewport: Viewport = { zoom: 1, offsetX: -500, offsetY: -300 };
+    const cursors = new Map<string, CursorState>();
+    cursors.set('visible', createCursorState('visible', 600, 400));
+    cursors.set('hidden', createCursorState('hidden', 100, 100));
+
+    const result = getVisibleCursors(cursors, pannedViewport, screenWidth, screenHeight);
+    expect(result.has('visible')).toBe(true);
+    expect(result.has('hidden')).toBe(false);
+  });
+});
+
+describe('paginateCursors', () => {
+  function createCursorState(id: string): CursorState {
+    return {
+      userId: id,
+      userName: `User ${id}`,
+      userColor: '#FF0000',
+      documentX: 0,
+      documentY: 0,
+      lastUpdated: Date.now(),
+    };
+  }
+
+  it('returns empty map for empty input', () => {
+    const result = paginateCursors(new Map(), 0);
+    expect(result.size).toBe(0);
+  });
+
+  it('returns first page of cursors', () => {
+    const cursors = new Map<string, CursorState>();
+    for (let i = 0; i < 60; i++) {
+      cursors.set(`cursor-${i}`, createCursorState(`cursor-${i}`));
+    }
+
+    const result = paginateCursors(cursors, 0, 50);
+    expect(result.size).toBe(50);
+  });
+
+  it('returns second page of cursors', () => {
+    const cursors = new Map<string, CursorState>();
+    for (let i = 0; i < 100; i++) {
+      cursors.set(`cursor-${i}`, createCursorState(`cursor-${i}`));
+    }
+
+    const page1 = paginateCursors(cursors, 0, 50);
+    const page2 = paginateCursors(cursors, 1, 50);
+
+    expect(page1.size).toBe(50);
+    expect(page2.size).toBe(50);
+
+    const page1Keys = Array.from(page1.keys());
+    const page2Keys = Array.from(page2.keys());
+    expect(page1Keys).not.toEqual(expect.arrayContaining(page2Keys));
+  });
+
+  it('returns partial last page', () => {
+    const cursors = new Map<string, CursorState>();
+    for (let i = 0; i < 75; i++) {
+      cursors.set(`cursor-${i}`, createCursorState(`cursor-${i}`));
+    }
+
+    const result = paginateCursors(cursors, 1, 50);
+    expect(result.size).toBe(25);
+  });
+
+  it('returns empty map for page beyond data', () => {
+    const cursors = new Map<string, CursorState>();
+    cursors.set('1', createCursorState('1'));
+
+    const result = paginateCursors(cursors, 5, 50);
+    expect(result.size).toBe(0);
+  });
+
+  it('respects custom page size', () => {
+    const cursors = new Map<string, CursorState>();
+    for (let i = 0; i < 30; i++) {
+      cursors.set(`cursor-${i}`, createCursorState(`cursor-${i}`));
+    }
+
+    const result = paginateCursors(cursors, 0, 10);
+    expect(result.size).toBe(10);
+  });
+});
+
+describe('getActiveCursors', () => {
+  function createCursorState(id: string, lastUpdated: number): CursorState {
+    return {
+      userId: id,
+      userName: `User ${id}`,
+      userColor: '#FF0000',
+      documentX: 0,
+      documentY: 0,
+      lastUpdated,
+    };
+  }
+
+  it('returns empty map for empty input', () => {
+    const result = getActiveCursors(new Map());
+    expect(result.size).toBe(0);
+  });
+
+  it('returns cursors within idle timeout', () => {
+    const now = Date.now();
+    const cursors = new Map<string, CursorState>();
+    cursors.set('active', createCursorState('active', now - 1000));
+    cursors.set('also-active', createCursorState('also-active', now - 5000));
+
+    const result = getActiveCursors(cursors, 10000);
+    expect(result.size).toBe(2);
+  });
+
+  it('filters out cursors beyond idle timeout', () => {
+    const now = Date.now();
+    const cursors = new Map<string, CursorState>();
+    cursors.set('active', createCursorState('active', now - 1000));
+    cursors.set('idle', createCursorState('idle', now - 60000));
+
+    const result = getActiveCursors(cursors, 30000);
+    expect(result.size).toBe(1);
+    expect(result.has('active')).toBe(true);
+  });
+
+  it('uses default idle timeout when not specified', () => {
+    const now = Date.now();
+    const cursors = new Map<string, CursorState>();
+    cursors.set('recent', createCursorState('recent', now - 10000));
+
+    const result = getActiveCursors(cursors);
+    expect(result.size).toBe(1);
+  });
+
+  it('handles boundary condition exactly at timeout', () => {
+    const now = Date.now();
+    const timeout = 30000;
+    const cursors = new Map<string, CursorState>();
+    cursors.set('at-boundary', createCursorState('at-boundary', now - timeout));
+    cursors.set('just-over', createCursorState('just-over', now - timeout - 1));
+
+    const result = getActiveCursors(cursors, timeout);
+    expect(result.has('at-boundary')).toBe(true);
+    expect(result.has('just-over')).toBe(false);
   });
 });

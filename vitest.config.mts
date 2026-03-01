@@ -9,7 +9,12 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['./tests/__mocks__/setup.mts'],
     include: ['tests/**/*.test.{ts,tsx}'],
-    exclude: ['node_modules', 'scratch', '.next'],
+    exclude: [
+      'node_modules',
+      'scratch',
+      '.next',
+      'tests/e2e/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -49,6 +54,8 @@ export default defineConfig({
       '@thinkix/shared': path.resolve(__dirname, './packages/shared/src'),
       '@thinkix/file-utils': path.resolve(__dirname, './packages/file-utils/src'),
       '@thinkix/collaboration': path.resolve(__dirname, './packages/collaboration/src'),
+      '@thinkix/collaboration/hooks': path.resolve(__dirname, './packages/collaboration/src/hooks'),
+      '@thinkix/collaboration/utils': path.resolve(__dirname, './packages/collaboration/src/utils'),
       '@/features': path.resolve(__dirname, './features'),
       '@/shared': path.resolve(__dirname, './shared'),
       '@/packages': path.resolve(__dirname, './packages'),
