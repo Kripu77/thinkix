@@ -1,8 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useYjsCollaboration, setStoredUser } from '@thinkix/collaboration';
-import { useOthers } from '@liveblocks/react/suspense';
+import { useCollaborationRoom, setStoredUser } from '@thinkix/collaboration';
 
 const AppMenu = dynamic(
   () => import('@/features/toolbar').then((mod) => mod.AppMenu),
@@ -20,9 +19,7 @@ export function CollaborativeAppMenu({
   onDisableCollaboration,
   roomId,
 }: CollaborativeAppMenuProps) {
-  const { user } = useYjsCollaboration();
-  const others = useOthers();
-  const userCount = others.length + 1;
+  const { user, userCount, updatePresence } = useCollaborationRoom();
   
   const collaboration = {
     enabled: true,
@@ -35,6 +32,7 @@ export function CollaborativeAppMenu({
     },
     onChangeNickname: (name: string) => {
       const updatedUser = { ...user, name };
+      updatePresence({ user: { name } });
       setStoredUser(updatedUser);
     },
     onLeave: onDisableCollaboration,

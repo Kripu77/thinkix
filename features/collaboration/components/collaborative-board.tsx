@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { useMyPresence, useOthers } from '@liveblocks/react/suspense';
 import {
   useYjsCollaboration,
+  useCollaborationRoom,
   setStoredUser,
   ShareButton,
   NicknameDialog,
@@ -21,37 +21,26 @@ interface CollaborativeBoardProps {
   children: ReactNode;
 }
 
-function UserAvatar({ avatarSvg, size = 20 }: { avatarSvg?: string; size?: number }) {
-  if (!avatarSvg) {
+function UserAvatar({ avatarDataUrl, size = 20 }: { avatarDataUrl?: string; size?: number }) {
+  if (!avatarDataUrl) {
     return <UserCircle2 className="h-4 w-4" />;
   }
   
   return (
-    <div 
-      className="rounded-full overflow-hidden flex-shrink-0"
+    <img 
+      src={avatarDataUrl}
+      alt="User avatar"
+      className="rounded-full flex-shrink-0"
       style={{ width: size, height: size }}
-      dangerouslySetInnerHTML={{ __html: avatarSvg }}
     />
   );
 }
 
 function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
   const { board } = useBoardState();
-  const { user, elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
-  const [, updateMyPresence] = useMyPresence();
+  const { elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
   const lastElementsJsonRef = useRef<string>('');
   const isSyncingRef = useRef(false);
-
-  useEffect(() => {
-    updateMyPresence({ 
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        color: user.color,
-        avatar: user.avatar,
-      } 
-    });
-  }, [user, updateMyPresence]);
 
   const { cursors } = useCursorTracking({
     board,
@@ -122,34 +111,27 @@ interface CollaborationStatusBarProps {
 }
 
 export function CollaborationStatusBar({ roomId, onDisableCollaboration }: CollaborationStatusBarProps) {
-  const { user, syncState } = useYjsCollaboration();
-  const [, updateMyPresence] = useMyPresence();
-  const others = useOthers();
+  const { user, syncState, userCount, updatePresence } = useCollaborationRoom();
   const [nicknameDialogOpen, setNicknameDialogOpen] = useState(false);
 
-  const userCount = others.length + 1;
   const isConnected = syncState.isConnected;
   const isReconnecting = syncState.isSyncing;
 
   const handleRetry = useCallback(() => {
-    // Force presence refresh by updating user
-    updateMyPresence({ 
-      user: { 
-        id: user.id, 
-        name: user.name, 
+    updatePresence({
+      user: {
+        name: user.name,
         color: user.color,
         avatar: user.avatar,
-      } 
+      },
     });
-  }, [updateMyPresence, user]);
+  }, [updatePresence, user]);
 
   const handleUpdateUser = useCallback((name: string) => {
     const updatedUser = { ...user, name };
-    updateMyPresence({ 
-      user: { ...user, name, avatar: user.avatar } 
-    });
+    updatePresence({ user: { name } });
     setStoredUser(updatedUser);
-  }, [user, updateMyPresence]);
+  }, [user, updatePresence]);
 
   return (
     <>
@@ -188,7 +170,7 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
           onClick={() => setNicknameDialogOpen(true)}
           className="h-6 w-6 p-0 overflow-hidden"
         >
-          <UserAvatar avatarSvg={user.avatar} size={16} />
+          <UserAvatar avatarDataUrl={user.avatar} size={16} />
         </Button>
 
         <Button
