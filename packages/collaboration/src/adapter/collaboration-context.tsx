@@ -13,18 +13,20 @@ import type {
 } from '../types';
 import { useYjsCollaboration } from './yjs-provider';
 
+type PresencePatch = {
+  cursor?: Cursor | null;
+  selection?: string[];
+  viewport?: ViewportState;
+  user?: Partial<CollaborationUser>;
+};
+
 export interface CollaborationRoomContextValue {
   user: CollaborationUser;
   others: UserPresence[];
   userCount: number;
   connectionStatus: ConnectionStatus;
   syncState: SyncState;
-  updatePresence: (presence: Partial<{
-    cursor: Cursor | null;
-    selection: string[];
-    viewport: ViewportState;
-    user: Partial<CollaborationUser>;
-  }>) => void;
+  updatePresence: (presence: Partial<PresencePatch>) => void;
   elements: BoardElement[];
   setElements: (elements: BoardElement[]) => void;
   isLocalChange: boolean;
@@ -43,23 +45,18 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
   const { user, elements, setElements, isLocalChange, syncState } = yjsContext;
 
   useEffect(() => {
-    (updateMyPresence as (patch: unknown) => void)({
+    updateMyPresence({
       user: {
         id: user.id,
         name: user.name,
         color: user.color,
         avatar: user.avatar,
       },
-    });
+    } as Parameters<typeof updateMyPresence>[0]);
   }, [user, updateMyPresence]);
 
-  const updatePresence = useCallback((presence: Partial<{
-    cursor: Cursor | null;
-    selection: string[];
-    viewport: ViewportState;
-    user: Partial<CollaborationUser>;
-  }>) => {
-    const patch: Record<string, unknown> = {};
+  const updatePresence = useCallback((presence: Partial<PresencePatch>) => {
+    const patch: PresencePatch = {};
     if ('cursor' in presence) {
       patch.cursor = presence.cursor ?? undefined;
     }
@@ -77,7 +74,7 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
         avatar: presence.user?.avatar ?? user.avatar,
       };
     }
-    (updateMyPresence as (patch: unknown) => void)(patch);
+    updateMyPresence(patch as unknown as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence, user]);
 
   const othersPresence = useMemo((): UserPresence[] => {
