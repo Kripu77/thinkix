@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Liveblocks } from '@liveblocks/node';
 
-const liveblocks = new Liveblocks({
-  secret: process.env.LIVEBLOCKS_SECRET_KEY!,
-});
-
 interface AuthRequest {
   room?: string;
   userId: string;
@@ -12,8 +8,17 @@ interface AuthRequest {
   userColor: string;
 }
 
+function getLiveblocks() {
+  const secret = process.env.LIVEBLOCKS_SECRET_KEY;
+  if (!secret) {
+    throw new Error('LIVEBLOCKS_SECRET_KEY is not configured');
+  }
+  return new Liveblocks({ secret });
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const liveblocks = getLiveblocks();
     const body = (await request.json()) as AuthRequest;
     const { room, userId, userName, userColor } = body;
 
