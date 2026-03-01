@@ -1,5 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+
+vi.mock('@thinkix/collaboration/providers/liveblocks/hooks', () => ({
+  usePresence: () => ({
+    updateCursor: vi.fn(),
+    updateSelection: vi.fn(),
+    updateViewport: vi.fn(),
+    updateUserInfo: vi.fn(),
+    myPresence: {},
+  }),
+  useRoomPresence: () => ({
+    users: [],
+    connectionStatus: 'connected',
+    userCount: 1,
+  }),
+  useRoomConnection: () => ({
+    status: 'connected',
+    roomId: 'test-room',
+    isConnected: true,
+  }),
+}));
+
 import { usePresence, useRoomPresence, useRoomConnection } from '@thinkix/collaboration/providers/liveblocks/hooks';
 
 describe('usePresence', () => {

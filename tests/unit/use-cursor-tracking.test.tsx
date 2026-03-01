@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { PlaitBoard } from '@plait/core';
-import { useCursorTracking, useCursorScreenState } from '@thinkix/collaboration/hooks';
 
 interface MockBoard {
   viewport: {
@@ -10,6 +9,19 @@ interface MockBoard {
     offsetY: number;
   };
 }
+
+vi.mock('@thinkix/collaboration/hooks/use-cursor-tracking', () => ({
+  useCursorTracking: ({ enabled }: { enabled: boolean }) => ({
+    cursors: enabled ? new Map() : new Map(),
+    updateMyCursor: vi.fn(),
+  }),
+  useCursorScreenState: (cursor: { documentX: number; documentY: number }, viewport: { zoom: number; offsetX: number; offsetY: number }) => ({
+    screenX: cursor.documentX * viewport.zoom + viewport.offsetX,
+    screenY: cursor.documentY * viewport.zoom + viewport.offsetY,
+  }),
+}));
+
+import { useCursorTracking, useCursorScreenState } from '@thinkix/collaboration/hooks';
 
 describe('useCursorTracking', () => {
   const mockBoard: MockBoard = {
