@@ -143,8 +143,8 @@ describe('Multi-User Cursor Scenarios', () => {
         const expectedScreenX = documentX * viewport.zoom + viewport.offsetX;
         const expectedScreenY = documentY * viewport.zoom + viewport.offsetY;
 
-        expect(screen.x).toBe(expectedScreenX);
-        expect(screen.y).toBe(expectedScreenY);
+        expect(screen.screenX).toBe(expectedScreenX);
+        expect(screen.screenY).toBe(expectedScreenY);
       });
     });
 

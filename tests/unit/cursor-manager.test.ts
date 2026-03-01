@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   CursorManager,
   createCursorManager,
-  screenToDocument,
-  documentToScreen,
   type Viewport,
 } from '@thinkix/collaboration/hooks';
+import { screenToDocument, documentToScreen } from '@thinkix/collaboration/utils';
 import type { Cursor, CollaborationUser } from '@thinkix/collaboration';
 
 describe('Coordinate Conversion', () => {
@@ -332,8 +331,8 @@ describe('CursorManager', () => {
       expect(cursor).toBeDefined();
 
       const screenState = manager.getCursorScreenState(cursor!, viewport);
-      expect(screenState.x).toBe(500);
-      expect(screenState.y).toBe(350);
+      expect(screenState.screenX).toBe(500);
+      expect(screenState.screenY).toBe(350);
     });
   });
 });
