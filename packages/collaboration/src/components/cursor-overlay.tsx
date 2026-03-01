@@ -1,15 +1,17 @@
 'use client';
 
-import { useMemo, useEffect, useState, memo } from 'react';
+import { useMemo, useEffect, useState, memo, useRef } from 'react';
 import type { PlaitBoard } from '@plait/core';
-import type { CursorState, Viewport } from '../cursor-manager';
+import type { CursorState } from '../cursor-manager';
 import { getVisibleCursors, getActiveCursors } from '../cursor-manager';
+import { getViewport, debounce, type Viewport } from '../utils';
 
 interface CursorOverlayProps {
   cursors: Map<string, CursorState>;
   board: PlaitBoard | null;
   maxCursors?: number;
   idleTimeoutMs?: number;
+  visibilityDebounceMs?: number;
 }
 
 interface RenderableCursor {
@@ -25,14 +27,7 @@ const CURSOR_SIZE = 24;
 const CURSOR_LABEL_OFFSET_X = 16;
 const CURSOR_LABEL_OFFSET_Y = 16;
 const AVATAR_SIZE = 16;
-
-function getViewport(board: PlaitBoard): Viewport {
-  return {
-    zoom: board.viewport?.zoom ?? 1,
-    offsetX: board.viewport?.offsetX ?? 0,
-    offsetY: board.viewport?.offsetY ?? 0,
-  };
-}
+const DEFAULT_VISIBILITY_DEBOUNCE_MS = 100;
 
 const CursorIcon = memo(function CursorIcon({ color }: { color: string }) {
   return (
@@ -118,28 +113,52 @@ const RemoteCursor = memo(function RemoteCursor({
   );
 });
 
+interface DebouncedViewportState {
+  viewport: Viewport | null;
+  containerRect: DOMRect | null;
+}
+
 export function CursorOverlay({ 
   cursors, 
   board, 
   maxCursors = 50,
-  idleTimeoutMs = 30000 
+  idleTimeoutMs = 30000,
+  visibilityDebounceMs = DEFAULT_VISIBILITY_DEBOUNCE_MS,
 }: CursorOverlayProps) {
-  const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
+  const [debouncedState, setDebouncedState] = useState<DebouncedViewportState>({
+    viewport: null,
+    containerRect: null,
+  });
+  const pendingStateRef = useRef<DebouncedViewportState | null>(null);
 
   useEffect(() => {
-    const updateRect = () => {
+    const updateState = (viewport: Viewport | null, containerRect: DOMRect | null) => {
+      pendingStateRef.current = { viewport, containerRect };
+    };
+
+    const flushUpdate = debounce(() => {
+      if (pendingStateRef.current) {
+        setDebouncedState(pendingStateRef.current);
+      }
+    }, visibilityDebounceMs);
+
+    const handleUpdate = () => {
       const svg = document.querySelector(
         '.plait-board-container svg'
       ) as SVGSVGElement | null;
-      if (svg) {
-        setContainerRect(svg.getBoundingClientRect());
+      
+      if (board && svg) {
+        const viewport = getViewport(board);
+        const rect = svg.getBoundingClientRect();
+        updateState(viewport, rect);
+        flushUpdate();
       }
     };
 
-    updateRect();
-    window.addEventListener('resize', updateRect);
+    handleUpdate();
+    window.addEventListener('resize', handleUpdate);
 
-    const observer = new ResizeObserver(updateRect);
+    const observer = new ResizeObserver(handleUpdate);
     const svg = document.querySelector(
       '.plait-board-container svg'
     ) as SVGSVGElement | null;
@@ -148,27 +167,33 @@ export function CursorOverlay({
     }
 
     return () => {
-      window.removeEventListener('resize', updateRect);
+      window.removeEventListener('resize', handleUpdate);
       observer.disconnect();
     };
-  }, []);
+  }, [board, visibilityDebounceMs]);
 
   const visibleCursors = useMemo(() => {
-    if (!board || !containerRect) return new Map<string, CursorState>();
+    if (!debouncedState.viewport || !debouncedState.containerRect) {
+      return new Map<string, CursorState>();
+    }
     
-    const viewport = getViewport(board);
-    const screenWidth = containerRect.width;
-    const screenHeight = containerRect.height;
+    const screenWidth = debouncedState.containerRect.width;
+    const screenHeight = debouncedState.containerRect.height;
     
     const activeCursors = getActiveCursors(cursors, idleTimeoutMs);
     
-    return getVisibleCursors(activeCursors, viewport, screenWidth, screenHeight);
-  }, [cursors, board, containerRect, idleTimeoutMs]);
+    return getVisibleCursors(
+      activeCursors, 
+      debouncedState.viewport, 
+      screenWidth, 
+      screenHeight
+    );
+  }, [cursors, debouncedState, idleTimeoutMs]);
 
   const renderableCursors = useMemo((): RenderableCursor[] => {
-    if (!board || !containerRect) return [];
+    const { viewport, containerRect } = debouncedState;
+    if (!viewport || !containerRect) return [];
 
-    const viewport = getViewport(board);
     const result: RenderableCursor[] = [];
     let count = 0;
 
@@ -176,9 +201,13 @@ export function CursorOverlay({
       if (count >= maxCursors) return;
       
       const screenX =
-        cursor.documentX * viewport.zoom + viewport.offsetX + containerRect.left;
+        cursor.documentX * viewport.zoom + 
+        viewport.offsetX + 
+        containerRect.left;
       const screenY =
-        cursor.documentY * viewport.zoom + viewport.offsetY + containerRect.top;
+        cursor.documentY * viewport.zoom + 
+        viewport.offsetY + 
+        containerRect.top;
 
       result.push({
         id,
@@ -192,7 +221,7 @@ export function CursorOverlay({
     });
 
     return result;
-  }, [visibleCursors, board, containerRect, maxCursors]);
+  }, [visibleCursors, debouncedState, maxCursors]);
 
   if (renderableCursors.length === 0) return null;
 
