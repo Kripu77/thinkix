@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { useCollaborationRoom, useOptionalCollaborationRoom } from '@thinkix/collaboration/adapter';
 
-const mockYjsContext = {
+const mockYjsContext: {
+  user: { id: string; name: string; color: string; avatar?: string };
+  elements: unknown[];
+  setElements: ReturnType<typeof vi.fn>;
+  isLocalChange: boolean;
+  syncState: { isConnected: boolean; isSyncing: boolean; lastSyncedAt: number };
+} = {
   user: { id: 'user-1', name: 'Test User', color: '#FF0000' },
   elements: [],
   setElements: vi.fn(),
@@ -19,14 +26,13 @@ describe('useCollaborationRoom', () => {
   });
 
   describe('user presence', () => {
-    it('updates presence with user info on mount', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('updates presence with user info on mount', () => {
       renderHook(() => useCollaborationRoom());
       
       expect(true).toBe(true);
     });
 
-    it('includes avatar in presence when available', async () => {
+    it('includes avatar in presence when available', () => {
       mockYjsContext.user = { 
         id: 'user-1', 
         name: 'Test User', 
@@ -34,7 +40,6 @@ describe('useCollaborationRoom', () => {
         avatar: 'data:image/svg+xml,test',
       };
       
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
       renderHook(() => useCollaborationRoom());
       
       expect(true).toBe(true);
@@ -44,8 +49,7 @@ describe('useCollaborationRoom', () => {
   });
 
   describe('updatePresence', () => {
-    it('updates cursor presence', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('updates cursor presence', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       act(() => {
@@ -55,8 +59,7 @@ describe('useCollaborationRoom', () => {
       expect(true).toBe(true);
     });
 
-    it('clears cursor when set to null', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('clears cursor when set to null', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       act(() => {
@@ -66,8 +69,7 @@ describe('useCollaborationRoom', () => {
       expect(true).toBe(true);
     });
 
-    it('updates selection', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('updates selection', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       act(() => {
@@ -77,8 +79,7 @@ describe('useCollaborationRoom', () => {
       expect(true).toBe(true);
     });
 
-    it('updates viewport', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('updates viewport', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       act(() => {
@@ -88,8 +89,7 @@ describe('useCollaborationRoom', () => {
       expect(true).toBe(true);
     });
 
-    it('updates user info', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('updates user info', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       act(() => {
@@ -102,7 +102,6 @@ describe('useCollaborationRoom', () => {
 
   describe('others presence', () => {
     it('filters others with user presence', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
       const { result } = renderHook(() => useCollaborationRoom());
       
       await waitFor(() => {
@@ -111,7 +110,6 @@ describe('useCollaborationRoom', () => {
     });
 
     it('calculates correct user count', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
       const { result } = renderHook(() => useCollaborationRoom());
       
       await waitFor(() => {
@@ -121,36 +119,31 @@ describe('useCollaborationRoom', () => {
   });
 
   describe('connection status', () => {
-    it('returns connected status', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('returns connected status', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(result.current.connectionStatus).toBe('connected');
     });
 
-    it('returns connecting status', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('returns connecting status', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(typeof result.current.connectionStatus).toBe('string');
     });
 
-    it('returns reconnecting status', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('returns reconnecting status', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(typeof result.current.connectionStatus).toBe('string');
     });
 
-    it('returns disconnected status', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('returns disconnected status', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(typeof result.current.connectionStatus).toBe('string');
     });
 
-    it('returns initial status for unknown', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('returns initial status for unknown', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(typeof result.current.connectionStatus).toBe('string');
@@ -158,8 +151,7 @@ describe('useCollaborationRoom', () => {
   });
 
   describe('sync state', () => {
-    it('exposes sync state from YJS context', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('exposes sync state from YJS context', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(result.current.syncState.isConnected).toBe(true);
@@ -168,15 +160,13 @@ describe('useCollaborationRoom', () => {
   });
 
   describe('elements', () => {
-    it('exposes elements from YJS context', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('exposes elements from YJS context', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(result.current.elements).toEqual([]);
     });
 
-    it('calls setElements from YJS context', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('calls setElements from YJS context', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       act(() => {
@@ -188,8 +178,7 @@ describe('useCollaborationRoom', () => {
   });
 
   describe('room info', () => {
-    it('returns room ID', async () => {
-      const { useCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+    it('returns room ID', () => {
       const { result } = renderHook(() => useCollaborationRoom());
       
       expect(result.current.roomId).toBe('test-room');
@@ -198,8 +187,7 @@ describe('useCollaborationRoom', () => {
 });
 
 describe('useOptionalCollaborationRoom', () => {
-  it('returns null when used outside provider', async () => {
-    const { useOptionalCollaborationRoom } = await import('@thinkix/collaboration/adapter');
+  it('returns null when used outside provider', () => {
     const { result } = renderHook(() => useOptionalCollaborationRoom());
     
     expect(result.current).toBeNull();

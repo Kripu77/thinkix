@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { usePresence, useRoomPresence, useRoomConnection } from '@thinkix/collaboration/providers/liveblocks/hooks';
 
 describe('usePresence', () => {
   beforeEach(() => {
@@ -7,8 +8,7 @@ describe('usePresence', () => {
   });
 
   describe('updateCursor', () => {
-    it('updates cursor presence', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('updates cursor presence', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -18,8 +18,7 @@ describe('usePresence', () => {
       expect(true).toBe(true);
     });
 
-    it('clears cursor when set to null', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('clears cursor when set to null', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -31,8 +30,7 @@ describe('usePresence', () => {
   });
 
   describe('updateSelection', () => {
-    it('updates selection presence', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('updates selection presence', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -42,8 +40,7 @@ describe('usePresence', () => {
       expect(true).toBe(true);
     });
 
-    it('clears selection when set to null', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('clears selection when set to null', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -55,8 +52,7 @@ describe('usePresence', () => {
   });
 
   describe('updateViewport', () => {
-    it('updates viewport presence', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('updates viewport presence', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -66,8 +62,7 @@ describe('usePresence', () => {
       expect(true).toBe(true);
     });
 
-    it('clears viewport when set to null', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('clears viewport when set to null', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -79,8 +74,7 @@ describe('usePresence', () => {
   });
 
   describe('updateUserInfo', () => {
-    it('updates user info with merge', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('updates user info with merge', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -90,8 +84,7 @@ describe('usePresence', () => {
       expect(true).toBe(true);
     });
 
-    it('creates user object when none exists', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('creates user object when none exists', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -101,8 +94,7 @@ describe('usePresence', () => {
       expect(true).toBe(true);
     });
 
-    it('updates avatar', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('updates avatar', () => {
       const { result } = renderHook(() => usePresence());
       
       act(() => {
@@ -114,8 +106,7 @@ describe('usePresence', () => {
   });
 
   describe('myPresence', () => {
-    it('returns current presence', async () => {
-      const { usePresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('returns current presence', () => {
       const { result } = renderHook(() => usePresence());
       
       expect(result.current.myPresence).toBeDefined();
@@ -129,22 +120,19 @@ describe('useRoomPresence', () => {
   });
 
   describe('users', () => {
-    it('returns empty array when no others', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('returns empty array when no others', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(result.current.users).toEqual([]);
     });
 
-    it('filters and maps users with presence', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('filters and maps users with presence', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(result.current.users).toEqual([]);
     });
 
-    it('includes viewport in user presence', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('includes viewport in user presence', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(result.current.users).toEqual([]);
@@ -152,15 +140,13 @@ describe('useRoomPresence', () => {
   });
 
   describe('connectionStatus', () => {
-    it('returns current status', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('returns current status', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(result.current.connectionStatus).toBe('connected');
     });
 
-    it('returns reconnecting status', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('returns reconnecting status', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(typeof result.current.connectionStatus).toBe('string');
@@ -168,15 +154,13 @@ describe('useRoomPresence', () => {
   });
 
   describe('userCount', () => {
-    it('returns 1 when alone', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('returns 1 when alone', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(result.current.userCount).toBe(1);
     });
 
-    it('counts all users including self', async () => {
-      const { useRoomPresence } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+    it('counts all users including self', () => {
       const { result } = renderHook(() => useRoomPresence());
       
       expect(result.current.userCount).toBe(1);
@@ -189,29 +173,25 @@ describe('useRoomConnection', () => {
     vi.clearAllMocks();
   });
 
-  it('returns connection status', async () => {
-    const { useRoomConnection } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+  it('returns connection status', () => {
     const { result } = renderHook(() => useRoomConnection());
     
     expect(result.current.status).toBe('connected');
   });
 
-  it('returns room ID', async () => {
-    const { useRoomConnection } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+  it('returns room ID', () => {
     const { result } = renderHook(() => useRoomConnection());
     
     expect(result.current.roomId).toBe('test-room');
   });
 
-  it('returns isConnected boolean', async () => {
-    const { useRoomConnection } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+  it('returns isConnected boolean', () => {
     const { result } = renderHook(() => useRoomConnection());
     
     expect(result.current.isConnected).toBe(true);
   });
 
-  it('returns false for isConnected when not connected', async () => {
-    const { useRoomConnection } = await import('@thinkix/collaboration/providers/liveblocks/hooks');
+  it('returns false for isConnected when not connected', () => {
     const { result } = renderHook(() => useRoomConnection());
     
     expect(typeof result.current.isConnected).toBe('boolean');

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { PlaitBoard } from '@plait/core';
+import { useCursorTracking, useCursorScreenState } from '@thinkix/collaboration/hooks';
 
 interface MockBoard {
   viewport: {
@@ -24,8 +25,7 @@ describe('useCursorTracking', () => {
   });
 
   describe('initialization', () => {
-    it('returns empty cursors map when disabled', async () => {
-      const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
+    it('returns empty cursors map when disabled', () => {
       const { result } = renderHook(() => 
         useCursorTracking({ board: mockBoard as unknown as PlaitBoard, enabled: false })
       );
@@ -33,8 +33,7 @@ describe('useCursorTracking', () => {
       expect(result.current.cursors.size).toBe(0);
     });
 
-    it('initializes cursor manager when enabled', async () => {
-      const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
+    it('initializes cursor manager when enabled', () => {
       const { result } = renderHook(() => 
         useCursorTracking({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
@@ -45,7 +44,6 @@ describe('useCursorTracking', () => {
 
   describe('remote cursor updates', () => {
     it('updates cursors from other users', async () => {
-      const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
       const { result } = renderHook(() => 
         useCursorTracking({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
@@ -56,7 +54,6 @@ describe('useCursorTracking', () => {
     });
 
     it('handles multiple users', async () => {
-      const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
       const { result } = renderHook(() => 
         useCursorTracking({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
@@ -68,8 +65,7 @@ describe('useCursorTracking', () => {
   });
 
   describe('custom options', () => {
-    it('uses custom throttle interval', async () => {
-      const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
+    it('uses custom throttle interval', () => {
       const { result } = renderHook(() => 
         useCursorTracking({ 
           board: mockBoard as unknown as PlaitBoard, 
@@ -81,8 +77,7 @@ describe('useCursorTracking', () => {
       expect(result.current.cursors).toBeDefined();
     });
 
-    it('uses custom idle timeout', async () => {
-      const { useCursorTracking } = await import('@thinkix/collaboration/hooks');
+    it('uses custom idle timeout', () => {
       const { result } = renderHook(() => 
         useCursorTracking({ 
           board: mockBoard as unknown as PlaitBoard, 
@@ -107,8 +102,7 @@ interface MockCursor {
 }
 
 describe('useCursorScreenState', () => {
-  it('converts document coordinates to screen coordinates', async () => {
-    const { useCursorScreenState } = await import('@thinkix/collaboration/hooks');
+  it('converts document coordinates to screen coordinates', () => {
     const cursor: MockCursor = {
       connectionId: '1',
       documentX: 100,
@@ -128,8 +122,7 @@ describe('useCursorScreenState', () => {
     expect(result.current.screenY).toBe(425);
   });
 
-  it('handles zoom < 1', async () => {
-    const { useCursorScreenState } = await import('@thinkix/collaboration/hooks');
+  it('handles zoom < 1', () => {
     const cursor: MockCursor = {
       connectionId: '1',
       documentX: 200,

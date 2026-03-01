@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { PlaitBoard } from '@plait/core';
+import { useBoardSync } from '@thinkix/collaboration/hooks';
 
 interface MockBoard {
   viewport: { zoom: number; offsetX: number; offsetY: number };
@@ -18,8 +19,7 @@ describe('useBoardSync', () => {
   });
 
   describe('initialization', () => {
-    it('exposes isConnected from hook', async () => {
-      const { useBoardSync } = await import('@thinkix/collaboration/hooks');
+    it('exposes isConnected from hook', () => {
       const { result } = renderHook(() => 
         useBoardSync({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
@@ -29,8 +29,7 @@ describe('useBoardSync', () => {
   });
 
   describe('remote elements', () => {
-    it('exposes remoteElements', async () => {
-      const { useBoardSync } = await import('@thinkix/collaboration/hooks');
+    it('exposes remoteElements', () => {
       const { result } = renderHook(() => 
         useBoardSync({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
@@ -40,8 +39,7 @@ describe('useBoardSync', () => {
   });
 
   describe('syncToRemote', () => {
-    it('exposes syncToRemote function', async () => {
-      const { useBoardSync } = await import('@thinkix/collaboration/hooks');
+    it('exposes syncToRemote function', () => {
       const { result } = renderHook(() => 
         useBoardSync({ board: mockBoard as unknown as PlaitBoard, enabled: true })
       );
