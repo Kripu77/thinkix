@@ -17,6 +17,9 @@ export {
   Y,
   DEFAULT_PRESENCE_CONFIG,
   DEFAULT_ADAPTER_CONFIG,
+  useCollaborationRoom,
+  useOptionalCollaborationRoom,
+  type CollaborationRoomContextValue,
 } from './adapter';
 
 export type {

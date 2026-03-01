@@ -33,3 +33,10 @@ export {
 } from './yjs-provider';
 
 export { useYjsSync, useYjsPresence } from './yjs-hooks';
+
+export {
+  useCollaborationRoom,
+  useOptionalCollaborationRoom,
+  CollaborationRoomContext,
+  type CollaborationRoomContextValue,
+} from './collaboration-context';
