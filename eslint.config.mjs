@@ -12,7 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "scratch/**"
+    "scratch/**",
+    "coverage/**"
   ]),
   {
     files: ["features/board/plugins/add-image-renderer.tsx"],
@@ -21,7 +22,7 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["features/board/plugins/image-component.tsx", "packages/ui/src/components/ui/image-viewer.tsx"],
+    files: ["features/board/plugins/image-component.tsx", "packages/ui/src/components/ui/image-viewer.tsx", "features/collaboration/components/collaborative-board.tsx", "packages/collaboration/src/components/cursor-overlay.tsx"],
     rules: {
       "@next/next/no-img-element": "off",
     },
