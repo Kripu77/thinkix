@@ -46,6 +46,11 @@ export function CollaborationProvider({
           userColor: user.color,
         }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`Authentication failed: ${response.status} ${response.statusText}`);
+      }
+      
       return response.json();
     };
   }, [authEndpoint, user.id, user.name, user.color]);
