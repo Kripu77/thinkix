@@ -6,10 +6,10 @@ import type { PlaitBoard } from '@plait/core';
 import {
   CursorManager,
   type CursorState,
-  type Viewport,
   createCursorManager,
 } from '../cursor-manager';
 import type { Cursor, CollaborationUser } from '../types';
+import { getViewport, type Viewport } from '../utils';
 
 export interface UseCursorTrackingOptions {
   board: PlaitBoard | null;
@@ -20,14 +20,6 @@ export interface UseCursorTrackingOptions {
 
 export interface UseCursorTrackingReturn {
   cursors: Map<string, CursorState>;
-}
-
-function getViewport(board: PlaitBoard): Viewport {
-  return {
-    zoom: board.viewport?.zoom ?? 1,
-    offsetX: board.viewport?.offsetX ?? 0,
-    offsetY: board.viewport?.offsetY ?? 0,
-  };
 }
 
 export function useCursorTracking({
@@ -157,9 +149,7 @@ export function useCursorTracking({
     manager.removeDisconnectedCursors(activeConnectionIds);
   }, [enabled, others]);
 
-  return {
-    cursors,
-  };
+  return { cursors };
 }
 
 export function useCursorScreenState(

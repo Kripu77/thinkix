@@ -1,10 +1,5 @@
 import type { Cursor, CollaborationUser } from './types';
-
-export interface Viewport {
-  zoom: number;
-  offsetX: number;
-  offsetY: number;
-}
+import type { Viewport } from './utils/viewport';
 
 export interface CursorState {
   userId: string;
@@ -17,16 +12,6 @@ export interface CursorState {
   lastUpdated: number;
 }
 
-export interface ScreenCoordinates {
-  x: number;
-  y: number;
-}
-
-export interface DocumentCoordinates {
-  x: number;
-  y: number;
-}
-
 export type CursorUpdateCallback = (cursor: Cursor | null) => void;
 export type CursorsChangeCallback = (cursors: Map<string, CursorState>) => void;
 
@@ -34,31 +19,10 @@ const THROTTLE_INTERVAL_MS = 50;
 const IDLE_TIMEOUT_MS = 30000;
 const CLEANUP_INTERVAL_MS = 5000;
 
-export function screenToDocument(
-  clientX: number,
-  clientY: number,
-  containerRect: DOMRect,
-  viewport: Viewport
-): DocumentCoordinates {
-  const documentX = (clientX - containerRect.left - viewport.offsetX) / viewport.zoom;
-  const documentY = (clientY - containerRect.top - viewport.offsetY) / viewport.zoom;
-  return { x: documentX, y: documentY };
-}
-
-export function documentToScreen(
-  documentX: number,
-  documentY: number,
-  viewport: Viewport
-): ScreenCoordinates {
-  const screenX = documentX * viewport.zoom + viewport.offsetX;
-  const screenY = documentY * viewport.zoom + viewport.offsetY;
-  return { x: screenX, y: screenY };
-}
-
 export class CursorManager {
   private readonly cursors: Map<string, CursorState> = new Map();
   private lastUpdateTimestamp: number = 0;
-  private pendingUpdate: DocumentCoordinates | null = null;
+  private pendingUpdate: { x: number; y: number } | null = null;
   private pendingPointer: 'mouse' | 'pen' | 'touch' | undefined = undefined;
   private cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
   private isTracking: boolean = false;
@@ -91,9 +55,10 @@ export class CursorManager {
     viewport: Viewport,
     pointerType: 'mouse' | 'pen' | 'touch' = 'mouse'
   ): void {
-    const coords = screenToDocument(clientX, clientY, containerRect, viewport);
+    const documentX = (clientX - containerRect.left - viewport.offsetX) / viewport.zoom;
+    const documentY = (clientY - containerRect.top - viewport.offsetY) / viewport.zoom;
     
-    this.pendingUpdate = coords;
+    this.pendingUpdate = { x: documentX, y: documentY };
     this.pendingPointer = pointerType;
 
     const now = Date.now();
@@ -172,13 +137,10 @@ export class CursorManager {
     }
   }
 
-  getCursorScreenState(cursor: CursorState, viewport: Viewport): ScreenCoordinates & CursorState {
-    const screen = documentToScreen(cursor.documentX, cursor.documentY, viewport);
-    return {
-      ...cursor,
-      x: screen.x,
-      y: screen.y,
-    };
+  getCursorScreenState(cursor: CursorState, viewport: Viewport): CursorState & { screenX: number; screenY: number } {
+    const screenX = cursor.documentX * viewport.zoom + viewport.offsetX;
+    const screenY = cursor.documentY * viewport.zoom + viewport.offsetY;
+    return { ...cursor, screenX, screenY };
   }
 
   getAllCursorStates(): Map<string, CursorState> {

@@ -4,15 +4,16 @@ export { useCursorTracking, useCursorScreenState, type UseCursorTrackingOptions,
 export { 
   CursorManager, 
   createCursorManager, 
-  screenToDocument, 
-  documentToScreen,
   getVisibleCursors,
   paginateCursors,
   getActiveCursors,
-  type CursorState, 
-  type Viewport, 
-  type ScreenCoordinates, 
-  type DocumentCoordinates, 
+  type CursorState,
   type CursorUpdateCallback, 
   type CursorsChangeCallback 
 } from '../cursor-manager';
+export { 
+  getViewport, 
+  screenToDocument, 
+  documentToScreen, 
+  type Viewport 
+} from '../utils';
