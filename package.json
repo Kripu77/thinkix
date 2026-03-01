@@ -7,7 +7,6 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "prebuild": "bash scripts/apply-patches.sh",
     "build": "bunx next build",
     "start": "next start",
     "lint": "eslint .",
@@ -21,8 +20,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:all": "bun run test:run && bun run test:e2e",
-    "postinstall": "bash scripts/apply-patches.sh"
+    "test:all": "bun run test:run && bun run test:e2e"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.0",
