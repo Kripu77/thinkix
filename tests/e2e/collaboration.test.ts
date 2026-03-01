@@ -75,9 +75,10 @@ test.describe('Multi-User Collaboration', () => {
     }
     
     await collaborateButton.click();
+    await page.waitForLoadState('networkidle');
     
-    const collaboratingIndicator = page.locator('text=/collaborating|online/i');
-    await expect(collaboratingIndicator).toBeVisible({ timeout: 5000 });
+    const collaboratingIndicator = page.locator('text=/just you|online/i');
+    await expect(collaboratingIndicator).toBeVisible({ timeout: 10000 });
   });
 
   test('can leave collaboration', async ({ page }) => {

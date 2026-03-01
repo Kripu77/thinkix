@@ -227,7 +227,9 @@ describe('SyncBus', () => {
       bus.subscribeToLocalChanges(errorCallback);
       bus.subscribeToLocalChanges(normalCallback);
 
-      expect(() => bus.emitLocalChange([{ id: '1', type: 'test' }])).toThrow('Test error');
+      expect(() => bus.emitLocalChange([{ id: '1', type: 'test' }])).not.toThrow();
+      expect(errorCallback).toHaveBeenCalledTimes(1);
+      expect(normalCallback).toHaveBeenCalledTimes(1);
     });
   });
 });

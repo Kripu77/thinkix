@@ -24,11 +24,23 @@ class SyncBusImpl implements SyncBus {
   }
 
   emitLocalChange(elements: BoardElement[]): void {
-    this.localCallbacks.forEach(cb => cb(elements));
+    this.localCallbacks.forEach(cb => {
+      try {
+        cb(elements);
+      } catch (error) {
+        console.error('Error in local change subscriber:', error);
+      }
+    });
   }
 
   emitRemoteChange(elements: BoardElement[]): void {
-    this.remoteCallbacks.forEach(cb => cb(elements));
+    this.remoteCallbacks.forEach(cb => {
+      try {
+        cb(elements);
+      } catch (error) {
+        console.error('Error in remote change subscriber:', error);
+      }
+    });
   }
 }
 
