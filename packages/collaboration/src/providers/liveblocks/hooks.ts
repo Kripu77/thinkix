@@ -8,25 +8,25 @@ export function usePresence() {
   const [myPresence, updateMyPresence] = useMyPresence();
 
   const updateCursor = useCallback((cursor: Cursor | null) => {
-    (updateMyPresence as (patch: object) => void)({ cursor });
+    updateMyPresence({ cursor: cursor ?? undefined } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence]);
 
   const updateSelection = useCallback((selection: string[] | null) => {
-    (updateMyPresence as (patch: object) => void)({ selection });
+    updateMyPresence({ selection: selection ?? undefined } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence]);
 
   const updateViewport = useCallback((viewport: ViewportState | null) => {
-    (updateMyPresence as (patch: object) => void)({ viewport });
+    updateMyPresence({ viewport: viewport ?? undefined } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence]);
 
   const updateUserInfo = useCallback((userUpdate: Partial<CollaborationUser>) => {
     const currentUser = myPresence.user as CollaborationUser | undefined;
-    (updateMyPresence as (patch: object) => void)({
+    updateMyPresence({
       user: {
         ...(currentUser ?? { id: '', name: '', color: '' }),
         ...userUpdate,
       },
-    });
+    } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence, myPresence.user]);
 
   return {
