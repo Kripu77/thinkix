@@ -22,7 +22,7 @@ export function getPostHogClient(): PostHog | null {
 }
 
 export function getSessionId(): string {
-  return `session_${crypto.randomUUID()}`;
+  return `session_${randomUUID()}`;
 }
 
 export async function shutdownPostHog(): Promise<void> {
