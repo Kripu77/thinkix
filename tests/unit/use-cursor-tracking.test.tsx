@@ -6,7 +6,7 @@ const mockUpdateMyPresence = vi.fn();
 const mockOthers = vi.fn(() => []);
 
 vi.mock('@liveblocks/react', () => ({
-  useMyPresence: () => [, mockUpdateMyPresence],
+  useMyPresence: () => [{}, mockUpdateMyPresence],
   useOthers: () => mockOthers(),
 }));
 

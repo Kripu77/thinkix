@@ -2,10 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { PlaitBoard } from '@plait/core';
 
+const mockStorage = { elements: [] };
+const mockMutationFn = vi.fn();
+const mockUpdateMyPresence = vi.fn();
+const mockOthers = vi.fn(() => []);
+const mockStatus = vi.fn(() => 'connected');
+const mockRoom = { id: 'test-room' };
+
 vi.mock('@liveblocks/react/suspense', () => ({
-  useStorage: (selector: (root: { elements: unknown[] }) => unknown) => selector({ elements: [] }),
-  useMutation: () => vi.fn(),
-  useSelf: () => ({ connectionId: 'test-conn' }),
+  useStorage: vi.fn((selector) => selector(mockStorage)),
+  useMutation: vi.fn(() => mockMutationFn),
+  useSelf: vi.fn(() => ({ connectionId: 'test-conn' })),
+  useRoom: vi.fn(() => mockRoom),
+  useMyPresence: vi.fn(() => [{}, mockUpdateMyPresence]),
+  useOthers: vi.fn(() => mockOthers()),
+  useStatus: vi.fn(() => mockStatus()),
 }));
 
 interface MockBoard {

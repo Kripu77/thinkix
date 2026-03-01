@@ -56,6 +56,7 @@ export default defineConfig({
       '@thinkix/collaboration': path.resolve(__dirname, './packages/collaboration/src'),
       '@thinkix/collaboration/hooks': path.resolve(__dirname, './packages/collaboration/src/hooks'),
       '@thinkix/collaboration/utils': path.resolve(__dirname, './packages/collaboration/src/utils'),
+      '@thinkix/collaboration/providers/liveblocks/hooks': path.resolve(__dirname, './packages/collaboration/src/providers/liveblocks/hooks'),
       '@/features': path.resolve(__dirname, './features'),
       '@/shared': path.resolve(__dirname, './shared'),
       '@/packages': path.resolve(__dirname, './packages'),
