@@ -10,6 +10,7 @@ import {
   useCursorTracking,
   CursorOverlay,
   CollaborationErrorBoundary,
+  getSyncBus,
   type BoardElement,
 } from '@thinkix/collaboration';
 import { Button } from '@thinkix/ui';
@@ -71,18 +72,18 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
     // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
     board.children = elements as unknown as typeof board.children;
     
-    window.dispatchEvent(new CustomEvent('thinkix:yjs-elements-change', {
-      detail: { elements }
-    }));
+    const syncBus = getSyncBus();
+    syncBus.emitRemoteChange(elements);
   }, [elements, isLocalChange, board]);
 
   useEffect(() => {
     if (!board) return;
 
-    const handleLocalChange = (e: CustomEvent<{ elements: unknown[] }>) => {
+    const syncBus = getSyncBus();
+    
+    const unsubscribe = syncBus.subscribeToLocalChanges((localElements: BoardElement[]) => {
       if (!syncState.isConnected || isSyncingRef.current) return;
       
-      const localElements = e.detail.elements as BoardElement[];
       const json = JSON.stringify(localElements);
       
       if (json === lastElementsJsonRef.current) return;
@@ -94,12 +95,9 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
       queueMicrotask(() => {
         isSyncingRef.current = false;
       });
-    };
+    });
 
-    window.addEventListener('thinkix:local-elements-change', handleLocalChange as EventListener);
-    return () => {
-      window.removeEventListener('thinkix:local-elements-change', handleLocalChange as EventListener);
-    };
+    return unsubscribe;
   }, [board, syncState.isConnected, setElements]);
 
   return (

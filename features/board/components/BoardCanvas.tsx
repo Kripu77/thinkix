@@ -32,6 +32,7 @@ import { GridToolbar } from '../grid/components';
 import { useAutoSave } from '@/features/storage';
 import { PencilModeIndicator } from './PencilModeIndicator';
 import type { Board as StorageBoard } from '@thinkix/storage';
+import { getSyncBus, type BoardElement } from '@thinkix/collaboration';
 
 import '@/app/styles/plait-react-board.css';
 
@@ -78,23 +79,18 @@ function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: 
   const listRender = useListRender();
 
   useEffect(() => {
-    const handleRemoteElementsChange = (e: CustomEvent<{ elements: PlaitElement[] }>) => {
-      const remoteElements = e.detail.elements;
-      onElementsChange(remoteElements);
-      listRender.update(remoteElements, {
+    const syncBus = getSyncBus();
+    
+    const unsubscribe = syncBus.subscribeToRemoteChanges((elements: BoardElement[]) => {
+      onElementsChange(elements);
+      listRender.update(elements, {
         board: board,
         parent: board,
         parentG: PlaitBoard.getElementHost(board),
       });
-    };
+    });
 
-    window.addEventListener('thinkix:remote-elements-change', handleRemoteElementsChange as EventListener);
-    window.addEventListener('thinkix:yjs-elements-change', handleRemoteElementsChange as EventListener);
-    
-    return () => {
-      window.removeEventListener('thinkix:remote-elements-change', handleRemoteElementsChange as EventListener);
-      window.removeEventListener('thinkix:yjs-elements-change', handleRemoteElementsChange as EventListener);
-    };
+    return unsubscribe;
   }, [board, listRender, onElementsChange]);
 
   return null;
@@ -131,9 +127,8 @@ export function BoardCanvas({
 
   const handleChange = (data: BoardChangeData) => {
     setValue(data.children);
-    window.dispatchEvent(new CustomEvent('thinkix:local-elements-change', {
-      detail: { elements: data.children }
-    }));
+    const syncBus = getSyncBus();
+    syncBus.emitLocalChange(data.children as BoardElement[]);
   };
 
   const handleBoardInit = (board: PlaitBoard) => {
