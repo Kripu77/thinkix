@@ -1,20 +1,20 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { useStorage, useMutation, useSelf, useMyPresence } from '@liveblocks/react/suspense';
+import { useMyPresence, useOthers } from '@liveblocks/react/suspense';
 import {
-  useCollaborationContext,
-  useRoomPresence,
+  useYjsCollaboration,
   setStoredUser,
   ShareButton,
   NicknameDialog,
   useCursorTracking,
   CursorOverlay,
+  CollaborationErrorBoundary,
+  type BoardElement,
 } from '@thinkix/collaboration';
 import { Button } from '@thinkix/ui';
-import { UserCircle2 } from 'lucide-react';
+import { UserCircle2, Wifi, WifiOff } from 'lucide-react';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
-import type { PlaitElement } from '@plait/core';
 
 interface CollaborativeBoardProps {
   children: ReactNode;
@@ -34,25 +34,15 @@ function UserAvatar({ avatarSvg, size = 20 }: { avatarSvg?: string; size?: numbe
   );
 }
 
-export function CollaborativeBoard({ children }: CollaborativeBoardProps) {
+function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
   const { board } = useBoardState();
-  const { user } = useCollaborationContext();
+  const { user, elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
   const [, updateMyPresence] = useMyPresence();
-  const userSetRef = useRef(false);
-
-  const { cursors } = useCursorTracking({
-    board,
-    enabled: true,
-    throttleIntervalMs: 50,
-    idleTimeoutMs: 30000,
-  });
-
-  useBoardSyncHybrid(board);
+  const lastElementsJsonRef = useRef<string>('');
+  const isSyncingRef = useRef(false);
 
   useEffect(() => {
-    if (userSetRef.current) return;
-    userSetRef.current = true;
-    (updateMyPresence as (patch: object) => void)({ 
+    updateMyPresence({ 
       user: { 
         id: user.id, 
         name: user.name, 
@@ -62,6 +52,56 @@ export function CollaborativeBoard({ children }: CollaborativeBoardProps) {
     });
   }, [user, updateMyPresence]);
 
+  const { cursors } = useCursorTracking({
+    board,
+    enabled: syncState.isConnected,
+    throttleIntervalMs: 50,
+    idleTimeoutMs: 30000,
+  });
+
+  useEffect(() => {
+    if (!board || isLocalChange || isSyncingRef.current) return;
+    if (elements.length === 0) return;
+    
+    const elementsJson = JSON.stringify(elements);
+    if (elementsJson === lastElementsJsonRef.current) return;
+    
+    lastElementsJsonRef.current = elementsJson;
+    
+    // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
+    board.children = elements as unknown as typeof board.children;
+    
+    window.dispatchEvent(new CustomEvent('thinkix:yjs-elements-change', {
+      detail: { elements }
+    }));
+  }, [elements, isLocalChange, board]);
+
+  useEffect(() => {
+    if (!board) return;
+
+    const handleLocalChange = (e: CustomEvent<{ elements: unknown[] }>) => {
+      if (!syncState.isConnected || isSyncingRef.current) return;
+      
+      const localElements = e.detail.elements as BoardElement[];
+      const json = JSON.stringify(localElements);
+      
+      if (json === lastElementsJsonRef.current) return;
+      
+      isSyncingRef.current = true;
+      lastElementsJsonRef.current = json;
+      setElements(localElements);
+      
+      queueMicrotask(() => {
+        isSyncingRef.current = false;
+      });
+    };
+
+    window.addEventListener('thinkix:local-elements-change', handleLocalChange as EventListener);
+    return () => {
+      window.removeEventListener('thinkix:local-elements-change', handleLocalChange as EventListener);
+    };
+  }, [board, syncState.isConnected, setElements]);
+
   return (
     <>
       {children}
@@ -70,55 +110,12 @@ export function CollaborativeBoard({ children }: CollaborativeBoardProps) {
   );
 }
 
-function useBoardSyncHybrid(board: ReturnType<typeof useBoardState>['board']) {
-  const elements = useStorage((root: { elements: PlaitElement[] }) => root.elements);
-  const self = useSelf();
-  const lastSyncedRef = useRef<string>('');
-  const isRemoteRef = useRef(false);
-
-  const pushElements = useMutation(({ storage }, newElements: PlaitElement[]) => {
-    storage.set('elements', newElements as never);
-  }, []);
-
-  useEffect(() => {
-    if (!elements || isRemoteRef.current || !board) {
-      isRemoteRef.current = false;
-      return;
-    }
-
-    const remoteElements = elements;
-    const json = JSON.stringify(remoteElements);
-    if (json === lastSyncedRef.current) return;
-
-    lastSyncedRef.current = json;
-    // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
-    board.children = remoteElements;
-
-    window.dispatchEvent(new CustomEvent('thinkix:remote-elements-change', {
-      detail: { elements: remoteElements }
-    }));
-  }, [elements, board]);
-
-  useEffect(() => {
-    if (!board) return;
-
-    const handleLocalChange = (e: CustomEvent<{ elements: PlaitElement[] }>) => {
-      const localElements = e.detail.elements;
-      const json = JSON.stringify(localElements);
-      if (json === lastSyncedRef.current) return;
-
-      lastSyncedRef.current = json;
-      isRemoteRef.current = true;
-      pushElements(localElements);
-    };
-
-    window.addEventListener('thinkix:local-elements-change', handleLocalChange as EventListener);
-    return () => {
-      window.removeEventListener('thinkix:local-elements-change', handleLocalChange as EventListener);
-    };
-  }, [board, pushElements]);
-
-  return { isConnected: !!self.connectionId };
+export function CollaborativeBoard({ children }: CollaborativeBoardProps) {
+  return (
+    <CollaborationErrorBoundary>
+      <CollaborativeBoardInner>{children}</CollaborativeBoardInner>
+    </CollaborationErrorBoundary>
+  );
 }
 
 interface CollaborationStatusBarProps {
@@ -127,14 +124,30 @@ interface CollaborationStatusBarProps {
 }
 
 export function CollaborationStatusBar({ roomId, onDisableCollaboration }: CollaborationStatusBarProps) {
-  const { user } = useCollaborationContext();
-  const { userCount, connectionStatus } = useRoomPresence();
+  const { user, syncState } = useYjsCollaboration();
   const [, updateMyPresence] = useMyPresence();
+  const others = useOthers();
   const [nicknameDialogOpen, setNicknameDialogOpen] = useState(false);
+
+  const userCount = others.length + 1;
+  const isConnected = syncState.isConnected;
+  const isReconnecting = syncState.isSyncing;
+
+  const handleRetry = useCallback(() => {
+    // Force presence refresh by updating user
+    updateMyPresence({ 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        color: user.color,
+        avatar: user.avatar,
+      } 
+    });
+  }, [updateMyPresence, user]);
 
   const handleUpdateUser = useCallback((name: string) => {
     const updatedUser = { ...user, name };
-    (updateMyPresence as (patch: object) => void)({ 
+    updateMyPresence({ 
       user: { ...user, name, avatar: user.avatar } 
     });
     setStoredUser(updatedUser);
@@ -143,18 +156,32 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
   return (
     <>
       <div className="hidden lg:flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-1 shadow-sm">
-        {connectionStatus === 'connected' ? (
+        {isConnected ? (
           <>
+            <Wifi className="h-3 w-3 text-green-500" />
             <span className="text-xs text-gray-600">
               {userCount === 1 ? 'Just you' : `${userCount} online`}
             </span>
             <ShareButton roomId={roomId} />
           </>
-        ) : (
-          <div className="flex items-center gap-2 text-xs text-gray-600">
+        ) : isReconnecting ? (
+          <>
             <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
-            Connecting...
-          </div>
+            <span className="text-xs text-gray-600">Reconnecting...</span>
+          </>
+        ) : (
+          <>
+            <WifiOff className="h-3 w-3 text-red-500" />
+            <span className="text-xs text-gray-600">Disconnected</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRetry}
+              className="h-5 px-2 text-xs"
+            >
+              Retry
+            </Button>
+          </>
         )}
 
         <Button
@@ -174,6 +201,19 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
         >
           <span className="text-base leading-none">×</span>
         </Button>
+      </div>
+
+      <div className="lg:hidden flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 shadow-sm">
+        {isConnected ? (
+          <>
+            <Wifi className="h-3 w-3 text-green-500" />
+            <span className="text-xs text-gray-600">{userCount}</span>
+          </>
+        ) : isReconnecting ? (
+          <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
+        ) : (
+          <WifiOff className="h-3 w-3 text-red-500" />
+        )}
       </div>
 
       {nicknameDialogOpen && (

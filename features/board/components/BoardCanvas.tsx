@@ -89,8 +89,11 @@ function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: 
     };
 
     window.addEventListener('thinkix:remote-elements-change', handleRemoteElementsChange as EventListener);
+    window.addEventListener('thinkix:yjs-elements-change', handleRemoteElementsChange as EventListener);
+    
     return () => {
       window.removeEventListener('thinkix:remote-elements-change', handleRemoteElementsChange as EventListener);
+      window.removeEventListener('thinkix:yjs-elements-change', handleRemoteElementsChange as EventListener);
     };
   }, [board, listRender, onElementsChange]);
 

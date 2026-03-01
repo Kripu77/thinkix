@@ -138,12 +138,19 @@ export function useCursorTracking({
     for (const other of others) {
       const connectionId = String(other.connectionId);
       activeConnectionIds.add(connectionId);
-
+      
       const user = other.presence.user as CollaborationUser | undefined;
       const cursor = other.presence.cursor as Cursor | undefined;
-
-      if (user) {
+      
+      if (user && user.name && user.color) {
         manager.updateRemoteCursor(connectionId, user, cursor);
+      } else if (cursor) {
+        const defaultUser: CollaborationUser = {
+          id: connectionId,
+          name: `User ${connectionId}`,
+          color: '#64B5F6',
+        };
+        manager.updateRemoteCursor(connectionId, defaultUser, cursor);
       }
     }
 

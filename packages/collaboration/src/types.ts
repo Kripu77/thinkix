@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { generateUserIdentity } from './user-identity';
 
 export interface CollaborationUser {
@@ -129,4 +130,101 @@ export function getOrCreateUser(): CollaborationUser {
   const newUser = createAnonymousUser();
   setStoredUser(newUser);
   return newUser;
+}
+
+export interface BoardElement {
+  id: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
+export interface SyncState {
+  isConnected: boolean;
+  isSyncing: boolean;
+  lastSyncedAt: number | null;
+}
+
+export interface PresenceConfig {
+  throttleMs: number;
+  idleTimeoutMs: number;
+}
+
+export interface AdapterConfig {
+  presence: PresenceConfig;
+  pageSize: number;
+}
+
+export const DEFAULT_PRESENCE_CONFIG: PresenceConfig = {
+  throttleMs: 50,
+  idleTimeoutMs: 30000,
+};
+
+export const DEFAULT_ADAPTER_CONFIG: AdapterConfig = {
+  presence: DEFAULT_PRESENCE_CONFIG,
+  pageSize: 50,
+};
+
+export type BoardOperation = 
+  | { type: 'insert'; element: BoardElement; index?: number }
+  | { type: 'update'; id: string; changes: Record<string, unknown> }
+  | { type: 'delete'; id: string }
+  | { type: 'move'; id: string; newIndex: number }
+  | { type: 'batch'; operations: BoardOperation[] };
+
+export interface OperationMetadata {
+  timestamp: number;
+  clientId: string;
+  operationId: string;
+}
+
+export type OperationWithMetadata = BoardOperation & OperationMetadata;
+
+export interface ConnectionAdapterConfig {
+  cursorThrottleMs: number;
+  cursorIdleTimeoutMs: number;
+  syncDebounceMs: number;
+  presencePageSize: number;
+  enableOfflineQueue: boolean;
+  maxRetries: number;
+}
+
+export const DEFAULT_CONNECTION_CONFIG: ConnectionAdapterConfig = {
+  cursorThrottleMs: 50,
+  cursorIdleTimeoutMs: 30000,
+  syncDebounceMs: 16,
+  presencePageSize: 50,
+  enableOfflineQueue: true,
+  maxRetries: 3,
+};
+
+export interface CollaborationAdapter {
+  readonly name: string;
+  
+  Provider: React.FC<{
+    children: ReactNode;
+    user: CollaborationUser;
+    config?: Partial<AdapterConfig>;
+    authEndpoint?: string;
+    publicKey?: string;
+  }>;
+  
+  Room: React.FC<{
+    roomId: string;
+    initialElements?: BoardElement[];
+    children: ReactNode;
+  }>;
+  
+  useSync(): {
+    elements: BoardElement[];
+    setElements: (elements: BoardElement[]) => void;
+    syncState: SyncState;
+  };
+  
+  usePresence(): {
+    updateCursor: (cursor: Cursor | null) => void;
+    updateSelection: (selection: string[]) => void;
+    updateViewport: (viewport: ViewportState) => void;
+    others: UserPresence[];
+    connectionStatus: ConnectionStatus;
+  };
 }
