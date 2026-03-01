@@ -54,7 +54,8 @@ test.describe('Multi-User Collaboration', () => {
     await page1.goto(roomUrl);
     await page2.goto(roomUrl);
     
-    await page1.waitForTimeout(2000);
+    await page1.waitForLoadState('networkidle');
+    await page2.waitForLoadState('networkidle');
     
     await context1.close();
     await context2.close();
@@ -64,44 +65,39 @@ test.describe('Multi-User Collaboration', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/?room=test-status-room');
     
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
-    if (await collaborateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await collaborateButton.click();
-      
-      await page.waitForTimeout(2000);
-      
-      const collaboratingIndicator = page.locator('text=/collaborating|online/i');
-      const isCollaborating = await collaboratingIndicator.isVisible({ timeout: 5000 }).catch(() => false);
-      
-      expect(typeof isCollaborating).toBe('boolean');
+    if (!(await collaborateButton.isVisible({ timeout: 5000 }).catch(() => false))) {
+      test.skip(true, 'Collaborate button not visible in this environment');
+      return;
     }
+    
+    await collaborateButton.click();
+    
+    const collaboratingIndicator = page.locator('text=/collaborating|online/i');
+    await expect(collaboratingIndicator).toBeVisible({ timeout: 5000 });
   });
 
   test('can leave collaboration', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/?room=leave-room');
     
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
     if (await collaborateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await collaborateButton.click();
       
-      await page.waitForTimeout(2000);
-      
       const leaveButton = page.getByRole('button', { name: /×/i });
       
-      if (await leaveButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      if (await leaveButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await leaveButton.click();
         
-        await page.waitForTimeout(1000);
-        
         const collaborateButtonAgain = page.getByRole('button', { name: /collaborate/i });
-        await expect(collaborateButtonAgain).toBeVisible({ timeout: 3000 });
+        await expect(collaborateButtonAgain).toBeVisible({ timeout: 5000 });
       }
     }
   });
@@ -114,17 +110,15 @@ test.describe('Collaboration Status Bar', () => {
     const roomId = `status-test-${Date.now()}`;
     await page.goto(`/?room=${roomId}`);
     
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
     if (await collaborateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await collaborateButton.click();
       
-      await page.waitForTimeout(2000);
-      
       const onlineIndicator = page.locator('text=/online|just you/i');
-      const isOnlineVisible = await onlineIndicator.isVisible({ timeout: 3000 }).catch(() => false);
+      const isOnlineVisible = await onlineIndicator.isVisible({ timeout: 5000 }).catch(() => false);
       
       expect(typeof isOnlineVisible).toBe('boolean');
     }
@@ -136,18 +130,13 @@ test.describe('User Presence', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
     
-    await page.waitForTimeout(1000);
-    
     const canvas = page.locator('svg.plait-board, .plait-board-container, canvas').first();
+    await expect(canvas).toBeVisible({ timeout: 5000 });
     
-    if (await canvas.isVisible({ timeout: 5000 }).catch(() => false)) {
-      const box = await canvas.boundingBox();
-      
-      if (box) {
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        
-        await page.waitForTimeout(500);
-      }
+    const box = await canvas.boundingBox();
+    
+    if (box) {
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     }
   });
 });
@@ -161,24 +150,22 @@ test.describe('Board Sharing', () => {
     const roomId = `share-test-${Date.now()}`;
     await page.goto(`/?room=${roomId}`);
     
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle');
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
     if (await collaborateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await collaborateButton.click();
       
-      await page.waitForTimeout(2000);
-      
       const shareButton = page.getByRole('button', { name: /share/i });
       
-      if (await shareButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      if (await shareButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await shareButton.click();
         
-        await page.waitForTimeout(500);
-        
-        const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toContain(roomId);
+        await expect(async () => {
+          const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+          expect(clipboardText).toContain(roomId);
+        }).toPass({ timeout: 3000 });
       }
     }
   });

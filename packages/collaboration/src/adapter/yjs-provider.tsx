@@ -201,6 +201,7 @@ function YjsRoomInner({
   }, [room, ydoc]);
 
   useEffect(() => {
+    if (status !== 'connected') return;
     if (initialElementsSetRef.current) return;
     if (!initialElements || initialElements.length === 0) return;
     if (yelements.size > 0) return;
@@ -212,7 +213,7 @@ function YjsRoomInner({
         yelements.set(el.id, el);
       });
     }, 'init');
-  }, [ydoc, yelements, initialElements]);
+  }, [ydoc, yelements, initialElements, status]);
 
   useEffect(() => {
     const observer = (event: Y.YMapEvent<BoardElement>) => {
