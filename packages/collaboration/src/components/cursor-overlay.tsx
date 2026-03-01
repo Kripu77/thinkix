@@ -3,10 +3,13 @@
 import { useMemo, useEffect, useState, memo } from 'react';
 import type { PlaitBoard } from '@plait/core';
 import type { CursorState, Viewport } from '../cursor-manager';
+import { getVisibleCursors, getActiveCursors } from '../cursor-manager';
 
 interface CursorOverlayProps {
   cursors: Map<string, CursorState>;
   board: PlaitBoard | null;
+  maxCursors?: number;
+  idleTimeoutMs?: number;
 }
 
 interface RenderableCursor {
@@ -115,7 +118,12 @@ const RemoteCursor = memo(function RemoteCursor({
   );
 });
 
-export function CursorOverlay({ cursors, board }: CursorOverlayProps) {
+export function CursorOverlay({ 
+  cursors, 
+  board, 
+  maxCursors = 50,
+  idleTimeoutMs = 30000 
+}: CursorOverlayProps) {
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
@@ -145,13 +153,28 @@ export function CursorOverlay({ cursors, board }: CursorOverlayProps) {
     };
   }, []);
 
+  const visibleCursors = useMemo(() => {
+    if (!board || !containerRect) return new Map<string, CursorState>();
+    
+    const viewport = getViewport(board);
+    const screenWidth = containerRect.width;
+    const screenHeight = containerRect.height;
+    
+    const activeCursors = getActiveCursors(cursors, idleTimeoutMs);
+    
+    return getVisibleCursors(activeCursors, viewport, screenWidth, screenHeight);
+  }, [cursors, board, containerRect, idleTimeoutMs]);
+
   const renderableCursors = useMemo((): RenderableCursor[] => {
     if (!board || !containerRect) return [];
 
     const viewport = getViewport(board);
     const result: RenderableCursor[] = [];
+    let count = 0;
 
-    cursors.forEach((cursor, id) => {
+    visibleCursors.forEach((cursor, id) => {
+      if (count >= maxCursors) return;
+      
       const screenX =
         cursor.documentX * viewport.zoom + viewport.offsetX + containerRect.left;
       const screenY =
@@ -165,10 +188,11 @@ export function CursorOverlay({ cursors, board }: CursorOverlayProps) {
         userColor: cursor.userColor,
         userAvatar: cursor.userAvatar,
       });
+      count++;
     });
 
     return result;
-  }, [cursors, board, containerRect]);
+  }, [visibleCursors, board, containerRect, maxCursors]);
 
   if (renderableCursors.length === 0) return null;
 

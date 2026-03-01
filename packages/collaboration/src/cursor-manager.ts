@@ -248,3 +248,63 @@ export function createCursorManager(
     options?.cleanupIntervalMs
   );
 }
+
+const PRESENCE_PAGE_SIZE = 50;
+
+export function getVisibleCursors(
+  cursors: Map<string, CursorState>,
+  viewport: Viewport,
+  screenWidth: number,
+  screenHeight: number
+): Map<string, CursorState> {
+  const result = new Map<string, CursorState>();
+  const margin = 100;
+
+  for (const [id, cursor] of cursors) {
+    const screenX = cursor.documentX * viewport.zoom + viewport.offsetX;
+    const screenY = cursor.documentY * viewport.zoom + viewport.offsetY;
+
+    if (screenX < -margin || screenX > screenWidth + margin) continue;
+    if (screenY < -margin || screenY > screenHeight + margin) continue;
+
+    result.set(id, cursor);
+  }
+
+  return result;
+}
+
+export function paginateCursors(
+  cursors: Map<string, CursorState>,
+  page: number,
+  pageSize: number = PRESENCE_PAGE_SIZE
+): Map<string, CursorState> {
+  const result = new Map<string, CursorState>();
+  const start = page * pageSize;
+  let index = 0;
+
+  for (const [id, cursor] of cursors) {
+    if (index >= start && index < start + pageSize) {
+      result.set(id, cursor);
+    }
+    index++;
+    if (result.size >= pageSize) break;
+  }
+
+  return result;
+}
+
+export function getActiveCursors(
+  cursors: Map<string, CursorState>,
+  idleTimeoutMs: number = IDLE_TIMEOUT_MS
+): Map<string, CursorState> {
+  const result = new Map<string, CursorState>();
+  const now = Date.now();
+
+  for (const [id, cursor] of cursors) {
+    if (now - cursor.lastUpdated <= idleTimeoutMs) {
+      result.set(id, cursor);
+    }
+  }
+
+  return result;
+}
