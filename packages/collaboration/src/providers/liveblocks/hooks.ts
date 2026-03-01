@@ -4,6 +4,22 @@ import { useCallback } from 'react';
 import { useMyPresence, useOthers, useStatus, useRoom } from '@liveblocks/react/suspense';
 import type { ConnectionStatus, Cursor, ViewportState, CollaborationUser, UserPresence } from '../../types';
 
+type PresenceJson = {
+  cursor?: { x: number; y: number; pointer?: 'mouse' | 'pen' | 'touch' };
+  selection?: string[];
+  viewport?: { x: number; y: number; zoom: number };
+  user?: { id: string; name: string; color: string; avatar?: string };
+};
+
+const toCursor = (p: PresenceJson): Cursor | undefined =>
+  p.cursor ? { x: p.cursor.x, y: p.cursor.y, pointer: p.cursor.pointer } : undefined;
+
+const toViewport = (p: PresenceJson): ViewportState | undefined =>
+  p.viewport ? { x: p.viewport.x, y: p.viewport.y, zoom: p.viewport.zoom } : undefined;
+
+const toUser = (p: PresenceJson): CollaborationUser | undefined =>
+  p.user ? { id: p.user.id, name: p.user.name, color: p.user.color, avatar: p.user.avatar } : undefined;
+
 export function usePresence() {
   const [myPresence, updateMyPresence] = useMyPresence();
 
@@ -44,12 +60,15 @@ export function useRoomPresence() {
 
   const users: UserPresence[] = others
     .filter((other) => other.presence.user)
-    .map((other) => ({
-      user: other.presence.user as unknown as CollaborationUser,
-      cursor: other.presence.cursor as unknown as Cursor | undefined,
-      selection: other.presence.selection as unknown as string[] | undefined,
-      viewport: other.presence.viewport as unknown as ViewportState | undefined,
-    }));
+    .map((other) => {
+      const p = other.presence as PresenceJson;
+      return {
+        user: toUser(p)!,
+        cursor: toCursor(p),
+        selection: p.selection,
+        viewport: toViewport(p),
+      };
+    });
 
   const connectionStatus: ConnectionStatus = status;
 

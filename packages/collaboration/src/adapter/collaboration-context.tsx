@@ -20,6 +20,22 @@ type PresencePatch = {
   user?: Partial<CollaborationUser>;
 };
 
+type PresenceJson = {
+  cursor?: { x: number; y: number; pointer?: 'mouse' | 'pen' | 'touch' };
+  selection?: string[];
+  viewport?: { x: number; y: number; zoom: number };
+  user?: { id: string; name: string; color: string; avatar?: string };
+};
+
+const toCursor = (p: PresenceJson): Cursor | undefined =>
+  p.cursor ? { x: p.cursor.x, y: p.cursor.y, pointer: p.cursor.pointer } : undefined;
+
+const toViewport = (p: PresenceJson): ViewportState | undefined =>
+  p.viewport ? { x: p.viewport.x, y: p.viewport.y, zoom: p.viewport.zoom } : undefined;
+
+const toUser = (p: PresenceJson): CollaborationUser | undefined =>
+  p.user ? { id: p.user.id, name: p.user.name, color: p.user.color, avatar: p.user.avatar } : undefined;
+
 export interface CollaborationRoomContextValue {
   user: CollaborationUser;
   others: UserPresence[];
@@ -56,7 +72,7 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
   }, [user, updateMyPresence]);
 
   const updatePresence = useCallback((presence: Partial<PresencePatch>) => {
-    const patch: PresencePatch = {};
+    const patch: PresenceJson = {};
     if ('cursor' in presence) {
       patch.cursor = presence.cursor ?? undefined;
     }
@@ -74,19 +90,19 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
         avatar: presence.user?.avatar ?? user.avatar,
       };
     }
-    updateMyPresence(patch as unknown as Parameters<typeof updateMyPresence>[0]);
+    updateMyPresence(patch as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence, user]);
 
   const othersPresence = useMemo((): UserPresence[] => {
     return others
-      .filter((other) => other.presence && 'user' in other.presence)
+      .filter((other) => other.presence.user)
       .map((other) => {
-        const presence = other.presence as Record<string, unknown>;
+        const p = other.presence as PresenceJson;
         return {
-          user: presence.user as CollaborationUser,
-          cursor: presence.cursor as Cursor | undefined,
-          selection: presence.selection as string[] | undefined,
-          viewport: presence.viewport as ViewportState | undefined,
+          user: toUser(p)!,
+          cursor: toCursor(p),
+          selection: p.selection,
+          viewport: toViewport(p),
         };
       });
   }, [others]);

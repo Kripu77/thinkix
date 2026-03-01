@@ -328,7 +328,8 @@ export function useYjsPresence(options: UseYjsPresenceOptions = {}) {
 
   const flushCursorUpdate = useCallback(() => {
     lastCursorUpdateRef.current = Date.now();
-    updateMyPresence({ cursor: pendingCursorRef.current } as unknown as Parameters<typeof updateMyPresence>[0]);
+    const cursor = pendingCursorRef.current;
+    updateMyPresence({ cursor: cursor ?? undefined } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence]);
 
   const updateCursor = useCallback((cursor: Cursor | null) => {
@@ -355,11 +356,11 @@ export function useYjsPresence(options: UseYjsPresenceOptions = {}) {
   }, []);
 
   const updateSelection = useCallback((selection: string[]) => {
-    updateMyPresence({ selection } as unknown as Parameters<typeof updateMyPresence>[0]);
+    updateMyPresence({ selection } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence]);
 
   const updateViewport = useCallback((viewport: ViewportState) => {
-    updateMyPresence({ viewport } as unknown as Parameters<typeof updateMyPresence>[0]);
+    updateMyPresence({ viewport: { x: viewport.x, y: viewport.y, zoom: viewport.zoom } } as Parameters<typeof updateMyPresence>[0]);
   }, [updateMyPresence]);
 
   const connectionStatus: ConnectionStatus = status;
