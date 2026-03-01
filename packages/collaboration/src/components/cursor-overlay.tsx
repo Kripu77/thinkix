@@ -50,19 +50,20 @@ const CursorIcon = memo(function CursorIcon({ color }: { color: string }) {
 });
 
 const AvatarIcon = memo(function AvatarIcon({ 
-  avatarSvg, 
+  avatarDataUrl, 
   size = AVATAR_SIZE 
 }: { 
-  avatarSvg?: string; 
+  avatarDataUrl?: string; 
   size?: number;
 }) {
-  if (!avatarSvg) return null;
+  if (!avatarDataUrl) return null;
   
   return (
-    <div 
-      className="rounded-full overflow-hidden bg-white shadow-sm shrink-0"
+    <img 
+      src={avatarDataUrl}
+      alt=""
+      className="rounded-full bg-white shadow-sm shrink-0"
       style={{ width: size, height: size }}
-      dangerouslySetInnerHTML={{ __html: avatarSvg }}
     />
   );
 });
@@ -70,11 +71,11 @@ const AvatarIcon = memo(function AvatarIcon({
 const CursorLabel = memo(function CursorLabel({
   name,
   color,
-  avatarSvg,
+  avatarDataUrl,
 }: {
   name: string;
   color: string;
-  avatarSvg?: string;
+  avatarDataUrl?: string;
 }) {
   return (
     <div
@@ -85,7 +86,7 @@ const CursorLabel = memo(function CursorLabel({
         top: CURSOR_LABEL_OFFSET_Y,
       }}
     >
-      <AvatarIcon avatarSvg={avatarSvg} />
+      <AvatarIcon avatarDataUrl={avatarDataUrl} />
       <span>{name}</span>
     </div>
   );
@@ -107,7 +108,7 @@ const RemoteCursor = memo(function RemoteCursor({
       <CursorLabel 
         name={cursor.userName} 
         color={cursor.userColor} 
-        avatarSvg={cursor.userAvatar}
+        avatarDataUrl={cursor.userAvatar}
       />
     </div>
   );

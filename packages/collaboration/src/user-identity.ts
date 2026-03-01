@@ -9,7 +9,7 @@ import {
 
 export interface UserIdentity {
   nickname: string;
-  avatarSvg: string;
+  avatarDataUrl: string;
 }
 
 const NICKNAME_CONFIG: Config = {
@@ -25,19 +25,17 @@ export function generateUserIdentity(seed: string): UserIdentity {
     seed,
   });
 
-  const avatarSvg = createAvatar(avataaars, {
+  const avatarDataUrl = createAvatar(avataaars, {
     seed,
     size: 128,
-  }).toString();
+  }).toDataUri();
 
-  return { nickname, avatarSvg };
+  return { nickname, avatarDataUrl };
 }
 
 export function generateAvatarDataUrl(seed: string, size: number = 32): string {
-  const svg = createAvatar(avataaars, {
+  return createAvatar(avataaars, {
     seed,
     size,
   }).toDataUri();
-
-  return svg;
 }

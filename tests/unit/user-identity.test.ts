@@ -10,12 +10,12 @@ describe('generateUserIdentity', () => {
     expect(result1.nickname).toBe(result2.nickname);
   });
 
-  it('returns identical avatar SVG for same seed', () => {
+  it('returns identical avatar data URL for same seed', () => {
     const seed = 'test-seed-456';
     const result1 = generateUserIdentity(seed);
     const result2 = generateUserIdentity(seed);
 
-    expect(result1.avatarSvg).toBe(result2.avatarSvg);
+    expect(result1.avatarDataUrl).toBe(result2.avatarDataUrl);
   });
 
   it('returns different nicknames for different seeds', () => {
@@ -29,7 +29,7 @@ describe('generateUserIdentity', () => {
     const result1 = generateUserIdentity('seed-alpha');
     const result2 = generateUserIdentity('seed-beta');
 
-    expect(result1.avatarSvg).not.toBe(result2.avatarSvg);
+    expect(result1.avatarDataUrl).not.toBe(result2.avatarDataUrl);
   });
 
   it('generates nickname in Adjective Animal format', () => {
@@ -49,11 +49,10 @@ describe('generateUserIdentity', () => {
     expect(parts[1][0]).toBe(parts[1][0].toUpperCase());
   });
 
-  it('generates valid SVG string', () => {
-    const result = generateUserIdentity('svg-test');
+  it('generates valid data URL', () => {
+    const result = generateUserIdentity('dataurl-test');
 
-    expect(result.avatarSvg).toContain('<svg');
-    expect(result.avatarSvg).toContain('</svg>');
+    expect(result.avatarDataUrl).toMatch(/^data:image\/svg\+xml/);
   });
 
   it('is fully deterministic - multiple calls produce same result', () => {
@@ -61,11 +60,11 @@ describe('generateUserIdentity', () => {
     const results = Array.from({ length: 5 }, () => generateUserIdentity(seed));
 
     const firstNickname = results[0].nickname;
-    const firstAvatar = results[0].avatarSvg;
+    const firstAvatar = results[0].avatarDataUrl;
 
-    results.forEach(({ nickname, avatarSvg }) => {
+    results.forEach(({ nickname, avatarDataUrl }) => {
       expect(nickname).toBe(firstNickname);
-      expect(avatarSvg).toBe(firstAvatar);
+      expect(avatarDataUrl).toBe(firstAvatar);
     });
   });
 });
@@ -107,6 +106,6 @@ describe('User Identity Snapshot', () => {
   it('matches snapshot for fixed seed', () => {
     const result = generateUserIdentity('snapshot-seed');
     expect(result.nickname).toMatchSnapshot('nickname');
-    expect(result.avatarSvg).toMatchSnapshot('avatarSvg');
+    expect(result.avatarDataUrl).toMatchSnapshot('avatarDataUrl');
   });
 });

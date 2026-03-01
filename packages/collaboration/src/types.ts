@@ -120,7 +120,7 @@ export function createAnonymousUser(): CollaborationUser {
     id,
     name: identity.nickname,
     color: generateUserColor(id),
-    avatar: identity.avatarSvg,
+    avatar: identity.avatarDataUrl,
   };
 }
 
