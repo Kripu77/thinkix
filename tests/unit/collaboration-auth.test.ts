@@ -156,7 +156,7 @@ describe('/api/collaboration/auth', () => {
 
       const response = await POST(request);
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
     });
 
     it('handles special characters in user fields', async () => {
