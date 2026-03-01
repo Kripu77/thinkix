@@ -29,7 +29,7 @@ vi.mock('@/features/board/plugins/scribble/types', () => ({
 }));
 
 vi.mock('@/features/board/plugins/scribble/helpers', () => ({
-  checkHitScribble: vi.fn((_board, element, _testPoint) => {
+  checkHitScribble: vi.fn((_board, element) => {
     return element.id === 'hit-element';
   }),
 }));
