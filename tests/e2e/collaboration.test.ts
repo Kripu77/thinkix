@@ -1,8 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+const TEST_BASE_URL = 'http://localhost:3000/test/collaboration';
+
+async function waitForTestBoard(page: import('@playwright/test').Page) {
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForSelector('[data-board="true"]', { timeout: 10000 }).catch(() => {});
+  await page.waitForTimeout(500);
+}
+
 test.describe('Collaboration Flow', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(TEST_BASE_URL);
   });
 
   test('displays collaborate button on desktop', async ({ page }) => {
@@ -40,7 +48,7 @@ test.describe('Collaboration Flow', () => {
 test.describe('Multi-User Collaboration', () => {
   test('two users can join the same room via URL', async ({ browser }) => {
     const roomId = `test-room-${Date.now()}`;
-    const roomUrl = `http://localhost:3000/?room=${roomId}`;
+    const roomUrl = `${TEST_BASE_URL}?room=${roomId}`;
     
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();
@@ -51,21 +59,25 @@ test.describe('Multi-User Collaboration', () => {
     await page1.setViewportSize({ width: 1280, height: 720 });
     await page2.setViewportSize({ width: 1280, height: 720 });
     
-    await page1.goto(roomUrl);
-    await page2.goto(roomUrl);
-    
-    await page1.waitForLoadState('networkidle');
-    await page2.waitForLoadState('networkidle');
-    
-    await context1.close();
-    await context2.close();
+    try {
+      await page1.goto(roomUrl);
+      await page2.goto(roomUrl);
+      
+      await Promise.all([
+        page1.waitForLoadState('domcontentloaded'),
+        page2.waitForLoadState('domcontentloaded'),
+      ]);
+    } finally {
+      await context1.close();
+      await context2.close();
+    }
   });
 
   test('shows collaborating status when enabled', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('/?room=test-status-room');
+    await page.goto(`${TEST_BASE_URL}?room=test-status-room`);
     
-    await page.waitForLoadState('networkidle');
+    await waitForTestBoard(page);
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
@@ -75,7 +87,7 @@ test.describe('Multi-User Collaboration', () => {
     }
     
     await collaborateButton.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
     
     const collaboratingIndicator = page.locator('text=/just you|online/i');
     await expect(collaboratingIndicator).toBeVisible({ timeout: 10000 });
@@ -83,9 +95,9 @@ test.describe('Multi-User Collaboration', () => {
 
   test('can leave collaboration', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('/?room=leave-room');
+    await page.goto(`${TEST_BASE_URL}?room=leave-room`);
     
-    await page.waitForLoadState('networkidle');
+    await waitForTestBoard(page);
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
@@ -109,9 +121,9 @@ test.describe('Collaboration Status Bar', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     
     const roomId = `status-test-${Date.now()}`;
-    await page.goto(`/?room=${roomId}`);
+    await page.goto(`${TEST_BASE_URL}?room=${roomId}`);
     
-    await page.waitForLoadState('networkidle');
+    await waitForTestBoard(page);
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
@@ -129,7 +141,7 @@ test.describe('Collaboration Status Bar', () => {
 test.describe('User Presence', () => {
   test('user can see their own cursor on the board', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('/');
+    await page.goto(TEST_BASE_URL);
     
     const canvas = page.locator('svg.plait-board, .plait-board-container, canvas').first();
     await expect(canvas).toBeVisible({ timeout: 5000 });
@@ -149,9 +161,9 @@ test.describe('Board Sharing', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     
     const roomId = `share-test-${Date.now()}`;
-    await page.goto(`/?room=${roomId}`);
+    await page.goto(`${TEST_BASE_URL}?room=${roomId}`);
     
-    await page.waitForLoadState('networkidle');
+    await waitForTestBoard(page);
     
     const collaborateButton = page.getByRole('button', { name: /collaborate/i });
     
@@ -176,7 +188,7 @@ test.describe('Error Handling', () => {
   test('handles invalid room ID gracefully', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     
-    await page.goto('/?room=');
+    await page.goto(`${TEST_BASE_URL}?room=`);
     
     await page.waitForTimeout(1000);
     
@@ -190,7 +202,7 @@ test.describe('Error Handling', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     
     const roomId = `network-test-${Date.now()}`;
-    await page.goto(`/?room=${roomId}`);
+    await page.goto(`${TEST_BASE_URL}?room=${roomId}`);
     
     await page.waitForTimeout(1000);
     
@@ -218,7 +230,7 @@ test.describe('Error Handling', () => {
 test.describe('Mobile Responsiveness', () => {
   test('collaboration controls are accessible via menu on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto('/');
+    await page.goto(TEST_BASE_URL);
     
     await page.waitForTimeout(1000);
     
