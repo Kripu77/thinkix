@@ -4,6 +4,7 @@ import { ReactNode, useState } from 'react';
 import { 
   YjsProvider, 
   YjsRoom, 
+  SyncBusProvider,
   getOrCreateUser,
   type BoardElement,
 } from '@thinkix/collaboration';
@@ -19,13 +20,15 @@ export function Room({ children, roomId, initialElements }: RoomProps) {
 
   return (
     <YjsProvider user={user} authEndpoint="/api/collaboration/auth">
-      <YjsRoom 
-        roomId={roomId} 
-        initialElements={initialElements} 
-        user={user}
-      >
-        {children}
-      </YjsRoom>
+      <SyncBusProvider>
+        <YjsRoom 
+          roomId={roomId} 
+          initialElements={initialElements} 
+          user={user}
+        >
+          {children}
+        </YjsRoom>
+      </SyncBusProvider>
     </YjsProvider>
   );
 }

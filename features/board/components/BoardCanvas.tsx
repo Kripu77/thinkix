@@ -32,7 +32,7 @@ import { GridToolbar } from '../grid/components';
 import { useAutoSave } from '@/features/storage';
 import { PencilModeIndicator } from './PencilModeIndicator';
 import type { Board as StorageBoard } from '@thinkix/storage';
-import { getSyncBus, type BoardElement } from '@thinkix/collaboration';
+import { useOptionalSyncBus, type BoardElement, validateBoardElements, logger } from '@thinkix/collaboration';
 
 import '@/app/styles/plait-react-board.css';
 
@@ -77,11 +77,12 @@ const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): Pl
 function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: PlaitElement[]) => void }) {
   const board = useBoard();
   const listRender = useListRender();
+  const syncBusContext = useOptionalSyncBus();
 
   useEffect(() => {
-    const syncBus = getSyncBus();
+    if (!syncBusContext) return;
     
-    const unsubscribe = syncBus.subscribeToRemoteChanges((elements: BoardElement[]) => {
+    const unsubscribe = syncBusContext.syncBus.subscribeToRemoteChanges((elements: BoardElement[]) => {
       onElementsChange(elements);
       listRender.update(elements, {
         board: board,
@@ -91,7 +92,7 @@ function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: 
     });
 
     return unsubscribe;
-  }, [board, listRender, onElementsChange]);
+  }, [board, listRender, onElementsChange, syncBusContext]);
 
   return null;
 }
@@ -103,6 +104,7 @@ export function BoardCanvas({
   boardData,
 }: BoardCanvasProps) {
   const { board, setBoard, state, setCurrentBoardId, setPencilMode } = useBoardState();
+  const syncBusContext = useOptionalSyncBus();
   
   const initialElements = useMemo(() => {
     return boardData?.elements ?? initialValue;
@@ -127,8 +129,17 @@ export function BoardCanvas({
 
   const handleChange = (data: BoardChangeData) => {
     setValue(data.children);
-    const syncBus = getSyncBus();
-    syncBus.emitLocalChange(data.children as BoardElement[]);
+    
+    if (!syncBusContext) {
+      logger.debug('SyncBus not available, skipping sync');
+      return;
+    }
+    
+    const { valid, invalid } = validateBoardElements(data.children);
+    if (invalid.length > 0) {
+      logger.warn(`Skipped ${invalid.length} invalid board elements`, { invalidCount: invalid.length });
+    }
+    syncBusContext.emitLocalChange(valid);
   };
 
   const handleBoardInit = (board: PlaitBoard) => {

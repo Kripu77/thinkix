@@ -10,7 +10,8 @@ import {
   useCursorTracking,
   CursorOverlay,
   CollaborationErrorBoundary,
-  getSyncBus,
+  useSyncBus,
+  logger,
   type BoardElement,
 } from '@thinkix/collaboration';
 import { Button } from '@thinkix/ui';
@@ -37,22 +38,34 @@ function UserAvatar({ avatarDataUrl, size = 20 }: { avatarDataUrl?: string; size
 }
 
 function generateElementsHash(elements: BoardElement[]): string {
-  let hash = 0;
-  const str = elements.map(el => `${el.id}:${el.type || ''}`).join('|');
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+  try {
+    const hashContent = elements.map(el => {
+      const { id, type, ...rest } = el;
+      const propsHash = JSON.stringify(rest);
+      return `${id}:${type || ''}:${propsHash}`;
+    }).join('|||');
+    
+    let hash = 0;
+    for (let i = 0; i < hashContent.length; i++) {
+      const char = hashContent.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash.toString(36);
+  } catch (error) {
+    logger.error('Error generating elements hash', error instanceof Error ? error : undefined);
+    return Date.now().toString(36);
   }
-  return hash.toString(36);
 }
 
 function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
   const { board } = useBoardState();
   const { elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
+  const { syncBus } = useSyncBus();
   const lastElementsHashRef = useRef<string>('');
   const isSyncingRef = useRef(false);
   const offlineQueueRef = useRef<BoardElement[][]>([]);
+  const hasReceivedElementsRef = useRef(false);
   const [showOfflineWarning, setShowOfflineWarning] = useState(false);
 
   const { cursors } = useCursorTracking({
@@ -64,7 +77,12 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
 
   useEffect(() => {
     if (!board || isLocalChange || isSyncingRef.current) return;
-    if (elements.length === 0) return;
+    
+    if (elements.length > 0) {
+      hasReceivedElementsRef.current = true;
+    }
+    
+    if (elements.length === 0 && !hasReceivedElementsRef.current) return;
     
     const hash = generateElementsHash(elements);
     if (hash === lastElementsHashRef.current) return;
@@ -74,14 +92,11 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
     // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
     board.children = elements as unknown as typeof board.children;
     
-    const syncBus = getSyncBus();
     syncBus.emitRemoteChange(elements);
-  }, [elements, isLocalChange, board]);
+  }, [elements, isLocalChange, board, syncBus]);
 
   useEffect(() => {
     if (!board) return;
-
-    const syncBus = getSyncBus();
     
     const unsubscribe = syncBus.subscribeToLocalChanges((localElements: BoardElement[]) => {
       const hash = generateElementsHash(localElements);
@@ -107,7 +122,7 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
     });
 
     return unsubscribe;
-  }, [board, syncState.isConnected, setElements]);
+  }, [board, syncState.isConnected, setElements, syncBus]);
 
   useEffect(() => {
     if (syncState.isConnected && offlineQueueRef.current.length > 0) {
