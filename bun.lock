@@ -84,6 +84,7 @@
         "@liveblocks/node": "3.14.1",
         "@liveblocks/react": "3.14.1",
         "@liveblocks/yjs": "3.14.1",
+        "@thinkix/shared": "workspace:*",
         "lucide-react": "^0.469.0",
         "unique-names-generator": "4.7.1",
         "yjs": "13.6.29",
