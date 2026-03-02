@@ -47,6 +47,9 @@ export interface CollaborationRoomContextValue {
   setElements: (elements: BoardElement[]) => void;
   isLocalChange: boolean;
   roomId: string;
+  undoState: { canUndo: boolean; canRedo: boolean; undoStackSize: number; redoStackSize: number };
+  undo: () => void;
+  redo: () => void;
 }
 
 export const CollaborationRoomContext = createContext<CollaborationRoomContextValue | null>(null);
@@ -58,7 +61,7 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
   const status = useStatus();
   const room = useRoom();
 
-  const { user, elements, setElements, isLocalChange, syncState } = yjsContext;
+  const { user, elements, setElements, isLocalChange, syncState, undoState, undo, redo } = yjsContext;
 
   useEffect(() => {
     updateMyPresence({
@@ -133,6 +136,9 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
     setElements,
     isLocalChange,
     roomId: room.id,
+    undoState,
+    undo,
+    redo,
   }), [
     user,
     othersPresence,
@@ -144,6 +150,9 @@ export function useCollaborationRoom(): CollaborationRoomContextValue {
     setElements,
     isLocalChange,
     room.id,
+    undoState,
+    undo,
+    redo,
   ]);
 }
 

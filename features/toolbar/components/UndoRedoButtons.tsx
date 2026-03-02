@@ -10,34 +10,33 @@ import {
   TooltipTrigger,
 } from '@thinkix/ui';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
+import { useUndoRedo } from '@thinkix/collaboration';
 import { cn } from '@thinkix/ui';
 import posthog from 'posthog-js';
 
 export function UndoRedoButtons() {
   const board = useBoard();
   const { state } = useBoardState();
+  const { canUndo, canRedo, undoStackSize, redoStackSize, isCollaborationMode, undo, redo } = useUndoRedo(board);
 
   if (!board) return null;
 
-  const isUndoDisabled = board.history ? board.history.undos.length === 0 : true;
-  const isRedoDisabled = board.history ? board.history.redos.length === 0 : true;
-
   const handleUndo = () => {
-    const undoCount = board.history?.undos.length || 0;
     posthog.capture('undo_triggered', { 
-      undo_stack_size: undoCount,
-      redo_stack_size: board.history?.redos.length || 0,
+      undo_stack_size: undoStackSize,
+      redo_stack_size: redoStackSize,
+      collaboration_mode: isCollaborationMode,
     });
-    board.undo();
+    undo();
   };
 
   const handleRedo = () => {
-    const redoCount = board.history?.redos.length || 0;
     posthog.capture('redo_triggered', { 
-      redo_stack_size: redoCount,
-      undo_stack_size: board.history?.undos.length || 0,
+      redo_stack_size: redoStackSize,
+      undo_stack_size: undoStackSize,
+      collaboration_mode: isCollaborationMode,
     });
-    board.redo();
+    redo();
   };
 
   return (
@@ -55,7 +54,7 @@ export function UndoRedoButtons() {
                 "h-8 w-8 flex items-center justify-center rounded-md p-0",
                 state.isMobile && "h-7 w-7"
               )}
-              disabled={isUndoDisabled}
+              disabled={!canUndo}
               onPointerDown={(e: React.PointerEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -79,7 +78,7 @@ export function UndoRedoButtons() {
                 "h-8 w-8 flex items-center justify-center rounded-md p-0",
                 state.isMobile && "h-7 w-7"
               )}
-              disabled={isRedoDisabled}
+              disabled={!canRedo}
               onPointerDown={(e: React.PointerEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
