@@ -21,6 +21,7 @@ import type {
   Cursor,
   ViewportState,
   ConnectionStatus,
+  UndoState,
 } from '../types';
 
 interface YjsCollaborationContextValue {
@@ -34,6 +35,9 @@ interface YjsCollaborationContextValue {
   syncState: SyncState;
   user: CollaborationUser;
   config: AdapterConfig;
+  undoState: UndoState;
+  undo: () => void;
+  redo: () => void;
 }
 
 const YjsCollaborationContext = createContext<YjsCollaborationContextValue | null>(null);
@@ -134,7 +138,10 @@ interface YjsRoomProps {
 function createYjsResources() {
   const ydoc = new Y.Doc();
   const yelements = ydoc.getMap<BoardElement>('elements');
-  return { ydoc, yelements };
+  const undoManager = new Y.UndoManager(yelements, {
+    trackedOrigins: new Set([LOCAL_ORIGIN]),
+  });
+  return { ydoc, yelements, undoManager };
 }
 
 export function YjsRoom({
@@ -145,13 +152,14 @@ export function YjsRoom({
   config,
 }: YjsRoomProps) {
   const [resources] = useState(createYjsResources);
-  const { ydoc, yelements } = resources;
+  const { ydoc, yelements, undoManager } = resources;
 
   return (
     <RoomProvider id={roomId} initialStorage={() => ({ elements: [], version: 1 })}>
       <YjsRoomInner
         ydoc={ydoc}
         yelements={yelements}
+        undoManager={undoManager}
         initialElements={initialElements}
         user={user}
         config={config ?? { presence: { throttleMs: 50, idleTimeoutMs: 30000 }, pageSize: 50 }}
@@ -165,6 +173,7 @@ export function YjsRoom({
 interface YjsRoomInnerProps {
   ydoc: Y.Doc;
   yelements: Y.Map<BoardElement>;
+  undoManager: Y.UndoManager;
   initialElements?: BoardElement[];
   user: CollaborationUser;
   config: AdapterConfig;
@@ -174,6 +183,7 @@ interface YjsRoomInnerProps {
 function YjsRoomInner({
   ydoc,
   yelements,
+  undoManager,
   initialElements,
   user,
   config,
@@ -184,6 +194,12 @@ function YjsRoomInner({
   const [elements, setElementsState] = useState<BoardElement[]>([]);
   const [isLocalChange, setIsLocalChange] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const [undoState, setUndoState] = useState<UndoState>({
+    canUndo: false,
+    canRedo: false,
+    undoStackSize: 0,
+    redoStackSize: 0,
+  });
   
   const providerRef = useRef<LiveblocksYjsProvider | null>(null);
   const initialElementsSetRef = useRef(false);
@@ -246,6 +262,41 @@ function YjsRoomInner({
     }
   }, [status]);
 
+  useEffect(() => {
+    const updateUndoState = () => {
+      setUndoState({
+        canUndo: undoManager.undoStack.length > 0,
+        canRedo: undoManager.redoStack.length > 0,
+        undoStackSize: undoManager.undoStack.length,
+        redoStackSize: undoManager.redoStack.length,
+      });
+    };
+
+    updateUndoState();
+    
+    undoManager.on('stack-item-added', updateUndoState);
+    undoManager.on('stack-item-popped', updateUndoState);
+    undoManager.on('stack-cleared', updateUndoState);
+    
+    return () => {
+      undoManager.off('stack-item-added', updateUndoState);
+      undoManager.off('stack-item-popped', updateUndoState);
+      undoManager.off('stack-cleared', updateUndoState);
+    };
+  }, [undoManager]);
+
+  const undo = useCallback(() => {
+    if (undoManager.undoStack.length > 0) {
+      undoManager.undo();
+    }
+  }, [undoManager]);
+
+  const redo = useCallback(() => {
+    if (undoManager.redoStack.length > 0) {
+      undoManager.redo();
+    }
+  }, [undoManager]);
+
   const setElements = useCallback((newElements: BoardElement[]) => {
     ydoc.transact(() => {
       yelements.clear();
@@ -293,6 +344,9 @@ function YjsRoomInner({
     syncState,
     user,
     config,
+    undoState,
+    undo,
+    redo,
   }), [
     ydoc,
     elements,
@@ -304,6 +358,9 @@ function YjsRoomInner({
     syncState,
     user,
     config,
+    undoState,
+    undo,
+    redo,
   ]);
 
   return (

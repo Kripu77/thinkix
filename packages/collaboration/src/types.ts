@@ -138,10 +138,50 @@ export interface BoardElement {
   [key: string]: unknown;
 }
 
+export function isValidBoardElement(value: unknown): value is BoardElement {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  
+  const element = value as Record<string, unknown>;
+  
+  if (typeof element['id'] !== 'string' || element['id'].length === 0) {
+    return false;
+  }
+  
+  if ('type' in element && typeof element['type'] !== 'string') {
+    return false;
+  }
+  
+  return true;
+}
+
+export function validateBoardElements(elements: unknown[]): { valid: BoardElement[]; invalid: unknown[] } {
+  const valid: BoardElement[] = [];
+  const invalid: unknown[] = [];
+  
+  for (const element of elements) {
+    if (isValidBoardElement(element)) {
+      valid.push(element);
+    } else {
+      invalid.push(element);
+    }
+  }
+  
+  return { valid, invalid };
+}
+
 export interface SyncState {
   isConnected: boolean;
   isSyncing: boolean;
   lastSyncedAt: number | null;
+}
+
+export interface UndoState {
+  canUndo: boolean;
+  canRedo: boolean;
+  undoStackSize: number;
+  redoStackSize: number;
 }
 
 export interface PresenceConfig {

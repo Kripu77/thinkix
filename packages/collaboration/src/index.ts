@@ -5,7 +5,13 @@ export * from './components';
 export * from './user-identity';
 export * from './cursor-manager';
 export * from './utils';
-export { getSyncBus, resetSyncBus, type SyncBus } from './sync-bus';
+export { logger } from './logger';
+export { 
+  SyncBusProvider, 
+  useSyncBus, 
+  useOptionalSyncBus, 
+  type SyncBus 
+} from './sync-bus';
 
 export {
   YjsProvider,
@@ -17,12 +23,7 @@ export {
   DEFAULT_ADAPTER_CONFIG,
   useCollaborationRoom,
   useOptionalCollaborationRoom,
+  CollaborationRoomContext,
   type CollaborationRoomContextValue,
-} from './adapter';
-
-export type {
-  BoardElement,
-  SyncState,
-  PresenceConfig,
-  CollaborationAdapter,
+  type UndoState,
 } from './adapter';

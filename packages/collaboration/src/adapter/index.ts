@@ -6,6 +6,7 @@ export type {
   ConnectionStatus,
   BoardElement,
   SyncState,
+  UndoState,
   PresenceConfig,
   AdapterConfig,
   CollaborationAdapter,
