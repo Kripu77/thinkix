@@ -38,7 +38,8 @@
       "@thinkix/collaboration/utils": ["./packages/collaboration/src/utils"],
       "@thinkix/collaboration/types": ["./packages/collaboration/src/types"],
       "@thinkix/collaboration/components": ["./packages/collaboration/src/components"],
-      "@thinkix/collaboration/providers": ["./packages/collaboration/src/providers"]
+      "@thinkix/collaboration/providers": ["./packages/collaboration/src/providers"],
+      "@thinkix/collaboration/test-utils": ["./packages/collaboration/src/test-utils"]
     }
   },
   "include": [
