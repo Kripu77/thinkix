@@ -119,23 +119,32 @@ function TestBoardAppContent() {
   const handleEnableCollaboration = useCallback(() => {
     const roomId = crypto.randomUUID();
     
-    session.markAsInitiator();
-    session.clearDisabled();
-    
     const url = `${pathname}?room=${roomId}`;
     router.push(url);
     
     enableCollaboration(roomId);
-  }, [pathname, router, enableCollaboration, session]);
+  }, [pathname, router, enableCollaboration]);
+
+  useEffect(() => {
+    if (roomFromUrl && session.isInitiator === false) {
+      session.markAsInitiator();
+      session.clearDisabled();
+    }
+  }, [roomFromUrl, session]);
 
   const handleDisableCollaboration = useCallback(() => {
     disableCollaboration();
     
     if (roomFromUrl) {
-      session.markAsDisabled();
       router.push(pathname);
     }
-  }, [disableCollaboration, roomFromUrl, pathname, router, session]);
+  }, [disableCollaboration, roomFromUrl, pathname, router]);
+
+  useEffect(() => {
+    if (!roomFromUrl && session.wasDisabled === false) {
+      session.markAsDisabled();
+    }
+  }, [roomFromUrl, session]);
 
   if (isLoading) {
     return (

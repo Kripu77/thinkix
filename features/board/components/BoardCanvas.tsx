@@ -174,10 +174,12 @@ export function BoardCanvas({
         theme={DEFAULT_THEME}
         onChange={handleChange}
       >
-        <Board
-          className="w-full h-full bg-background"
-          afterInit={handleBoardInit}
-        />
+        <div data-board="true" className="w-full h-full">
+          <Board
+            className="w-full h-full bg-background"
+            afterInit={handleBoardInit}
+          />
+        </div>
         <RemoteSyncHandler onElementsChange={setValue} />
         <PencilModeIndicator />
         <SelectionToolbar />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 const KEY_PREFIX = 'collab';
 const KEY_INITIATOR = 'initiator';
@@ -53,6 +53,14 @@ export function useCollaborationSession(roomId: string | null): UseCollaboration
   const [isInitiator, setIsInitiator] = useState(() => getSessionItem(initiatorKey));
   const [wasDialogSeen, setWasDialogSeen] = useState(() => getSessionItem(dialogSeenKey));
   const [wasDisabled, setWasDisabled] = useState(() => getSessionItem(disabledKey));
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setIsInitiator(getSessionItem(initiatorKey));
+    setWasDialogSeen(getSessionItem(dialogSeenKey));
+    setWasDisabled(getSessionItem(disabledKey));
+  }, [initiatorKey, dialogSeenKey, disabledKey]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const markAsInitiator = useCallback(() => {
     setSessionItem(initiatorKey, true);

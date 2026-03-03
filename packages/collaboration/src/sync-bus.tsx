@@ -5,6 +5,7 @@ import {
   useContext,
   useCallback,
   useState,
+  useMemo,
   type ReactNode,
 } from 'react';
 import type { BoardElement } from './types';
@@ -72,10 +73,10 @@ export function SyncBusProvider({ children }: { children: ReactNode }) {
     syncBus.emitLocalChange(elements);
   }, [syncBus]);
 
-  const value = {
+  const value = useMemo(() => ({
     syncBus,
     emitLocalChange,
-  };
+  }), [syncBus, emitLocalChange]);
 
   return (
     <SyncBusContext.Provider value={value}>

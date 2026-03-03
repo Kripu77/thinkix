@@ -4,7 +4,7 @@ const TEST_BASE_URL = 'http://localhost:3000/test/collaboration';
 
 async function waitForTestBoard(page: import('@playwright/test').Page) {
   await page.waitForLoadState('domcontentloaded');
-  await page.waitForSelector('[data-board="true"]', { timeout: 10000 }).catch(() => {});
+  await page.waitForSelector('[data-board="true"]', { timeout: 10000 });
   await page.waitForTimeout(500);
 }
 
@@ -67,6 +67,15 @@ test.describe('Multi-User Collaboration', () => {
         page1.waitForLoadState('domcontentloaded'),
         page2.waitForLoadState('domcontentloaded'),
       ]);
+      
+      const board1 = page1.locator('[data-board="true"]');
+      const board2 = page2.locator('[data-board="true"]');
+      
+      await expect(board1).toBeVisible({ timeout: 10000 });
+      await expect(board2).toBeVisible({ timeout: 10000 });
+      
+      await expect(page1).toHaveURL(new RegExp(`room=${roomId}`));
+      await expect(page2).toHaveURL(new RegExp(`room=${roomId}`));
     } finally {
       await context1.close();
       await context2.close();
@@ -234,7 +243,7 @@ test.describe('Mobile Responsiveness', () => {
     
     await page.waitForTimeout(1000);
     
-    const menuButton = page.getByRole('button').filter({ has: page.locator('svg') }).first();
+    const menuButton = page.getByTestId('app-menu-button');
     
     if (await menuButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await menuButton.click();

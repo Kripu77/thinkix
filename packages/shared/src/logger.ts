@@ -1,4 +1,4 @@
-type LogLevel = 'error' | 'warn' | 'info' | 'debug';
+export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
 export interface LogContext {
   [key: string]: unknown;
@@ -20,6 +20,7 @@ function getIsDevelopment(): boolean {
     cachedIsDev = hostname === 'localhost' || hostname === '127.0.0.1';
     return cachedIsDev;
   }
+  cachedIsDev = false;
   return false;
 }
 

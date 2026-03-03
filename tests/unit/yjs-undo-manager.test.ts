@@ -12,7 +12,7 @@ const mockUndoManager = {
 };
 
 vi.mock('yjs', () => ({
-  default: vi.fn(() => ({
+  Doc: vi.fn(() => ({
     transact: vi.fn((fn) => fn()),
     getMap: vi.fn(() => ({
       observe: vi.fn(),

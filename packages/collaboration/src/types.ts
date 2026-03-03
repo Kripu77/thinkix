@@ -145,7 +145,7 @@ export function isValidBoardElement(value: unknown): value is BoardElement {
   
   const element = value as Record<string, unknown>;
   
-  if (typeof element['id'] !== 'string' || element['id'].length === 0) {
+  if (typeof element['id'] !== 'string' || element['id'].trim().length === 0) {
     return false;
   }
   

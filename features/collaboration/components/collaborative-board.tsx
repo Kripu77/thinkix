@@ -46,11 +46,11 @@ function generateElementsHash(elements: BoardElement[]): string {
     }).join('|||');
     
     let hash = 0;
-    for (let i = 0; i < hashContent.length; i++) {
-      const char = hashContent.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
+     for (let i = 0; i < hashContent.length; i++) {
+       const char = hashContent.charCodeAt(i);
+       hash = ((hash << 5) - hash) + char;
+       hash |= 0;
+     }
     return hash.toString(36);
   } catch (error) {
     logger.error('Error generating elements hash', error instanceof Error ? error : undefined);

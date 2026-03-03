@@ -121,7 +121,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
       await saveBoardToFile(board, boardName);
       posthog.capture('board_file_saved', { board_name: boardName, element_count: board.children.length });
     } catch (error) {
-      console.error('Failed to save file:', error);
+      logger.error('Failed to save file', error instanceof Error ? error : undefined);
       posthog.captureException(error);
     } finally {
       setIsSaving(false);
@@ -135,7 +135,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
       await exportAsSvg(board, boardName);
       posthog.capture('board_exported', { format: 'svg', board_name: boardName });
     } catch (error) {
-      console.error('Failed to export SVG:', error);
+      logger.error('Failed to export SVG', error instanceof Error ? error : undefined);
       posthog.captureException(error);
     } finally {
       setIsExporting(false);
@@ -149,7 +149,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
       await exportAsPng(board, transparent, boardName);
       posthog.capture('board_exported', { format: 'png', transparent, board_name: boardName });
     } catch (error) {
-      console.error('Failed to export PNG:', error);
+      logger.error('Failed to export PNG', error instanceof Error ? error : undefined);
       posthog.captureException(error);
     } finally {
       setIsExporting(false);
@@ -163,7 +163,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
       await exportAsJpg(board, boardName);
       posthog.capture('board_exported', { format: 'jpg', board_name: boardName });
     } catch (error) {
-      console.error('Failed to export JPG:', error);
+      logger.error('Failed to export JPG', error instanceof Error ? error : undefined);
       posthog.captureException(error);
     } finally {
       setIsExporting(false);

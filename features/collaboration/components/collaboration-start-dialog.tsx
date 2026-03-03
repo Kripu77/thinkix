@@ -58,12 +58,17 @@ export function CollaborationStartDialog({
               Collaboration link
             </label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-muted px-3 py-2 overflow-hidden">
-                <Link2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-foreground truncate">
-                  {roomUrl}
-                </span>
-              </div>
+               <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-muted px-3 py-2 overflow-hidden">
+                 <Link2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                 <input
+                   type="text"
+                   readOnly
+                   value={roomUrl}
+                   aria-label="Collaboration link"
+                   className="flex-1 text-sm text-foreground bg-transparent border-none outline-none cursor-text"
+                   onClick={(e) => e.currentTarget.select()}
+                 />
+               </div>
               <Button
                 type="button"
                 size="sm"

@@ -106,27 +106,36 @@ function BoardAppContent() {
   const handleEnableCollaboration = useCallback(() => {
     const roomId = crypto.randomUUID();
     
-    session.markAsInitiator();
-    session.clearDisabled();
-    
     const params = new URLSearchParams(searchParams.toString());
     params.set('room', roomId);
     router.push(`${pathname}?${params.toString()}`);
     
     enableCollaboration(roomId);
-  }, [pathname, searchParams, router, enableCollaboration, session]);
+  }, [pathname, searchParams, router, enableCollaboration]);
+
+  useEffect(() => {
+    if (roomFromUrl && session.isInitiator === false) {
+      session.markAsInitiator();
+      session.clearDisabled();
+    }
+  }, [roomFromUrl, session]);
 
   const handleDisableCollaboration = useCallback(() => {
     disableCollaboration();
     
     if (roomFromUrl) {
-      session.markAsDisabled();
       const params = new URLSearchParams(searchParams.toString());
       params.delete('room');
       const newSearch = params.toString();
       router.push(newSearch ? `${pathname}?${newSearch}` : pathname);
     }
-  }, [disableCollaboration, roomFromUrl, pathname, searchParams, router, session]);
+  }, [disableCollaboration, roomFromUrl, pathname, searchParams, router]);
+
+  useEffect(() => {
+    if (!roomFromUrl && session.wasDisabled === false) {
+      session.markAsDisabled();
+    }
+  }, [roomFromUrl, session]);
 
   if (isLoading) {
     return (

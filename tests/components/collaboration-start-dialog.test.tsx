@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { CollaborationStartDialog } from '@/features/collaboration/components/collaboration-start-dialog';
+import { logger } from '@thinkix/collaboration';
 
 const mockWriteText = vi.fn().mockResolvedValue(undefined);
 
@@ -39,7 +40,8 @@ describe('CollaborationStartDialog', () => {
     it('displays the room URL', () => {
       render(<CollaborationStartDialog {...defaultProps} />);
       
-      expect(screen.getByText(/localhost:3000/)).toBeInTheDocument();
+      const input = screen.getByLabelText('Collaboration link');
+      expect(input).toHaveValue(defaultProps.roomUrl);
     });
 
     it('displays description text', () => {
@@ -92,24 +94,31 @@ describe('CollaborationStartDialog', () => {
     });
 
     it.skip('reverts to "Copy" text after timeout', async () => {
+      vi.useFakeTimers();
+      
       render(<CollaborationStartDialog {...defaultProps} />);
       
       const copyButton = screen.getByRole('button', { name: /copy/i });
-      fireEvent.click(copyButton);
       
-      await waitFor(() => {
-        expect(screen.getByText('Copied')).toBeInTheDocument();
+      await act(async () => {
+        fireEvent.click(copyButton);
+        await vi.runAllTimersAsync();
       });
       
-      await new Promise(resolve => setTimeout(resolve, 2100));
+      expect(screen.getByText('Copied')).toBeInTheDocument();
       
-      await waitFor(() => {
-        expect(screen.getByText('Copy')).toBeInTheDocument();
+      await act(async () => {
+        vi.advanceTimersByTime(2000);
       });
+      
+      expect(screen.getByText('Copy')).toBeInTheDocument();
+      
+      vi.useRealTimers();
     });
 
     it('handles clipboard error gracefully', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.useFakeTimers();
+      const loggerSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
       mockWriteText.mockRejectedValueOnce(new Error('Clipboard error'));
       
       render(<CollaborationStartDialog {...defaultProps} />);
@@ -117,13 +126,15 @@ describe('CollaborationStartDialog', () => {
       const copyButton = screen.getByRole('button', { name: /copy/i });
       fireEvent.click(copyButton);
       
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await vi.runAllTimersAsync();
       
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to copy to clipboard')
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Failed to copy to clipboard',
+        expect.any(Error)
       );
       
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
+      vi.useRealTimers();
     });
   });
 

@@ -18,7 +18,9 @@ import type {
   SyncState,
   ConnectionStatus,
   UndoState,
+  UserPresence,
 } from '../types';
+import { CollaborationRoomContext, type CollaborationRoomContextValue } from './collaboration-context';
 
 interface MockYjsContextValue {
   ydoc: Y.Doc | null;
@@ -125,7 +127,8 @@ export function MockYjsProvider({
         const dataIsDifferent = data.elements.length !== prevElements.length ||
           data.elements.some((el, i) => {
             const prevEl = prevElements[i];
-            return !prevEl || el.id !== prevEl.id;
+            if (!prevEl || el.id !== prevEl.id) return true;
+            return JSON.stringify(el) !== JSON.stringify(prevEl);
           });
         
         if (dataIsDifferent) {
@@ -203,20 +206,31 @@ export function MockYjsProvider({
   }, [elements, setElements]);
 
   const deleteElement = useCallback((id: string) => {
-    setElements(elements.filter((el) => el.id !== id));
-  }, [elements, setElements]);
+     setElements(elements.filter((el) => el.id !== id));
+   }, [elements, setElements]);
 
-  const undo = useCallback(() => {
-    if (undoManager.undoStack.length > 0) {
-      undoManager.undo();
+  const updateElementsFromYElements = useCallback(() => {
+    const newElements = Array.from(yelements.values());
+    setElementsState(newElements);
+    
+    if (syncRef.current) {
+      syncRef.current.broadcast(newElements);
     }
-  }, [undoManager]);
+  }, [yelements]);
 
-  const redo = useCallback(() => {
-    if (undoManager.redoStack.length > 0) {
-      undoManager.redo();
-    }
-  }, [undoManager]);
+   const undo = useCallback(() => {
+     if (undoManager.undoStack.length > 0) {
+       undoManager.undo();
+       updateElementsFromYElements();
+     }
+   }, [undoManager, updateElementsFromYElements]);
+
+   const redo = useCallback(() => {
+     if (undoManager.redoStack.length > 0) {
+       undoManager.redo();
+       updateElementsFromYElements();
+     }
+   }, [undoManager, updateElementsFromYElements]);
 
   const syncState: SyncState = useMemo(() => ({
     isConnected: true,
@@ -241,9 +255,27 @@ export function MockYjsProvider({
     redo,
   }), [ydoc, elements, isLocalChange, setElements, insertElement, updateElement, deleteElement, syncState, user, config, undoState, undo, redo]);
 
+  const roomContextValue = useMemo<CollaborationRoomContextValue>(() => ({
+    user,
+    others: [] as UserPresence[],
+    userCount: 1,
+    connectionStatus: 'connected' as ConnectionStatus,
+    syncState,
+    updatePresence: () => {},
+    elements,
+    setElements,
+    isLocalChange,
+    roomId,
+    undoState,
+    undo,
+    redo,
+  }), [user, syncState, elements, setElements, isLocalChange, roomId, undoState, undo, redo]);
+
   return (
     <MockYjsContext.Provider value={value}>
-      {children}
+      <CollaborationRoomContext.Provider value={roomContextValue}>
+        {children}
+      </CollaborationRoomContext.Provider>
     </MockYjsContext.Provider>
   );
 }

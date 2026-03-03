@@ -4,12 +4,9 @@ import { useCallback, useMemo } from 'react';
 import type { PlaitBoard } from '@plait/core';
 import { useOptionalCollaborationRoom } from '../adapter/collaboration-context';
 import { logger } from '../logger';
+import type { UndoState } from '../types';
 
-interface UndoRedoState {
-  canUndo: boolean;
-  canRedo: boolean;
-  undoStackSize: number;
-  redoStackSize: number;
+interface UndoRedoState extends UndoState {
   isCollaborationMode: boolean;
 }
 
