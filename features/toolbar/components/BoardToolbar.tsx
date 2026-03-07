@@ -267,6 +267,7 @@ export function BoardToolbar() {
                     variant="ghost"
                     size="icon"
                     className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                    aria-label="Duplicate"
                     onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -289,6 +290,7 @@ export function BoardToolbar() {
                     variant="ghost"
                     size="icon"
                     className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center hover:bg-destructive/10 hover:text-destructive`}
+                    aria-label="Delete"
                     onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
                       e.stopPropagation();

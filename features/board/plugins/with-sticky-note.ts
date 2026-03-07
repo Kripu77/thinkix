@@ -138,10 +138,6 @@ export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
       
       BoardTransforms.updatePointerType(board, PlaitPointerType.selection);
       
-      window.dispatchEvent(new CustomEvent(CUSTOM_EVENTS.TOOL_CHANGE, { 
-        detail: { tool: 'select' } 
-      }));
-      
       isCreating = false;
       startPoint = null;
       return;
