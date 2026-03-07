@@ -44,6 +44,9 @@ vi.mock('@plait/draw', () => ({
 
 vi.mock('@/shared/constants', () => ({
   STICKY_NOTE_POINTER: MOCK_STICKY_NOTE_POINTER,
+  CUSTOM_EVENTS: {
+    TOOL_CHANGE: 'thinkix:toolchange',
+  },
 }));
 
 function createMockBoard(elements: PlaitElement[] = []): PlaitBoard {

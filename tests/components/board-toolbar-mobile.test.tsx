@@ -39,9 +39,13 @@ vi.mock('@/shared/constants', () => ({
   ],
   TOOLBAR_ITEM_CLASS: 'toolbar-item',
   BUTTON_CLASS: 'button-class',
+  SELECTED_BUTTON_CLASS: 'selected-button-class',
   SHAPE_DROPDOWN_ICON: '<svg></svg>',
   ARROW_TOOL: { id: 'arrow', label: 'Arrow', icon: '<svg></svg>' },
   HANDRAWN_ICON: '<svg></svg>',
+  CUSTOM_EVENTS: {
+    TOOL_CHANGE: 'thinkix:toolchange',
+  },
 }));
 
 describe('BoardToolbar', () => {
