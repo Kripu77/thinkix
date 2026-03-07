@@ -10,18 +10,7 @@ const boardPointerStates = new WeakMap<PlaitBoard, string | undefined>();
 let isPatched = false;
 const originalUpdatePointerType = BoardTransforms.updatePointerType;
 
-/**
- * HACK: Monkey-patch BoardTransforms.updatePointerType to emit custom events
- *
- * This is necessary because Plait doesn't provide tool change hooks.
- * We wrap the original function to dispatch 'thinkix:toolchange' events
- * when the pointer type transitions to selection mode.
- *
- * This enables UI components (like BoardToolbar) to react to tool changes
- * triggered by Plait's internal logic (e.g., after creating a sticky note).
- *
- * TODO: Monitor Plait library updates for native event support
- */
+
 function patchUpdatePointerType() {
   if (isPatched) return;
   
