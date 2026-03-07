@@ -8,7 +8,7 @@ import {
   PlaitPointerType,
 } from '@plait/core';
 import { createGeometryElement, BasicShapes } from '@plait/draw';
-import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER } from '@/shared/constants';
+import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER, CUSTOM_EVENTS } from '@/shared/constants';
 
 export const STICKY_NOTE_POINTER = _STICKY_NOTE_POINTER;
 export const STICKY_NOTE_FILL = '#FFEAA7';
@@ -138,7 +138,7 @@ export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
       
       BoardTransforms.updatePointerType(board, PlaitPointerType.selection);
       
-      window.dispatchEvent(new CustomEvent('thinkix:toolchange', { 
+      window.dispatchEvent(new CustomEvent(CUSTOM_EVENTS.TOOL_CHANGE, { 
         detail: { tool: 'select' } 
       }));
       

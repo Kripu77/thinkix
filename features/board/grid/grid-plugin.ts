@@ -2,6 +2,7 @@ import { PlaitBoard, ThemeColorMode } from '@plait/core';
 import type { BoardBackground, GridType, ViewportBounds } from './types';
 import { DEFAULT_BOARD_BACKGROUND, GRID_BACKGROUND_COLORS, GRID_DENSITIES } from './types';
 import type { GridDensity } from '@thinkix/shared';
+import { STORAGE_KEYS } from '@/shared/constants';
 
 const VALID_GRID_TYPES: GridType[] = ['dot', 'square', 'blueprint', 'isometric', 'ruled', 'blank'];
 import { getViewportBounds } from './utils/world-to-screen';
@@ -16,7 +17,6 @@ import {
   RuledGridRenderer,
 } from './renderers';
 
-const GRID_STORAGE_KEY = 'thinkix:grid-background';
 const GRID_MAX_RETRIES = 10;
 const GRID_INIT_DEBOUNCE_MS = 100;
 
@@ -61,7 +61,7 @@ function isValidDensity(density: unknown): density is GridDensity {
 function getStoredGridConfig(): BoardBackground | null {
   if (!isBrowser()) return null
   try {
-    const stored = localStorage.getItem(GRID_STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEYS.GRID_BACKGROUND)
     if (stored) {
       const parsed = JSON.parse(stored)
       if (
@@ -77,7 +77,7 @@ function getStoredGridConfig(): BoardBackground | null {
           showMajor: parsed.showMajor ?? DEFAULT_BOARD_BACKGROUND.showMajor,
         }
       }
-      localStorage.removeItem(GRID_STORAGE_KEY)
+      localStorage.removeItem(STORAGE_KEYS.GRID_BACKGROUND)
     }
   } catch {
     return null
@@ -88,7 +88,7 @@ function getStoredGridConfig(): BoardBackground | null {
 function setStoredGridConfig(config: BoardBackground): void {
   if (!isBrowser()) return
   try {
-    localStorage.setItem(GRID_STORAGE_KEY, JSON.stringify(config))
+    localStorage.setItem(STORAGE_KEYS.GRID_BACKGROUND, JSON.stringify(config))
   } catch {
     console.warn('Failed to save grid config to localStorage')
   }

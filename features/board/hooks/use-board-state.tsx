@@ -19,6 +19,8 @@ import {
   DEFAULT_TOOL,
   STICKY_NOTE_POINTER,
   MOBILE_BREAKPOINT,
+  CUSTOM_EVENTS,
+  STORAGE_KEYS,
 } from '@/shared/constants';
 import type { BoardState, BoardContextValue, DrawingTool } from '@thinkix/shared';
 import type { SaveStatus } from '@thinkix/storage';
@@ -35,12 +37,10 @@ interface BoardProviderProps {
   children: ReactNode;
 }
 
-const HANDDRAWN_STORAGE_KEY = 'thinkix:handdrawn';
-
 function getStoredHanddrawn(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return localStorage.getItem(HANDDRAWN_STORAGE_KEY) === 'true';
+    return localStorage.getItem(STORAGE_KEYS.HANDDRAWN) === 'true';
   } catch {
     return false;
   }
@@ -48,7 +48,7 @@ function getStoredHanddrawn(): boolean {
 
 function setStoredHanddrawn(enabled: boolean): void {
   try {
-    localStorage.setItem(HANDDRAWN_STORAGE_KEY, String(enabled));
+    localStorage.setItem(STORAGE_KEYS.HANDDRAWN, String(enabled));
   } catch {
     // Ignore storage errors
   }
@@ -207,9 +207,9 @@ export function BoardProvider({ children }: BoardProviderProps) {
       }
     };
 
-    window.addEventListener('thinkix:toolchange', handleToolChange as EventListener);
+    window.addEventListener(CUSTOM_EVENTS.TOOL_CHANGE, handleToolChange as EventListener);
     return () => {
-      window.removeEventListener('thinkix:toolchange', handleToolChange as EventListener);
+      window.removeEventListener(CUSTOM_EVENTS.TOOL_CHANGE, handleToolChange as EventListener);
     };
   }, []);
 
