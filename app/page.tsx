@@ -106,17 +106,21 @@ function BoardAppContent() {
   const handleEnableCollaboration = useCallback(() => {
     const roomId = crypto.randomUUID();
     
+    session.prepareAsCreator(roomId);
+    
     const params = new URLSearchParams(searchParams.toString());
     params.set('room', roomId);
     router.push(`${pathname}?${params.toString()}`);
     
     enableCollaboration(roomId);
-  }, [pathname, searchParams, router, enableCollaboration]);
+  }, [pathname, searchParams, router, enableCollaboration, session]);
 
   useEffect(() => {
     if (roomFromUrl && session.isInitiator === false) {
-      session.markAsInitiator();
-      session.clearDisabled();
+      if (session.checkAndConsumePendingCreator()) {
+        session.markAsInitiator();
+        session.clearDisabled();
+      }
     }
   }, [roomFromUrl, session]);
 

@@ -6,6 +6,7 @@ const KEY_PREFIX = 'collab';
 const KEY_INITIATOR = 'initiator';
 const KEY_DIALOG_SEEN = 'dialog-seen';
 const KEY_DISABLED = 'disabled';
+const KEY_PENDING_CREATOR = 'pending-creator';
 
 function buildKey(type: string, roomId: string): string {
   return `${KEY_PREFIX}-${type}:${roomId}`;
@@ -43,6 +44,32 @@ interface UseCollaborationSessionReturn {
   clearDisabled: () => void;
   wasDisabled: boolean;
   clearAll: () => void;
+  prepareAsCreator: (roomId: string) => void;
+  checkAndConsumePendingCreator: () => boolean;
+}
+
+export function setPendingCreatorFlag(roomId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = buildKey(KEY_PENDING_CREATOR, roomId);
+    sessionStorage.setItem(key, 'true');
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function getAndClearPendingCreatorFlag(roomId: string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const key = buildKey(KEY_PENDING_CREATOR, roomId);
+    const isPending = sessionStorage.getItem(key) === 'true';
+    if (isPending) {
+      sessionStorage.removeItem(key);
+    }
+    return isPending;
+  } catch {
+    return false;
+  }
 }
 
 export function useCollaborationSession(roomId: string | null): UseCollaborationSessionReturn {
@@ -96,6 +123,15 @@ export function useCollaborationSession(roomId: string | null): UseCollaboration
     setWasDisabled(false);
   }, [initiatorKey, dialogSeenKey, disabledKey]);
 
+  const prepareAsCreator = useCallback((newRoomId: string) => {
+    setPendingCreatorFlag(newRoomId);
+  }, []);
+
+  const checkAndConsumePendingCreator = useCallback(() => {
+    if (!roomId) return false;
+    return getAndClearPendingCreatorFlag(roomId);
+  }, [roomId]);
+
   return {
     markAsInitiator,
     clearInitiator,
@@ -106,5 +142,7 @@ export function useCollaborationSession(roomId: string | null): UseCollaboration
     clearDisabled,
     wasDisabled,
     clearAll,
+    prepareAsCreator,
+    checkAndConsumePendingCreator,
   };
 }
