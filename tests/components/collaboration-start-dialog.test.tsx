@@ -93,27 +93,19 @@ describe('CollaborationStartDialog', () => {
       });
     });
 
-    it.skip('reverts to "Copy" text after timeout', async () => {
-      vi.useFakeTimers();
-      
+    it('reverts to "Copy" text after timeout', async () => {
       render(<CollaborationStartDialog {...defaultProps} />);
       
       const copyButton = screen.getByRole('button', { name: /copy/i });
+      fireEvent.click(copyButton);
       
-      await act(async () => {
-        fireEvent.click(copyButton);
-        await vi.runAllTimersAsync();
+      await waitFor(() => {
+        expect(screen.getByText('Copied')).toBeInTheDocument();
       });
       
-      expect(screen.getByText('Copied')).toBeInTheDocument();
-      
-      await act(async () => {
-        vi.advanceTimersByTime(2000);
-      });
-      
-      expect(screen.getByText('Copy')).toBeInTheDocument();
-      
-      vi.useRealTimers();
+      await waitFor(() => {
+        expect(screen.getByText('Copy')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
     it('handles clipboard error gracefully', async () => {
