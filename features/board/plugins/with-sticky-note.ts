@@ -8,7 +8,7 @@ import {
   PlaitPointerType,
 } from '@plait/core';
 import { createGeometryElement, BasicShapes } from '@plait/draw';
-import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER, CUSTOM_EVENTS } from '@/shared/constants';
+import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER } from '@/shared/constants';
 
 export const STICKY_NOTE_POINTER = _STICKY_NOTE_POINTER;
 export const STICKY_NOTE_FILL = '#FFEAA7';
