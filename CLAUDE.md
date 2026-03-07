@@ -303,11 +303,18 @@ For packages containing React components (JSX):
 
 ## Known Issues & Solutions
 
-### Text Editor with Slate
-- **Issue**: React 19's `root.render()` can reset component state, causing text to be lost
-- **Solution**: Custom text renderer with persistent editor instance and local update tracking
-- **Do NOT**: Switch to `@plait-board/react-text` or attempt to use Lexical (deeply integrated with Slate)
+### Tool Change Event System
+- **Issue**: Plait doesn't provide hooks for tool changes triggered internally (e.g., after creating elements)
+- **Solution**: `withToolSync` plugin monkey-patches `BoardTransforms.updatePointerType` to emit custom events
+- **Event**: `CUSTOM_EVENTS.TOOL_CHANGE` dispatched when pointer transitions to selection mode
+- **Usage**: Listen with `window.addEventListener(CUSTOM_EVENTS.TOOL_CHANGE, handler)`
+- **Location**: `features/board/plugins/with-tool-sync.ts`
+- **Why this approach**: 
+  - Enables React state integration for tool tracking
+  - Supports conditional rendering based on active tool
+  - Triggers side effects (analytics, UI updates) on tool changes
+  - Handles internal Plait pointer changes (e.g., after element creation)
+- **Alternative**: Drawnix reads `board.pointer` directly (simpler but no React state)
+- **Tradeoff**: More complex but provides better React integration
+- **Note**: Monitor Plait updates for native event support
 
-### Default Chinese Text
-- **Issue**: New text elements show "文本" (Chinese for "text")
-- **Solution**: `normalizeTextValue()` function replaces with empty string
