@@ -1,7 +1,9 @@
 export const TOOLBAR_ITEM_CLASS =
-  'rounded-md p-0 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground';
+  'rounded-md p-0';
 
-export const BUTTON_CLASS = 'rounded-md p-0';
+export const BUTTON_CLASS = 'rounded-md p-0 cursor-pointer';
+
+export const SELECTED_BUTTON_CLASS = 'bg-accent text-accent-foreground';
 
 export const DROPDOWN_ICON_CLASS = 'h-5 w-5';
 
