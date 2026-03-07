@@ -24,6 +24,7 @@ import { withScribble } from '../plugins/scribble';
 import { withEraser } from '../plugins/with-eraser';
 import { withStickyNote } from '../plugins/with-sticky-note';
 import { withHanddrawn } from '../plugins/handdrawn-mode';
+import { withToolSync } from '../plugins/with-tool-sync';
 import { withGrid } from '../grid';
 import { useBoardState } from '../hooks/use-board-state';
 import { DRAWING_TOOLS } from '@/shared/constants';
@@ -71,6 +72,7 @@ const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): Pl
   withEraser,
   withStickyNote,
   withHanddrawn,
+  withToolSync,
   withPinchZoom,
 ];
 
