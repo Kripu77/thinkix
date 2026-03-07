@@ -8,7 +8,7 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
 
   test('should show selection indicator on Select tool by default', async ({ page }) => {
     const selectButton = page.locator('button[aria-label="Select"]');
-    await expect(selectButton).toHaveAttribute('aria-checked', 'true');
+    await expect(selectButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should show selection indicator when clicking Hand tool', async ({ page }) => {
@@ -16,10 +16,10 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await handButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(handButton).toHaveAttribute('aria-checked', 'true');
+    await expect(handButton).toHaveAttribute('aria-pressed', 'true');
     
     const selectButton = page.locator('button[aria-label="Select"]');
-    await expect(selectButton).toHaveAttribute('aria-checked', 'false');
+    await expect(selectButton).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('should show selection indicator when clicking Freehand tool', async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await freehandButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(freehandButton).toHaveAttribute('aria-checked', 'true');
+    await expect(freehandButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should show selection indicator when clicking Laser tool', async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await laserButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(laserButton).toHaveAttribute('aria-checked', 'true');
+    await expect(laserButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should show selection indicator when clicking Eraser tool', async ({ page }) => {
@@ -43,7 +43,7 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await eraserButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(eraserButton).toHaveAttribute('aria-checked', 'true');
+    await expect(eraserButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should show selection indicator when clicking Text tool', async ({ page }) => {
@@ -51,7 +51,7 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await textButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(textButton).toHaveAttribute('aria-checked', 'true');
+    await expect(textButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should show selection indicator when clicking Mind Map tool', async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await mindMapButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(mindMapButton).toHaveAttribute('aria-checked', 'true');
+    await expect(mindMapButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should show selection indicator when clicking Sticky Note tool', async ({ page }) => {
@@ -67,15 +67,15 @@ test.describe('Toolbar Selection Indicator E2E Tests', () => {
     await stickyNoteButton.click({ force: true });
     await page.waitForTimeout(100);
     
-    await expect(stickyNoteButton).toHaveAttribute('aria-checked', 'true');
+    await expect(stickyNoteButton).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('should NOT show selection indicator on Image button', async ({ page }) => {
+  test('should show selection indicator on Image button when selected', async ({ page }) => {
     const imageButton = page.getByRole('button', { name: /image/i });
     if (await imageButton.count() > 0) {
       await imageButton.first().click({ force: true });
       await page.waitForTimeout(100);
-      await expect(imageButton.first()).not.toHaveAttribute('aria-checked', 'true');
+      await expect(imageButton.first()).toHaveAttribute('aria-pressed', 'true');
     }
   });
 
