@@ -129,7 +129,7 @@ test.describe('Text and Sticky Notes E2E Tests', () => {
       await page.waitForTimeout(200);
       
       const selectButton = page.locator('button[aria-label="Select"]');
-      await expect(selectButton).toHaveAttribute('aria-checked', 'true');
+      await expect(selectButton).toHaveAttribute('aria-pressed', 'true');
     });
   });
 });

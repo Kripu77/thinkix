@@ -85,6 +85,7 @@ export function BoardToolbar() {
                   size="icon"
                   className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
                   aria-label={tool.label}
+                  aria-pressed={activeTool === tool.id}
                   onPointerDown={createToolHandler(tool.id)}
                 >
                   <span className={iconSizeClass}>{tool.icon}</span>
@@ -108,6 +109,7 @@ export function BoardToolbar() {
                   size="icon"
                   className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
                   aria-label={tool.label}
+                  aria-pressed={activeTool === tool.id}
                   onPointerDown={createToolHandler(tool.id)}
                 >
                   <span className={iconSizeClass}>{tool.icon}</span>
@@ -168,6 +170,7 @@ export function BoardToolbar() {
                 size="icon"
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === 'arrow' ? SELECTED_BUTTON_CLASS : ''}`}
                 aria-label="Arrow"
+                aria-pressed={activeTool === 'arrow'}
                 onPointerDown={createToolHandler('arrow')}
               >
                 <span className={iconSizeClass}>{ARROW_TOOL.icon}</span>
@@ -190,6 +193,7 @@ export function BoardToolbar() {
                   size="icon"
                   className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
                   aria-label={tool.label}
+                  aria-pressed={activeTool === tool.id}
                   onPointerDown={createToolHandler(tool.id)}
                 >
                   <span className={iconSizeClass}>{tool.icon}</span>
@@ -210,6 +214,7 @@ export function BoardToolbar() {
                 size="icon"
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === 'image' ? SELECTED_BUTTON_CLASS : ''}`}
                 aria-label="Image"
+                aria-pressed={activeTool === 'image'}
                 onPointerDown={createToolHandler('image')}
               >
                 <span className={iconSizeClass}>{imageToolConfig?.icon}</span>
