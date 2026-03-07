@@ -58,9 +58,12 @@ export function BoardToolbar() {
     setActiveTool(value as DrawingTool);
   };
 
-  const createToolHandler = (toolId: string) => (e: React.PointerEvent) => {
+  const handleToolPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
+  };
+
+  const createToolClickHandler = (toolId: string) => () => {
     handleToolChange(toolId);
   };
 
@@ -86,7 +89,8 @@ export function BoardToolbar() {
                   className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
                   aria-label={tool.label}
                   aria-pressed={activeTool === tool.id}
-                  onPointerDown={createToolHandler(tool.id)}
+                  onPointerDown={handleToolPointerDown}
+                  onClick={createToolClickHandler(tool.id)}
                 >
                   <span className={iconSizeClass}>{tool.icon}</span>
                 </Button>
@@ -110,7 +114,8 @@ export function BoardToolbar() {
                   className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
                   aria-label={tool.label}
                   aria-pressed={activeTool === tool.id}
-                  onPointerDown={createToolHandler(tool.id)}
+                  onPointerDown={handleToolPointerDown}
+                  onClick={createToolClickHandler(tool.id)}
                 >
                   <span className={iconSizeClass}>{tool.icon}</span>
                 </Button>
@@ -171,7 +176,8 @@ export function BoardToolbar() {
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === 'arrow' ? SELECTED_BUTTON_CLASS : ''}`}
                 aria-label="Arrow"
                 aria-pressed={activeTool === 'arrow'}
-                onPointerDown={createToolHandler('arrow')}
+                onPointerDown={handleToolPointerDown}
+                onClick={createToolClickHandler('arrow')}
               >
                 <span className={iconSizeClass}>{ARROW_TOOL.icon}</span>
               </Button>
@@ -194,7 +200,8 @@ export function BoardToolbar() {
                   className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
                   aria-label={tool.label}
                   aria-pressed={activeTool === tool.id}
-                  onPointerDown={createToolHandler(tool.id)}
+                  onPointerDown={handleToolPointerDown}
+                  onClick={createToolClickHandler(tool.id)}
                 >
                   <span className={iconSizeClass}>{tool.icon}</span>
                 </Button>
@@ -215,7 +222,8 @@ export function BoardToolbar() {
                 className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === 'image' ? SELECTED_BUTTON_CLASS : ''}`}
                 aria-label="Image"
                 aria-pressed={activeTool === 'image'}
-                onPointerDown={createToolHandler('image')}
+                onPointerDown={handleToolPointerDown}
+                onClick={createToolClickHandler('image')}
               >
                 <span className={iconSizeClass}>{imageToolConfig?.icon}</span>
               </Button>
