@@ -1,0 +1,38 @@
+{
+  "name": "@thinkix/mermaid-to-thinkix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Convert Mermaid diagrams to Thinkix board elements",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mermaid": "^10.9.3"
+  },
+  "devDependencies": {
+    "@plait/common": "^0.92.3",
+    "@plait/core": "^0.92.3",
+    "@plait/draw": "^0.92.3",
+    "@plait/mind": "^0.92.3",
+    "bun-types": "latest",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@plait/common": "^0.92.0",
+    "@plait/core": "^0.92.0",
+    "@plait/draw": "^0.92.0"
+  }
+}
