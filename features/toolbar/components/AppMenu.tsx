@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, FileText, Users, Link2, UserCircle2 } from 'lucide-react';
+import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, Users, Link2, UserCircle2, Network } from 'lucide-react';
 import { useBoard, useListRender } from '@plait-board/react-board';
 import {
   BoardTransforms,
@@ -36,7 +36,7 @@ import {
   exportAsPng,
   exportAsJpg,
 } from '@thinkix/file-utils';
-import { MarkdownToMindmapDialog } from '@/features/dialogs';
+import { MarkdownToMindmapDialog, MermaidToBoardDialog, MermaidIcon } from '@/features/dialogs';
 import { NicknameDialog, useOptionalSyncBus, type CollaborationUser, validateBoardElements, logger } from '@thinkix/collaboration';
 import posthog from 'posthog-js';
 
@@ -63,6 +63,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
   const [isOpen, setIsOpen] = useState(false);
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   const [isMarkdownDialogOpen, setIsMarkdownDialogOpen] = useState(false);
+  const [isMermaidDialogOpen, setIsMermaidDialogOpen] = useState(false);
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -241,8 +242,14 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
           <DropdownMenuItem
             onSelect={() => { setIsOpen(false); setIsMarkdownDialogOpen(true); }}
           >
-            <FileText className="h-5 w-5 mr-2" />
+            <Network className="h-5 w-5 mr-2 -rotate-90" />
             Markdown To Mind Map
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => { setIsOpen(false); setIsMermaidDialogOpen(true); }}
+          >
+            <MermaidIcon className="h-5 w-5 mr-2" />
+            Mermaid to Board
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -330,6 +337,11 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
       <MarkdownToMindmapDialog
         open={isMarkdownDialogOpen}
         onOpenChange={setIsMarkdownDialogOpen}
+      />
+
+      <MermaidToBoardDialog
+        open={isMermaidDialogOpen}
+        onOpenChange={setIsMermaidDialogOpen}
       />
 
       {collaboration?.enabled && (
