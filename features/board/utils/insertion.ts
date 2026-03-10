@@ -5,6 +5,9 @@ import {
   getBoundingRectangleByElements,
   WritableClipboardOperationType,
 } from '@plait/core';
+import { createLogger } from '@thinkix/shared';
+
+const logger = createLogger('utils:insertion');
 
 const INSERTION_PADDING = 100;
 
@@ -25,7 +28,8 @@ export function getSafeInsertPosition(
   try {
     existingBounds = getBoundingRectangleByElements(board, existingElements, true);
     newBounds = getBoundingRectangleByElements(board, newElements, true);
-  } catch {
+  } catch (err) {
+    logger.error('Failed to calculate bounding rectangles for safe insertion', err instanceof Error ? err : undefined);
     return [0, 0];
   }
 
