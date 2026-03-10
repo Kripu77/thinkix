@@ -33,6 +33,7 @@
       "@thinkix/storage": ["./packages/storage/lib"],
       "@thinkix/shared": ["./packages/shared/src"],
       "@thinkix/file-utils": ["./packages/file-utils/src"],
+      "@thinkix/mermaid-to-thinkix": ["./packages/mermaid-to-thinkix/src"],
       "@thinkix/collaboration": ["./packages/collaboration/src"],
       "@thinkix/collaboration/hooks": ["./packages/collaboration/src/hooks"],
       "@thinkix/collaboration/utils": ["./packages/collaboration/src/utils"],
