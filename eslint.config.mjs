@@ -34,6 +34,12 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["packages/mermaid-to-thinkix/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    },
+  },
+  {
     files: ["packages/ui/src/components/ui/dropdown-menu.tsx"],
     rules: {
       "@typescript-eslint/no-unused-vars": "off",
