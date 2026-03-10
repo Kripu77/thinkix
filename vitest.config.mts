@@ -8,10 +8,13 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./tests/__mocks__/setup.mts'],
-    include: ['tests/**/*.test.{ts,tsx}'],
+    include: [
+      'tests/**/*.test.{ts,tsx}',
+      'packages/**/*.test.{ts,tsx}',
+    ],
     exclude: [
       'node_modules',
-      'scratch',
+      'scratch/**',
       '.next',
       'tests/e2e/**',
     ],
@@ -50,6 +53,7 @@ export default defineConfig({
       '@thinkix/storage': path.resolve(__dirname, './packages/storage/lib'),
       '@thinkix/shared': path.resolve(__dirname, './packages/shared/src'),
       '@thinkix/file-utils': path.resolve(__dirname, './packages/file-utils/src'),
+      '@thinkix/mermaid-to-thinkix': path.resolve(__dirname, './packages/mermaid-to-thinkix/src'),
       '@thinkix/collaboration': path.resolve(__dirname, './packages/collaboration/src'),
       '@thinkix/collaboration/hooks': path.resolve(__dirname, './packages/collaboration/src/hooks'),
       '@thinkix/collaboration/utils': path.resolve(__dirname, './packages/collaboration/src/utils'),
