@@ -130,3 +130,197 @@ export function createMockImage(width: number = 100, height: number = 100): HTML
   Object.defineProperty(img, 'complete', { value: true });
   return img;
 }
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface MermaidVertex {
+  id: string;
+  text: string;
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface MermaidEdge {
+  start: string;
+  end: string;
+  type: string;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  reflectionPoints: Point[];
+  label?: string;
+}
+
+export interface MermaidSubgraph {
+  id: string;
+  title: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  nodeIds: string[];
+}
+
+export interface MermaidFlowchartData {
+  type: 'flowchart' | 'flowchart-v2';
+  vertices: Record<string, MermaidVertex>;
+  edges: MermaidEdge[];
+  subgraphs: MermaidSubgraph[];
+}
+
+export function createMockSVGElement(tagName: string, attrs: Record<string, string>): SVGElement {
+  const elem = document.createElementNS('http://www.w3.org/2000/svg', tagName);
+  Object.entries(attrs).forEach(([key, value]) => {
+    elem.setAttribute(key, value);
+  });
+  return elem;
+}
+
+export function createMockSVGGroup(attrs: Record<string, string> = {}): SVGGElement {
+  return createMockSVGElement('g', attrs) as SVGGElement;
+}
+
+export function createMockSVGRect(attrs: Record<string, string> = {}): SVGRectElement {
+  const rect = createMockSVGElement('rect', attrs) as SVGRectElement;
+
+  rect.getBBox = vi.fn().mockReturnValue({
+    x: parseFloat(attrs.x || '0'),
+    y: parseFloat(attrs.y || '0'),
+    width: parseFloat(attrs.width || '100'),
+    height: parseFloat(attrs.height || '50'),
+  });
+
+  return rect;
+}
+
+export function createMockSVGText(attrs: Record<string, string> = {}, textContent = ''): SVGTextElement {
+  const text = createMockSVGElement('text', attrs) as SVGTextElement;
+  text.textContent = textContent;
+
+  text.getComputedTextLength = vi.fn().mockReturnValue(textContent.length * 8);
+
+  return text;
+}
+
+export function createMockSVGPath(attrs: Record<string, string> = {}): SVGPathElement {
+  const path = createMockSVGElement('path', attrs) as SVGPathElement;
+
+  const d = attrs.d || '';
+  void d;
+  path.getPointAtLength = vi.fn((offset: number) => ({
+    x: offset,
+    y: offset * 0.5,
+  } as DOMPoint));
+
+  path.getTotalLength = vi.fn().mockReturnValue(100);
+
+  return path;
+}
+
+export function createMockSVGSVG(attrs: Record<string, string> = {}): SVGSVGElement {
+  const svg = createMockSVGElement('svg', attrs) as SVGSVGElement;
+
+  svg.createSVGPoint = vi.fn().mockReturnValue({
+    x: 0,
+    y: 0,
+    matrixTransform: vi.fn().mockReturnValue({ x: 0, y: 0 }),
+  });
+
+  return svg;
+}
+
+export function createMockMermaidFlowchartData(overrides: Partial<MermaidFlowchartData> = {}): MermaidFlowchartData {
+  return {
+    type: 'flowchart-v2',
+    vertices: {
+      A: { id: 'A', text: 'Start', type: 'stadium', x: 100, y: 100, width: 100, height: 50 },
+      B: { id: 'B', text: 'End', type: 'stadium', x: 300, y: 100, width: 100, height: 50 },
+    },
+    edges: [
+      {
+        start: 'A',
+        end: 'B',
+        type: 'arrow_point',
+        startX: 200,
+        startY: 125,
+        endX: 300,
+        endY: 125,
+        reflectionPoints: [{ x: 200, y: 125 }, { x: 300, y: 125 }],
+      },
+    ],
+    subgraphs: [],
+    ...overrides,
+  };
+}
+
+export function createMockMermaidVertex(overrides: Partial<MermaidVertex> = {}): MermaidVertex {
+  return {
+    id: 'test-vertex',
+    text: 'Test',
+    type: 'stadium',
+    x: 100,
+    y: 100,
+    width: 100,
+    height: 50,
+    ...overrides,
+  };
+}
+
+export function createMockMermaidEdge(overrides: Partial<MermaidEdge> = {}): MermaidEdge {
+  return {
+    start: 'A',
+    end: 'B',
+    type: 'arrow_point',
+    startX: 200,
+    startY: 125,
+    endX: 300,
+    endY: 125,
+    reflectionPoints: [{ x: 200, y: 125 }, { x: 300, y: 125 }],
+    ...overrides,
+  };
+}
+
+export function expectValidPlaitElement(element: unknown): void {
+  expect(element).toBeDefined();
+  expect(element).toHaveProperty('id');
+  expect(element).toHaveProperty('type');
+  expect(element).toHaveProperty('points');
+}
+
+export function createMockPlaitElement(overrides: Partial<PlaitElement> = {}): PlaitElement {
+  return {
+    id: 'test-element',
+    type: 'rectangle',
+    points: [
+      [0, 0],
+      [100, 0],
+      [100, 50],
+      [0, 50],
+    ],
+    ...overrides,
+  } as PlaitElement;
+}
+
+export function cleanupDOM(): void {
+  if (typeof document !== 'undefined' && document.body) {
+    while (document.body.firstChild) {
+      document.body.removeChild(document.body.firstChild);
+    }
+  }
+}
+
+export function setupDOM(): void {
+  cleanupDOM();
+  if (typeof document !== 'undefined' && document.body) {
+    const container = document.createElement('div');
+    container.id = 'test-container';
+    document.body.appendChild(container);
+  }
+}
