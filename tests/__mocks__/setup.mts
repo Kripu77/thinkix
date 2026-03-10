@@ -43,9 +43,29 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 class MockPointerEvent extends MouseEvent {
+  coalesceX: number;
+  coalesceY: number;
+  pointerId: number;
+  pointerType: string;
+  pressure: number;
+  tangentialPressure: number;
+  tiltX: number;
+  tiltY: number;
+  twist: number;
+  isPrimary: boolean;
+
   constructor(type: string, props: PointerEventInit = {}) {
     super(type, props);
-    Object.assign(this, props);
+    this.coalesceX = props.coalesceX ?? 0;
+    this.coalesceY = props.coalesceY ?? 0;
+    this.pointerId = props.pointerId ?? 0;
+    this.pointerType = props.pointerType ?? '';
+    this.pressure = props.pressure ?? 0;
+    this.tangentialPressure = props.tangentialPressure ?? 0;
+    this.tiltX = props.tiltX ?? 0;
+    this.tiltY = props.tiltY ?? 0;
+    this.twist = props.twist ?? 0;
+    this.isPrimary = props.isPrimary ?? false;
   }
 }
 globalThis.PointerEvent = MockPointerEvent as unknown as typeof PointerEvent;
@@ -197,6 +217,35 @@ vi.mock('roughjs', () => ({
 
 vi.mock('is-hotkey', () => ({
   isKeyHotkey: vi.fn().mockReturnValue(false),
+}));
+
+vi.mock('mermaid', () => ({
+  default: {
+    initialize: vi.fn(),
+    mermaidAPI: {
+      getDiagramFromText: vi.fn().mockResolvedValue({
+        type: 'flowchart-v2',
+        parser: {
+          yy: {
+            getVertices: () => new Map(),
+            getEdges: () => [],
+            getSubgraphs: () => [],
+          },
+        },
+      }),
+    },
+    render: vi.fn().mockResolvedValue({
+      svg: '<svg></svg>',
+    }),
+  },
+}));
+
+vi.mock('dompurify', () => ({
+  default: {
+    addHook: vi.fn(),
+    removeHook: vi.fn(),
+    sanitize: vi.fn((text) => text),
+  },
 }));
 
 const mockUpdateMyPresence = vi.fn();
