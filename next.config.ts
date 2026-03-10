@@ -4,7 +4,11 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     '@plait-board/react-board',
     '@plait-board/react-text',
+    '@thinkix/mermaid-to-thinkix',
   ],
+  turbopack: {
+    root: process.cwd(),
+  },
   async rewrites() {
     return [
       {
