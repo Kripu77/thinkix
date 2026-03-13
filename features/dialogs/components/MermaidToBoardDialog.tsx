@@ -14,6 +14,13 @@ import {
   DialogDescription,
 } from '@thinkix/ui';
 import { Button } from '@thinkix/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@thinkix/ui';
 import { insertElementsSafely } from '@/features/board/utils';
 import { parseMermaidToBoard } from '@thinkix/mermaid-to-thinkix';
 import posthog from 'posthog-js';
@@ -123,13 +130,23 @@ interface MermaidToBoardDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type ExampleType = 'simple' | 'link' | 'complex' | 'sequence' | 'class';
+
+const EXAMPLES: Record<ExampleType, { value: string; label: string }> = {
+  simple: { value: MERMAID_EXAMPLE, label: 'Simple Flowchart' },
+  link: { value: MERMAID_LINK_EXAMPLE, label: 'With Link Labels' },
+  complex: { value: MERMAID_COMPLEX_EXAMPLE, label: 'Complex with Subgraphs' },
+  sequence: { value: MERMAID_SEQUENCE_EXAMPLE, label: 'Sequence Diagram' },
+  class: { value: MERMAID_CLASS_EXAMPLE, label: 'Class Diagram' },
+};
+
 function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps) {
   const board = useBoard();
   const [text, setText] = useState(MERMAID_EXAMPLE);
   const [elements, setElements] = useState<PlaitElement[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedExample, setSelectedExample] = useState<'simple' | 'link' | 'complex' | 'sequence' | 'class'>('simple');
+  const [selectedExample, setSelectedExample] = useState<ExampleType>('simple');
   const [error, setError] = useState<string | null>(null);
 
   const deferredText = useDeferredValue(text.trim());
@@ -215,6 +232,11 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
 
   const isValid = elements.length > 0;
 
+  const handleExampleChange = (value: ExampleType) => {
+    setSelectedExample(value);
+    setText(EXAMPLES[value].value);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[85vh] flex flex-col p-0">
@@ -230,36 +252,18 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
           <div className="flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium">Mermaid Syntax</label>
-              <select
-                className="text-xs border rounded px-2 py-1 bg-background"
-                value={selectedExample}
-                onChange={(e) => {
-                  setSelectedExample(e.target.value as 'simple' | 'link' | 'complex' | 'sequence' | 'class');
-                  switch (e.target.value) {
-                    case 'simple':
-                      setText(MERMAID_EXAMPLE);
-                      break;
-                    case 'link':
-                      setText(MERMAID_LINK_EXAMPLE);
-                      break;
-                    case 'complex':
-                      setText(MERMAID_COMPLEX_EXAMPLE);
-                      break;
-                    case 'sequence':
-                      setText(MERMAID_SEQUENCE_EXAMPLE);
-                      break;
-                    case 'class':
-                      setText(MERMAID_CLASS_EXAMPLE);
-                      break;
-                  }
-                }}
-              >
-                <option value="simple">Simple Flowchart</option>
-                <option value="link">With Link Labels</option>
-                <option value="complex">Complex with Subgraphs</option>
-                <option value="sequence">Sequence Diagram</option>
-                <option value="class">Class Diagram</option>
-              </select>
+              <Select value={selectedExample} onValueChange={handleExampleChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(EXAMPLES).map(([key, { label }]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <textarea
               className="flex-1 min-h-[250px] p-3 rounded-md border bg-background font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"

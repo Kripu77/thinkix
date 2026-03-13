@@ -108,8 +108,8 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
     return mind ? [mind] : [];
   }, [text]);
 
-  const error = elements.length === 0 && text.trim().length > 0 
-    ? 'Failed to parse markdown' 
+  const error = elements.length === 0 && text.trim().length > 0
+    ? 'Failed to parse markdown'
     : null;
 
   const handleInsert = useCallback(() => {
