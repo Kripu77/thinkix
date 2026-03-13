@@ -1,19 +1,19 @@
 'use client';
-
-import { useMemo, useEffect, useState, memo, useRef } from 'react';
+ 
+import { useMemo, useEffect, useState, memo, type RefObject } from 'react';
 import type { PlaitBoard } from '@plait/core';
 import type { CursorState } from '../cursor-manager';
 import { getVisibleCursors, getActiveCursors } from '../cursor-manager';
-import { getViewport, debounce, type Viewport } from '../utils';
-
+import { useViewport } from '../hooks/use-viewport';
+ 
 interface CursorOverlayProps {
   cursors: Map<string, CursorState>;
   board: PlaitBoard | null;
+  containerRef?: RefObject<Element | null>;
   maxCursors?: number;
   idleTimeoutMs?: number;
-  visibilityDebounceMs?: number;
 }
-
+ 
 interface RenderableCursor {
   id: string;
   screenX: number;
@@ -22,13 +22,12 @@ interface RenderableCursor {
   userColor: string;
   userAvatar?: string;
 }
-
+ 
 const CURSOR_SIZE = 24;
 const CURSOR_LABEL_OFFSET_X = 16;
 const CURSOR_LABEL_OFFSET_Y = 16;
 const AVATAR_SIZE = 16;
-const DEFAULT_VISIBILITY_DEBOUNCE_MS = 100;
-
+ 
 const CursorIcon = memo(function CursorIcon({ color }: { color: string }) {
   return (
     <svg
@@ -48,18 +47,18 @@ const CursorIcon = memo(function CursorIcon({ color }: { color: string }) {
     </svg>
   );
 });
-
-const AvatarIcon = memo(function AvatarIcon({ 
-  avatarDataUrl, 
-  size = AVATAR_SIZE 
-}: { 
-  avatarDataUrl?: string; 
+ 
+const AvatarIcon = memo(function AvatarIcon({
+  avatarDataUrl,
+  size = AVATAR_SIZE
+}: {
+  avatarDataUrl?: string;
   size?: number;
 }) {
   if (!avatarDataUrl) return null;
-  
+ 
   return (
-    <img 
+    <img
       src={avatarDataUrl}
       alt=""
       className="rounded-full bg-white shadow-sm shrink-0"
@@ -67,7 +66,7 @@ const AvatarIcon = memo(function AvatarIcon({
     />
   );
 });
-
+ 
 const CursorLabel = memo(function CursorLabel({
   name,
   color,
@@ -91,7 +90,7 @@ const CursorLabel = memo(function CursorLabel({
     </div>
   );
 });
-
+ 
 const RemoteCursor = memo(function RemoteCursor({
   cursor,
 }: {
@@ -105,127 +104,90 @@ const RemoteCursor = memo(function RemoteCursor({
       }}
     >
       <CursorIcon color={cursor.userColor} />
-      <CursorLabel 
-        name={cursor.userName} 
-        color={cursor.userColor} 
+      <CursorLabel
+        name={cursor.userName}
+        color={cursor.userColor}
         avatarDataUrl={cursor.userAvatar}
       />
     </div>
   );
 });
-
-interface DebouncedViewportState {
-  viewport: Viewport | null;
-  containerRect: DOMRect | null;
-}
-
-export function CursorOverlay({ 
-  cursors, 
-  board, 
+ 
+export function CursorOverlay({
+  cursors,
+  board,
+  containerRef,
   maxCursors = 50,
   idleTimeoutMs = 30000,
-  visibilityDebounceMs = DEFAULT_VISIBILITY_DEBOUNCE_MS,
 }: CursorOverlayProps) {
-  const [debouncedState, setDebouncedState] = useState<DebouncedViewportState>({
-    viewport: null,
-    containerRect: null,
-  });
-  const pendingStateRef = useRef<DebouncedViewportState | null>(null);
-
-  useEffect(() => {
-    const updateState = (viewport: Viewport | null, containerRect: DOMRect | null) => {
-      pendingStateRef.current = { viewport, containerRect };
+  const viewport = useViewport(board);
+  const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
+ 
+      useEffect(() => {
+    const getContainer = (): Element | null => {
+      if (containerRef?.current) {
+        return containerRef.current;
+      }
+      // Fallback to DOM query for backward compatibility
+      const container = document.querySelector('.plait-board-container') as HTMLElement | null;
+      return container?.querySelector('svg') || container;
     };
 
-    const flushUpdate = debounce(() => {
-      if (pendingStateRef.current) {
-        setDebouncedState(pendingStateRef.current);
-      }
-    }, visibilityDebounceMs);
-
-    const handleUpdate = () => {
-      const svg = document.querySelector(
-        '.plait-board-container svg'
-      ) as SVGSVGElement | null;
-      
-      if (board && svg) {
-        const viewport = getViewport(board);
-        const rect = svg.getBoundingClientRect();
-        updateState(viewport, rect);
-        flushUpdate();
+    const update = () => {
+      const container = getContainer();
+      if (container) {
+        setContainerRect(container.getBoundingClientRect());
       }
     };
 
-    handleUpdate();
-    window.addEventListener('resize', handleUpdate);
+    update();
+    window.addEventListener('resize', update);
 
-    const observer = new ResizeObserver(handleUpdate);
-    const svg = document.querySelector(
-      '.plait-board-container svg'
-    ) as SVGSVGElement | null;
-    if (svg) {
-      observer.observe(svg);
+    const observer = new ResizeObserver(update);
+    const container = getContainer();
+    if (container) {
+      observer.observe(container);
     }
 
     return () => {
-      window.removeEventListener('resize', handleUpdate);
+      window.removeEventListener('resize', update);
       observer.disconnect();
     };
-  }, [board, visibilityDebounceMs]);
-
-  const visibleCursors = useMemo(() => {
-    if (!debouncedState.viewport || !debouncedState.containerRect) {
-      return new Map<string, CursorState>();
-    }
-    
-    const screenWidth = debouncedState.containerRect.width;
-    const screenHeight = debouncedState.containerRect.height;
-    
-    const activeCursors = getActiveCursors(cursors, idleTimeoutMs);
-    
-    return getVisibleCursors(
-      activeCursors, 
-      debouncedState.viewport, 
-      screenWidth, 
-      screenHeight
-    );
-  }, [cursors, debouncedState, idleTimeoutMs]);
-
+  }, [containerRef]);
+ 
   const renderableCursors = useMemo((): RenderableCursor[] => {
-    const { viewport, containerRect } = debouncedState;
-    if (!viewport || !containerRect) return [];
-
+    if (!containerRect) return [];
+ 
+    const activeCursors = getActiveCursors(cursors, idleTimeoutMs);
+    const visible = getVisibleCursors(
+      activeCursors,
+      viewport,
+      containerRect.width,
+      containerRect.height
+    );
+ 
     const result: RenderableCursor[] = [];
     let count = 0;
-
-    visibleCursors.forEach((cursor, id) => {
+ 
+    visible.forEach((cursor, id) => {
       if (count >= maxCursors) return;
-      
-      const screenX =
-        cursor.documentX * viewport.zoom + 
-        viewport.offsetX + 
-        containerRect.left;
-      const screenY =
-        cursor.documentY * viewport.zoom + 
-        viewport.offsetY + 
-        containerRect.top;
-
+ 
       result.push({
         id,
-        screenX,
-        screenY,
+        screenX: cursor.documentX * viewport.zoom + viewport.offsetX + containerRect.left,
+        screenY: cursor.documentY * viewport.zoom + viewport.offsetY + containerRect.top,
         userName: cursor.userName,
         userColor: cursor.userColor,
         userAvatar: cursor.userAvatar,
       });
       count++;
     });
-
+ 
     return result;
-  }, [visibleCursors, debouncedState, maxCursors]);
-
-  if (renderableCursors.length === 0) return null;
-
+  }, [cursors, viewport, containerRect, idleTimeoutMs, maxCursors]);
+ 
+  if (!board || renderableCursors.length === 0) return null;
+ 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden z-[9999]">
       {renderableCursors.map((cursor) => (
