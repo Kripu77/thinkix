@@ -11,6 +11,7 @@ import {
 } from '@thinkix/ui';
 import { Button } from '@thinkix/ui';
 import { logger } from '@thinkix/collaboration';
+import { THEME } from '@/shared/constants';
 
 interface CollaborationStartDialogProps {
   open: boolean;
@@ -51,7 +52,7 @@ export function CollaborationStartDialog({
             Share this link with others to collaborate in real-time. Everyone with the link can edit.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
@@ -59,7 +60,7 @@ export function CollaborationStartDialog({
             </label>
             <div className="flex items-center gap-2">
                <div className="flex-1 flex items-center gap-2 rounded-md border border-input bg-muted px-3 py-2 overflow-hidden">
-                 <Link2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                 <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
                  <input
                    type="text"
                    readOnly
@@ -101,8 +102,8 @@ export function CollaborationStartDialog({
             )}
           </div>
 
-          <div className="rounded-md bg-primary/10 border border-primary/20 p-3">
-            <p className="text-sm text-foreground">
+          <div className={THEME.tip}>
+            <p>
               <strong>Tip:</strong> Anyone with this link can view and edit the board in real-time. Share it via chat, email, or any messaging app.
             </p>
           </div>

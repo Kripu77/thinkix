@@ -24,7 +24,7 @@ export function NicknameDialog({ open, onOpenChange, currentName, onSave }: Nick
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background/95 backdrop-blur border-border-gray-200">
+      <DialogContent className="bg-background/95 backdrop-blur">
         <DialogHeader>
           <DialogTitle>Set your nickname</DialogTitle>
         </DialogHeader>

@@ -1,7 +1,9 @@
 'use client';
 
-import { Button } from '@thinkix/ui';
 import { Users } from 'lucide-react';
+import { Button } from '@thinkix/ui';
+import { cn } from '@thinkix/ui';
+import { THEME } from '@/shared/constants';
 
 interface CollaborateButtonProps {
   onClick: () => void;
@@ -13,7 +15,7 @@ export function CollaborateButton({ onClick }: CollaborateButtonProps) {
       variant="outline"
       size="sm"
       onClick={onClick}
-      className="hidden lg:flex items-center gap-1.5"
+      className={cn(THEME.button.secondary, 'hidden lg:flex')}
     >
       <Users className="h-4 w-4" />
       <span>Collaborate</span>

@@ -14,9 +14,10 @@ import {
   logger,
   type BoardElement,
 } from '@thinkix/collaboration';
-import { Button } from '@thinkix/ui';
-import { UserCircle2, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import { Button, cn } from '@thinkix/ui';
+import { UserCircle2, AlertTriangle, X } from 'lucide-react';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
+import { THEME } from '@/shared/constants';
 
 interface CollaborativeBoardProps {
   children: ReactNode;
@@ -26,9 +27,9 @@ function UserAvatar({ avatarDataUrl, size = 20 }: { avatarDataUrl?: string; size
   if (!avatarDataUrl) {
     return <UserCircle2 className="h-4 w-4" />;
   }
-  
+
   return (
-    <img 
+    <img
       src={avatarDataUrl}
       alt="User avatar"
       className="rounded-full flex-shrink-0"
@@ -44,7 +45,7 @@ function generateElementsHash(elements: BoardElement[]): string {
       const propsHash = JSON.stringify(rest);
       return `${id}:${type || ''}:${propsHash}`;
     }).join('|||');
-    
+
     let hash = 0;
      for (let i = 0; i < hashContent.length; i++) {
        const char = hashContent.charCodeAt(i);
@@ -77,30 +78,30 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
 
   useEffect(() => {
     if (!board || isLocalChange || isSyncingRef.current) return;
-    
+
     if (elements.length > 0) {
       hasReceivedElementsRef.current = true;
     }
-    
+
     if (elements.length === 0 && !hasReceivedElementsRef.current) return;
-    
+
     const hash = generateElementsHash(elements);
     if (hash === lastElementsHashRef.current) return;
-    
+
     lastElementsHashRef.current = hash;
-    
+
     // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
     board.children = elements as unknown as typeof board.children;
-    
+
     syncBus.emitRemoteChange(elements);
   }, [elements, isLocalChange, board, syncBus]);
 
   useEffect(() => {
     if (!board) return;
-    
+
     const unsubscribe = syncBus.subscribeToLocalChanges((localElements: BoardElement[]) => {
       const hash = generateElementsHash(localElements);
-      
+
       if (hash === lastElementsHashRef.current) return;
 
       if (!syncState.isConnected) {
@@ -109,13 +110,13 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
         lastElementsHashRef.current = hash;
         return;
       }
-      
+
       if (isSyncingRef.current) return;
-      
+
       isSyncingRef.current = true;
       lastElementsHashRef.current = hash;
       setElements(localElements);
-      
+
       queueMicrotask(() => {
         isSyncingRef.current = false;
       });
@@ -129,7 +130,7 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
       const queuedElements = offlineQueueRef.current.pop();
       offlineQueueRef.current = [];
       setShowOfflineWarning(false);
-      
+
       if (queuedElements) {
         const hash = generateElementsHash(queuedElements);
         lastElementsHashRef.current = hash;
@@ -152,9 +153,9 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
       {children}
       <CursorOverlay cursors={cursors} board={board} />
       {showOfflineWarning && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 shadow-lg">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          <span className="text-sm text-yellow-700">Changes will sync when reconnected</span>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 shadow-lg dark:border-yellow-800 dark:bg-yellow-950">
+          <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+          <span className="text-sm text-yellow-700 dark:text-yellow-400">Changes will sync when reconnected</span>
         </div>
       )}
     </>
@@ -199,24 +200,24 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
 
   return (
     <>
-      <div className="hidden lg:flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2 py-1 shadow-sm">
+      <div className={cn(THEME.collab.container, 'hidden lg:flex')}>
         {isConnected ? (
           <>
-            <Wifi className="h-3 w-3 text-green-500" />
-            <span className="text-xs text-gray-600">
+            <div className={cn(THEME.collab.statusDot, THEME.collab.statusConnected)} />
+            <span className={THEME.collab.text}>
               {userCount === 1 ? 'Just you' : `${userCount} online`}
             </span>
             <ShareButton roomId={roomId} />
           </>
         ) : isReconnecting ? (
           <>
-            <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
-            <span className="text-xs text-gray-600">Reconnecting...</span>
+            <div className={THEME.collab.statusReconnecting} />
+            <span className={THEME.collab.text}>Reconnecting...</span>
           </>
         ) : (
           <>
-            <WifiOff className="h-3 w-3 text-red-500" />
-            <span className="text-xs text-gray-600">Disconnected</span>
+            <div className={cn(THEME.collab.statusDot, THEME.collab.statusDisconnected)} />
+            <span className={THEME.collab.text}>Disconnected</span>
             <Button
               variant="ghost"
               size="sm"
@@ -241,22 +242,22 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
           variant="ghost"
           size="sm"
           onClick={onDisableCollaboration}
-          className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700"
+          className={THEME.collab.closeButton}
         >
-          <span className="text-base leading-none">×</span>
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="lg:hidden flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 shadow-sm">
+      <div className={cn(THEME.collab.container, 'lg:hidden')}>
         {isConnected ? (
           <>
-            <Wifi className="h-3 w-3 text-green-500" />
-            <span className="text-xs text-gray-600">{userCount}</span>
+            <div className={cn(THEME.collab.statusDot, THEME.collab.statusConnected)} />
+            <span className={THEME.collab.text}>{userCount}</span>
           </>
         ) : isReconnecting ? (
-          <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
+          <div className={THEME.collab.statusReconnecting} />
         ) : (
-          <WifiOff className="h-3 w-3 text-red-500" />
+          <div className={cn(THEME.collab.statusDot, THEME.collab.statusDisconnected)} />
         )}
       </div>
 
