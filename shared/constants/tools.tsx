@@ -15,13 +15,11 @@ import {
   Hexagon,
   Star,
   Cloud,
-  PenTool,
   Eraser,
   StickyNote,
   Shapes,
-  Paintbrush,
 } from 'lucide-react';
-import { MindMapIcon } from './icons';
+import { MindMapIcon, LaserBeamIcon, HanddrawnIcon } from './icons';
 
 export const ERASER_POINTER = 'eraser';
 export const LASER_POINTER = 'laser';
@@ -97,7 +95,7 @@ export const DEFAULT_TOOL: DrawingTool = 'select';
 export const BASIC_TOOLS: ToolConfig[] = [
   { id: 'select', icon: <MousePointer2 />, label: 'Select' },
   { id: 'hand', icon: <Hand />, label: 'Pan' },
-  { id: 'laser', icon: <PenTool />, label: 'Laser' },
+  { id: 'laser', icon: <LaserBeamIcon />, label: 'Laser' },
   { id: 'eraser', icon: <Eraser />, label: 'Eraser' },
 ];
 
@@ -107,7 +105,7 @@ export const DRAWING_SECTION_TOOLS: ToolConfig[] = [
 
 export const ARROW_TOOL: ToolConfig = { id: 'arrow', icon: <ArrowRight />, label: 'Arrow' };
 
-export const HANDRAWN_ICON = <Paintbrush />;
+export const HANDRAWN_ICON = <HanddrawnIcon />;
 
 export const SHAPE_DROPDOWN_ICON = <Shapes />;
 
