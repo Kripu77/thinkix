@@ -3,7 +3,7 @@ export { GRID_BACKGROUND_COLORS } from '@thinkix/shared';
 
 import type { BoardBackground as BoardBackgroundType, GridDensity } from '@thinkix/shared';
 
-export const DEFAULT_GRID_DENSITY = 16;
+export const DEFAULT_GRID_DENSITY = 24;
 
 export const GRID_DENSITIES: GridDensity[] = [8, 12, 16, 24, 32, 48];
 
@@ -43,5 +43,5 @@ export interface ViewportBounds {
 export const DEFAULT_BOARD_BACKGROUND: BoardBackgroundType = {
   type: 'blank',
   density: DEFAULT_GRID_DENSITY,
-  showMajor: true,
+  showMajor: false,
 };
