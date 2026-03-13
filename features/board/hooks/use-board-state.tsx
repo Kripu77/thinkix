@@ -1,5 +1,5 @@
 'use client';
-
+ 
 import {
   createContext,
   useContext,
@@ -28,15 +28,15 @@ import { LaserPointer } from '../utils';
 import { setHanddrawn, isHanddrawn } from '../plugins/handdrawn-mode';
 import { setIsPenMode } from '../plugins/add-pen-mode';
 import posthog from 'posthog-js';
-
+ 
 type BoardContextValueTyped = BoardContextValue<PlaitBoard>;
-
+ 
 const BoardContext = createContext<BoardContextValueTyped | null>(null);
-
+ 
 interface BoardProviderProps {
   children: ReactNode;
 }
-
+ 
 function getStoredHanddrawn(): boolean {
   if (typeof window === 'undefined') return false;
   try {
@@ -45,7 +45,7 @@ function getStoredHanddrawn(): boolean {
     return false;
   }
 }
-
+ 
 function setStoredHanddrawn(enabled: boolean): void {
   try {
     localStorage.setItem(STORAGE_KEYS.HANDDRAWN, String(enabled));
@@ -53,8 +53,8 @@ function setStoredHanddrawn(enabled: boolean): void {
     // Ignore storage errors
   }
 }
-
-
+ 
+ 
 function detectMobile(): boolean {
   if (typeof window === 'undefined') return false;
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -62,7 +62,7 @@ function detectMobile(): boolean {
   const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   return isMobileUA || (isTouchDevice && isSmallScreen);
 }
-
+ 
 function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number): T {
   let timeoutId: ReturnType<typeof setTimeout>;
   return ((...args: unknown[]) => {
@@ -70,7 +70,7 @@ function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number):
     timeoutId = setTimeout(() => fn(...args), delay);
   }) as T;
 }
-
+ 
 export function BoardProvider({ children }: BoardProviderProps) {
   const [board, setBoard] = useState<PlaitBoard | null>(null);
   const [state, setState] = useState<BoardState>(() => ({
@@ -82,11 +82,9 @@ export function BoardProvider({ children }: BoardProviderProps) {
     isMobile: detectMobile(),
     isPencilMode: false,
   }));
-
+ 
   const boardRef = useRef<PlaitBoard | null>(null);
   const laserPointerRef = useRef<LaserPointer | null>(null);
-  const handdrawnAppliedRef = useRef(false);
-
   useEffect(() => {
     const handleResize = debounce(() => {
       const isMobile = detectMobile();
@@ -97,7 +95,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
         return prev;
       });
     }, 150);
-
+ 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     return () => {
@@ -105,32 +103,26 @@ export function BoardProvider({ children }: BoardProviderProps) {
       window.removeEventListener('orientationchange', handleResize);
     };
   }, []);
-
+ 
   useEffect(() => {
     boardRef.current = board;
-    
-    if (board && state.handdrawn && !handdrawnAppliedRef.current) {
-      setHanddrawn(board, true, 'excalidraw');
-      handdrawnAppliedRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board]);
-
+ 
   const setActiveTool = useCallback(
     (tool: DrawingTool) => {
       const currentBoard = boardRef.current;
       
       setState((prev) => ({ ...prev, activeTool: tool }));
-
+ 
       if (!currentBoard) return;
-
+ 
       posthog.capture('tool_selected', { tool });
-
+ 
       if (laserPointerRef.current) {
         laserPointerRef.current.destroy();
         laserPointerRef.current = null;
       }
-
+ 
       if (tool === 'image') {
         selectImage(currentBoard, 400, (imageItem) => {
           DrawTransforms.insertImage(currentBoard, imageItem);
@@ -139,7 +131,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
         });
         return;
       }
-
+ 
       if (tool === 'laser') {
         BoardTransforms.updatePointerType(currentBoard, PlaitPointerType.hand);
         setCreationMode(currentBoard, BoardCreationMode.dnd);
@@ -147,22 +139,22 @@ export function BoardProvider({ children }: BoardProviderProps) {
         laserPointerRef.current.init(currentBoard);
         return;
       }
-
+ 
       if (tool === 'eraser') {
         BoardTransforms.updatePointerType(currentBoard, 'eraser');
         setCreationMode(currentBoard, BoardCreationMode.drawing);
         return;
       }
-
+ 
       if (tool === 'stickyNote') {
         BoardTransforms.updatePointerType(currentBoard, STICKY_NOTE_POINTER);
         setCreationMode(currentBoard, BoardCreationMode.drawing);
         return;
       }
-
+ 
       const pointerType = TOOL_TO_POINTER[tool];
       BoardTransforms.updatePointerType(currentBoard, pointerType);
-
+ 
       if (DRAWING_TOOLS.has(tool)) {
         setCreationMode(currentBoard, BoardCreationMode.drawing);
       } else {
@@ -171,15 +163,15 @@ export function BoardProvider({ children }: BoardProviderProps) {
     },
     []
   );
-
+ 
   const setCurrentBoardId = useCallback((id: string | null) => {
     setState((prev) => ({ ...prev, currentBoardId: id }));
   }, []);
-
+ 
   const setSaveStatus = useCallback((status: SaveStatus) => {
     setState((prev) => ({ ...prev, saveStatus: status }));
   }, []);
-
+ 
   const toggleHanddrawn = useCallback(() => {
     const currentBoard = boardRef.current;
     const newMode = currentBoard ? !isHanddrawn(currentBoard) : true;
@@ -190,7 +182,7 @@ export function BoardProvider({ children }: BoardProviderProps) {
     posthog.capture('handdrawn_mode_toggled', { enabled: newMode });
     setState((prev) => ({ ...prev, handdrawn: newMode }));
   }, []);
-
+ 
   const setPencilMode = useCallback((enabled: boolean) => {
     const currentBoard = boardRef.current;
     if (currentBoard) {
@@ -199,20 +191,20 @@ export function BoardProvider({ children }: BoardProviderProps) {
     posthog.capture('pencil_mode_toggled', { enabled });
     setState((prev) => ({ ...prev, isPencilMode: enabled }));
   }, []);
-
+ 
   useEffect(() => {
     const handleToolChange = (e: CustomEvent<{ tool: DrawingTool }>) => {
       if (e.detail?.tool) {
         setState((prev) => ({ ...prev, activeTool: e.detail.tool }));
       }
     };
-
+ 
     window.addEventListener(CUSTOM_EVENTS.TOOL_CHANGE, handleToolChange as EventListener);
     return () => {
       window.removeEventListener(CUSTOM_EVENTS.TOOL_CHANGE, handleToolChange as EventListener);
     };
   }, []);
-
+ 
   const value = useMemo<BoardContextValue>(
     () => ({
       board,
@@ -227,13 +219,13 @@ export function BoardProvider({ children }: BoardProviderProps) {
     }),
     [board, state, setActiveTool, setCurrentBoardId, setSaveStatus, toggleHanddrawn, setPencilMode]
   );
-
+ 
   return (
     <BoardContext.Provider value={value}>{children}</BoardContext.Provider>
   );
 }
-
-
+ 
+ 
 export function useBoardState(): BoardContextValueTyped {
   const context = useContext(BoardContext);
   if (!context) {
