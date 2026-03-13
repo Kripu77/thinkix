@@ -1,12 +1,28 @@
-export const TOOLBAR_ITEM_CLASS =
-  'rounded-md p-0';
+import { THEME } from './theme';
 
-export const BUTTON_CLASS = 'rounded-md p-0 cursor-pointer';
+/**
+ * @deprecated Use THEME.toolbar.button instead
+ */
+export const TOOLBAR_ITEM_CLASS = THEME.toolbar.button;
 
-export const SELECTED_BUTTON_CLASS = 'bg-accent text-accent-foreground';
+/**
+ * @deprecated Use THEME.toolbar.button instead
+ */
+export const BUTTON_CLASS = THEME.toolbar.button;
 
-export const DROPDOWN_ICON_CLASS = 'h-5 w-5';
+/**
+ * @deprecated Use THEME.toolbar.buttonSelected instead
+ */
+export const SELECTED_BUTTON_CLASS = THEME.toolbar.buttonSelected;
 
+/**
+ * @deprecated Use THEME.dropdown.icon instead
+ */
+export const DROPDOWN_ICON_CLASS = THEME.dropdown.icon;
+
+/**
+ * Z-index values for layered UI elements
+ */
 export const Z_INDEX = {
   MODAL_OVERLAY: 50,
   POPOVER: 40,
@@ -14,3 +30,8 @@ export const Z_INDEX = {
   TOAST: 70,
   TOOLTIP: 80,
 } as const;
+
+/**
+ * Theme tokens for all UI components
+ */
+export { THEME };

@@ -78,7 +78,29 @@ body {
 
 :root {
   --mobile-breakpoint: 1024px;
-  --radius: 0.625rem;
+  --radius: 0.75rem;
+
+  /* Typography */
+  --tx-font-body: 13px ui-sans-serif, system-ui, sans-serif;
+  --tx-font-label: 11px ui-sans-serif, system-ui, sans-serif;
+  --tx-font-shortcut: 10px ui-sans-serif, system-ui, sans-serif;
+
+  /* Shadows - Light Mode */
+  --tx-shadow-toolbar: 0 2px 8px -1px rgba(0, 0, 0, 0.08), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
+  --tx-shadow-dropdown: 0 4px 12px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+  --tx-shadow-dialog: 0 8px 24px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+
+  /* Backdrop */
+  --tx-backdrop-blur: 12px;
+  --tx-backdrop-overlay: rgba(0, 0, 0, 0.4);
+
+  /* Sizing */
+  --tx-toolbar-btn: 36px;
+  --tx-toolbar-btn-mobile: 32px;
+  --tx-toolbar-icon: 18px;
+  --tx-control-btn: 28px;
+  --tx-control-icon: 15px;
+  --tx-menu-icon: 16px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -144,6 +166,14 @@ body {
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+
+  /* Shadows - Dark Mode */
+  --tx-shadow-toolbar: 0 2px 8px -1px rgba(0, 0, 0, 0.3), 0 1px 4px -1px rgba(0, 0, 0, 0.2);
+  --tx-shadow-dropdown: 0 4px 12px -1px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+  --tx-shadow-dialog: 0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+
+  /* Backdrop - Dark Mode */
+  --tx-backdrop-overlay: rgba(0, 0, 0, 0.6);
 }
 
 @layer base {
@@ -170,6 +200,21 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.loading-icon-pulse {
+  animation: icon-pulse 2s ease-in-out infinite;
 }
 
 /* Custom cursors for board tools - !important needed to override Plait's inline cursor styles */
