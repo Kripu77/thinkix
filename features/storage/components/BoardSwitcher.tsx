@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { FileText, ChevronDown, Plus, Trash2, Pencil, Check } from 'lucide-react';
+import { MixedCanvasIcon, ChevronDown, Plus, Trash2, Pencil, Check } from '@/shared/constants/icons';
 import { Button } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
 import {
@@ -22,6 +22,7 @@ import {
 } from '@thinkix/ui';
 import { Input } from '@thinkix/ui';
 import type { BoardMetadata } from '@thinkix/storage';
+import { THEME } from '@/shared/constants';
 import posthog from 'posthog-js';
 
 interface BoardSwitcherProps {
@@ -106,10 +107,10 @@ export function BoardSwitcher({
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="default" className={cn(
-            "gap-2 min-w-[200px] h-9 justify-start text-base",
-            "max-[1024px]:min-w-[140px] max-[1024px]:h-8 max-[1024px]:text-sm"
+            "gap-2 min-w-[200px] justify-start text-base",
+            "max-[1024px]:min-w-[140px] max-[1024px]:text-sm"
           )}>
-            <FileText className="h-5 w-5 shrink-0 max-[1024px]:h-4 max-[1024px]:w-4" />
+            <MixedCanvasIcon className="h-5 w-5 shrink-0 max-[1024px]:h-4 max-[1024px]:w-4" />
             <span className="truncate">
               {currentBoard?.name ?? (loading ? 'Loading...' : 'Select Board')}
             </span>
@@ -117,9 +118,9 @@ export function BoardSwitcher({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
-          <DropdownMenuContent align="start" className="w-56 min-w-max py-1" side="bottom" sideOffset={4} data-no-autosave>
+          <DropdownMenuContent align="start" className={THEME.dropdown.content} side="bottom" sideOffset={4} data-no-autosave>
             {loading ? (
-              <div className="px-3 py-2 text-base text-muted-foreground">
+              <div className="px-3 py-2 text-sm text-muted-foreground">
                 Loading boards...
               </div>
             ) : (
@@ -137,13 +138,13 @@ export function BoardSwitcher({
                         onKeyDown={(e) => handleRenameKeyDown(e, board.id)}
                         onBlur={() => handleRename(board.id, newName)}
                         autoFocus
-                        className="flex-1 px-3 py-2 text-base bg-background border rounded-md"
+                        className="flex-1 px-3 py-2 text-sm bg-background border rounded-md"
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
                       <>
                         <DropdownMenuItem
-                          className="flex-1 py-2 text-base"
+                          className="flex-1 py-2"
                           onClick={() => {
                             onSelectBoard(board.id);
                             posthog.capture('board_switched', { board_id: board.id, board_name: board.name });
@@ -176,9 +177,9 @@ export function BoardSwitcher({
                     )}
                   </div>
                 ))}
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className={THEME.dropdown.separator} />
                 <DropdownMenuItem
-                  className="py-2.5 text-base"
+                  className="py-2.5"
                   onClick={() => {
                     setIsOpen(false);
                     setBoardName(`Board ${boards.length + 1}`);
