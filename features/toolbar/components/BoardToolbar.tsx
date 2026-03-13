@@ -33,12 +33,11 @@ import {
   BASIC_TOOLS,
   SHAPE_TOOL_CONFIGS,
   OTHER_TOOL_CONFIGS,
-  BUTTON_CLASS,
-  SELECTED_BUTTON_CLASS,
   SHAPE_DROPDOWN_ICON,
   ARROW_TOOL,
   HANDRAWN_ICON,
   DRAWING_SECTION_TOOLS,
+  THEME,
 } from '@/shared/constants';
 
 export function BoardToolbar() {
@@ -71,28 +70,29 @@ export function BoardToolbar() {
   const activeShapeTool = SHAPE_TOOL_CONFIGS.find((t) => t.id === activeTool);
   const imageToolConfig = OTHER_TOOL_CONFIGS.find((t) => t.id === 'image');
 
-  const buttonSizeClass = 'h-11 w-11';
-  const iconSizeClass = 'h-5 w-5';
-  const separatorClass = isMobile ? 'mx-1 h-5 w-px bg-border' : 'mx-1.5 h-6 w-px bg-border';
-  const toolbarWidthClass = isMobile ? 'max-w-[calc(100vw-2rem)]' : '';
+  const buttonClass = THEME.toolbar.button;
+  const buttonSelectedClass = THEME.toolbar.buttonSelected;
+  const iconClass = `h-[var(--tx-toolbar-icon)] w-[var(--tx-toolbar-icon)]`;
+  const separatorClass = isMobile ? THEME.toolbar.mobileSeparator : THEME.toolbar.separator;
+  const mobileButtonClass = isMobile ? THEME.toolbar.mobileButton : '';
 
   return (
     <TooltipProvider delayDuration={300}>
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
-        <div className={`inline-flex items-center rounded-lg border bg-background/95 backdrop-blur px-2 py-2 ${toolbarWidthClass} shadow-lg overflow-x-auto justify-center`}>
+        <div className={THEME.toolbar.container}>
           {BASIC_TOOLS.map((tool) => (
             <Tooltip key={tool.id}>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
+                  className={`${buttonClass} ${mobileButtonClass} ${activeTool === tool.id ? buttonSelectedClass : ''}`}
                   aria-label={tool.label}
                   aria-pressed={activeTool === tool.id}
                   onPointerDown={handleToolPointerDown}
                   onClick={createToolClickHandler(tool.id)}
                 >
-                  <span className={iconSizeClass}>{tool.icon}</span>
+                  <span className={iconClass}>{tool.icon}</span>
                 </Button>
               </TooltipTrigger>
               {!isMobile && (
@@ -111,13 +111,13 @@ export function BoardToolbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
+                  className={`${buttonClass} ${mobileButtonClass} ${activeTool === tool.id ? buttonSelectedClass : ''}`}
                   aria-label={tool.label}
                   aria-pressed={activeTool === tool.id}
                   onPointerDown={handleToolPointerDown}
                   onClick={createToolClickHandler(tool.id)}
                 >
-                  <span className={iconSizeClass}>{tool.icon}</span>
+                  <span className={iconClass}>{tool.icon}</span>
                 </Button>
               </TooltipTrigger>
               {!isMobile && (
@@ -136,11 +136,11 @@ export function BoardToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${isShapeActive ? SELECTED_BUTTON_CLASS : ''}`}
+                className={`${buttonClass} ${mobileButtonClass} ${isShapeActive ? buttonSelectedClass : ''}`}
                 aria-label="Shapes"
                 data-testid="shapes-dropdown-trigger"
               >
-                <span className={iconSizeClass}>
+                <span className={iconClass}>
                   {activeShapeTool ? activeShapeTool.icon : SHAPE_DROPDOWN_ICON}
                 </span>
               </Button>
@@ -148,7 +148,7 @@ export function BoardToolbar() {
             <DropdownMenuContent
               align="center"
               side="bottom"
-              className="w-44"
+              className={THEME.dropdown.content}
             >
               {SHAPE_TOOL_CONFIGS.map((tool) => (
                 <DropdownMenuItem
@@ -157,12 +157,10 @@ export function BoardToolbar() {
                     handleToolChange(tool.id);
                     setIsShapeMenuOpen(false);
                   }}
-                  className={activeTool === tool.id ? 'bg-accent' : ''}
+                  className={`${THEME.dropdown.item} ${activeTool === tool.id ? THEME.dropdown.itemSelected : ''}`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="shrink-0">{tool.icon}</span>
-                    <span>{tool.label}</span>
-                  </div>
+                  <div className={THEME.dropdown.icon}>{tool.icon}</div>
+                  <span>{tool.label}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -173,13 +171,13 @@ export function BoardToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === 'arrow' ? SELECTED_BUTTON_CLASS : ''}`}
+                className={`${buttonClass} ${mobileButtonClass} ${activeTool === 'arrow' ? buttonSelectedClass : ''}`}
                 aria-label="Arrow"
                 aria-pressed={activeTool === 'arrow'}
                 onPointerDown={handleToolPointerDown}
                 onClick={createToolClickHandler('arrow')}
               >
-                <span className={iconSizeClass}>{ARROW_TOOL.icon}</span>
+                <span className={iconClass}>{ARROW_TOOL.icon}</span>
               </Button>
             </TooltipTrigger>
             {!isMobile && (
@@ -197,13 +195,13 @@ export function BoardToolbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === tool.id ? SELECTED_BUTTON_CLASS : ''}`}
+                  className={`${buttonClass} ${mobileButtonClass} ${activeTool === tool.id ? buttonSelectedClass : ''}`}
                   aria-label={tool.label}
                   aria-pressed={activeTool === tool.id}
                   onPointerDown={handleToolPointerDown}
                   onClick={createToolClickHandler(tool.id)}
                 >
-                  <span className={iconSizeClass}>{tool.icon}</span>
+                  <span className={iconClass}>{tool.icon}</span>
                 </Button>
               </TooltipTrigger>
               {!isMobile && (
@@ -219,13 +217,13 @@ export function BoardToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${activeTool === 'image' ? SELECTED_BUTTON_CLASS : ''}`}
+                className={`${buttonClass} ${mobileButtonClass} ${activeTool === 'image' ? buttonSelectedClass : ''}`}
                 aria-label="Image"
                 aria-pressed={activeTool === 'image'}
                 onPointerDown={handleToolPointerDown}
                 onClick={createToolClickHandler('image')}
               >
-                <span className={iconSizeClass}>{imageToolConfig?.icon}</span>
+                <span className={iconClass}>{imageToolConfig?.icon}</span>
               </Button>
             </TooltipTrigger>
             {!isMobile && (
@@ -242,14 +240,14 @@ export function BoardToolbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center ${handdrawn ? SELECTED_BUTTON_CLASS : ''}`}
+                className={`${buttonClass} ${mobileButtonClass} ${handdrawn ? buttonSelectedClass : ''}`}
                 onPointerDown={(e: React.PointerEvent) => {
                   e.preventDefault();
                   e.stopPropagation();
                   toggleHanddrawn();
                 }}
               >
-                <span className={iconSizeClass}>{HANDRAWN_ICON}</span>
+                <span className={iconClass}>{HANDRAWN_ICON}</span>
               </Button>
             </TooltipTrigger>
             {!isMobile && (
@@ -274,7 +272,7 @@ export function BoardToolbar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center`}
+                    className={`${buttonClass} ${mobileButtonClass}`}
                     aria-label="Duplicate"
                     onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
@@ -282,7 +280,7 @@ export function BoardToolbar() {
                       duplicateElements(board);
                     }}
                   >
-                    <Copy className={iconSizeClass} />
+                    <Copy className={iconClass} />
                   </Button>
                 </TooltipTrigger>
                 {!isMobile && (
@@ -297,7 +295,7 @@ export function BoardToolbar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={`${BUTTON_CLASS} ${buttonSizeClass} flex items-center justify-center hover:bg-destructive/10 hover:text-destructive`}
+                    className={`${buttonClass} ${mobileButtonClass} hover:bg-destructive/10 hover:text-destructive`}
                     aria-label="Delete"
                     onPointerDown={(e: React.PointerEvent) => {
                       e.preventDefault();
@@ -305,7 +303,7 @@ export function BoardToolbar() {
                       deleteFragment(board);
                     }}
                   >
-                    <Trash2 className={iconSizeClass} />
+                    <Trash2 className={iconClass} />
                   </Button>
                 </TooltipTrigger>
                 {!isMobile && (

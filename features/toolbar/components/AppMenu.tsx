@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, Users, Link2, UserCircle2, Network } from 'lucide-react';
+import { FolderOpen, Save, Trash2, FileImage, ChevronRight, Menu, Users, Link2, UserCircle2 } from 'lucide-react';
+import { MindMapIcon } from '@/shared/constants/icons';
 import { useBoard, useListRender } from '@plait-board/react-board';
 import {
   BoardTransforms,
-  PlaitBoard,
   PlaitElement,
   PlaitTheme,
+  PlaitBoard,
   Viewport,
 } from '@plait/core';
 import { Button, cn } from '@thinkix/ui';
@@ -20,6 +21,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
+  DropdownMenuLabelItem,
+  DropdownMenuShortcut,
 } from '@thinkix/ui';
 import {
   Dialog,
@@ -38,6 +41,7 @@ import {
 } from '@thinkix/file-utils';
 import { MarkdownToMindmapDialog, MermaidToBoardDialog, MermaidIcon } from '@/features/dialogs';
 import { NicknameDialog, useOptionalSyncBus, type CollaborationUser, validateBoardElements, logger } from '@thinkix/collaboration';
+import { THEME } from '@/shared/constants';
 import posthog from 'posthog-js';
 
 export type { CollaborationUser };
@@ -94,7 +98,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
       const data = await loadBoardFromFile();
       if (data) {
         clearAndLoad(data.elements, data.viewport, data.theme);
-        
+
         if (syncBusContext) {
           const { valid, invalid } = validateBoardElements(data.elements);
           if (invalid.length > 0) {
@@ -104,7 +108,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
         } else {
           logger.debug('SyncBus not available, skipping file load sync');
         }
-        
+
         posthog.capture('board_file_opened', { board_name: boardName, element_count: data.elements.length });
       }
     } catch (error) {
@@ -180,13 +184,13 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
     setIsClearDialogOpen(false);
     const elementCount = board.children.length;
     clearAndLoad([]);
-    
+
     if (syncBusContext) {
       syncBusContext.emitLocalChange([]);
     } else {
       logger.debug('SyncBus not available, skipping clear board sync');
     }
-    
+
     posthog.capture('board_cleared', { board_name: boardName, element_count: elementCount });
   };
 
@@ -198,8 +202,8 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
             variant="outline"
             size="default"
             className={cn(
-              "gap-2 h-9 px-3",
-              "max-[1024px]:h-8 max-[1024px]:px-2"
+              'gap-2 h-9 px-3.5',
+              'max-[1024px]:h-8 max-[1024px]:px-2.5'
             )}
             disabled={isExporting || isSaving || isLoading}
             data-testid="app-menu-button"
@@ -207,23 +211,31 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
             <Menu className="h-5 w-5 max-[1024px]:h-4 max-[1024px]:w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48" side="bottom" sideOffset={4}>
+        <DropdownMenuContent align="start" className={THEME.dropdown.content} side="bottom" sideOffset={4}>
+          <DropdownMenuLabelItem>File</DropdownMenuLabelItem>
+
           <DropdownMenuItem onSelect={handleOpenFile} disabled={isLoading}>
-            <FolderOpen className="h-5 w-5 mr-2" />
+            <FolderOpen className={THEME.dropdown.icon} />
             Open File
+            <DropdownMenuShortcut>⌘O</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={handleSaveFile} disabled={isSaving}>
-            <Save className="h-5 w-5 mr-2" />
+            <Save className={THEME.dropdown.icon} />
             Save File
+            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+
+          <DropdownMenuSeparator className={THEME.dropdown.separator} />
+
+          <DropdownMenuLabelItem>Export</DropdownMenuLabelItem>
+
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <FileImage className="h-5 w-5 mr-2" />
+              <FileImage className={THEME.dropdown.icon} />
               Export Image
               <ChevronRight className="h-4 w-4 ml-auto" />
             </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="w-40">
+            <DropdownMenuSubContent className={THEME.dropdown.content}>
               <DropdownMenuItem onSelect={handleExportSvg} disabled={isExporting}>
                 SVG
               </DropdownMenuItem>
@@ -238,68 +250,77 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
-          <DropdownMenuSeparator />
+
+          <DropdownMenuSeparator className={THEME.dropdown.separator} />
+
+          <DropdownMenuLabelItem>Import</DropdownMenuLabelItem>
+
           <DropdownMenuItem
             onSelect={() => { setIsOpen(false); setIsMarkdownDialogOpen(true); }}
+            className={THEME.dropdown.item}
           >
-            <Network className="h-5 w-5 mr-2 -rotate-90" />
-            Markdown To Mind Map
+            <MindMapIcon className={THEME.dropdown.icon} />
+            Markdown to Mind Map
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => { setIsOpen(false); setIsMermaidDialogOpen(true); }}
+            className={THEME.dropdown.item}
           >
-            <MermaidIcon className="h-5 w-5 mr-2" />
+            <MermaidIcon className={THEME.dropdown.icon} />
             Mermaid to Board
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+
+          <DropdownMenuSeparator className={THEME.dropdown.separator} />
+
           <DropdownMenuItem
             onSelect={handleClearBoard}
-            className="text-destructive focus:text-destructive"
+            className={THEME.dropdown.itemDestructive}
           >
-            <Trash2 className="h-5 w-5 mr-2" />
+            <Trash2 className={THEME.dropdown.icon} />
             Clear Board
           </DropdownMenuItem>
-          
+
           {!collaboration?.enabled && onEnableCollaboration && (
             <>
               <DropdownMenuSeparator className="lg:hidden" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="lg:hidden"
                 onSelect={() => { setIsOpen(false); onEnableCollaboration(); }}
               >
-                <Users className="h-5 w-5 mr-2" />
+                <Users className={THEME.dropdown.icon} />
                 Start Collaborating
               </DropdownMenuItem>
             </>
           )}
-          
+
           {collaboration?.enabled && (
             <>
               <DropdownMenuSeparator className="lg:hidden" />
               <div className="lg:hidden">
+                <DropdownMenuLabelItem>Collaboration</DropdownMenuLabelItem>
                 <div className="px-2 py-1.5 text-xs text-muted-foreground flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   <span>{collaboration.userCount} online</span>
                 </div>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="lg:hidden"
                   onSelect={() => { setIsOpen(false); collaboration.onShare(); }}
                 >
-                  <Link2 className="h-5 w-5 mr-2" />
+                  <Link2 className={THEME.dropdown.icon} />
                   Share Board
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="lg:hidden"
                   onSelect={() => { setIsOpen(false); setIsNicknameDialogOpen(true); }}
                 >
-                  <UserCircle2 className="h-5 w-5 mr-2" />
+                  <UserCircle2 className={THEME.dropdown.icon} />
                   Change Nickname
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="lg:hidden text-destructive focus:text-destructive"
+                <DropdownMenuItem
+                  className={cn(THEME.dropdown.itemDestructive, 'lg:hidden')}
                   onSelect={() => { setIsOpen(false); collaboration.onLeave(); }}
                 >
-                  <Users className="h-5 w-5 mr-2" />
+                  <Users className={THEME.dropdown.icon} />
                   Leave Collaboration
                 </DropdownMenuItem>
               </div>

@@ -13,6 +13,7 @@ import {
 } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
+import { THEME } from '@/shared/constants';
 import posthog from 'posthog-js';
 
 const ZOOM_STEP = 0.1;
@@ -33,7 +34,7 @@ export function ZoomToolbar() {
   const handleZoomIn = () => {
     const newZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
     BoardTransforms.updateZoom(board, newZoom);
-    posthog.capture('zoom_changed', { 
+    posthog.capture('zoom_changed', {
       action: 'zoom_in',
       previous_zoom: currentZoom,
       new_zoom: newZoom,
@@ -44,7 +45,7 @@ export function ZoomToolbar() {
   const handleZoomOut = () => {
     const newZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
     BoardTransforms.updateZoom(board, newZoom);
-    posthog.capture('zoom_changed', { 
+    posthog.capture('zoom_changed', {
       action: 'zoom_out',
       previous_zoom: currentZoom,
       new_zoom: newZoom,
@@ -66,37 +67,35 @@ export function ZoomToolbar() {
   };
 
   return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-0.5 rounded-lg border bg-background/95 backdrop-blur p-1 shadow-lg',
-        ATTACHED_ELEMENT_CLASS_NAME
-      )}
-    >
+    <div className={cn(
+      THEME.control.container,
+      ATTACHED_ELEMENT_CLASS_NAME
+    )}>
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8"
+        className={THEME.control.button}
         onClick={handleZoomOut}
         disabled={currentZoom <= MIN_ZOOM}
         title="Zoom out"
       >
-        <Minus className="h-4 w-4" />
+        <Minus className="h-[var(--tx-control-icon)] w-[var(--tx-control-icon)]" />
       </Button>
 
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <button
-            className="h-8 min-w-[60px] px-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+            className={THEME.control.percentage}
             title="Zoom options"
           >
             {zoomPercentage}%
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="top" className="min-w-[140px]">
-          <DropdownMenuItem onClick={handleFitToScreen}>
+        <DropdownMenuContent align="start" side="top" className={THEME.dropdown.content}>
+          <DropdownMenuItem onClick={handleFitToScreen} className={THEME.dropdown.item}>
             Fit to screen
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleResetZoom}>
+          <DropdownMenuItem onClick={handleResetZoom} className={THEME.dropdown.item}>
             100%
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -105,12 +104,12 @@ export function ZoomToolbar() {
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8"
+        className={THEME.control.button}
         onClick={handleZoomIn}
         disabled={currentZoom >= MAX_ZOOM}
         title="Zoom in"
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-[var(--tx-control-icon)] w-[var(--tx-control-icon)]" />
       </Button>
     </div>
   );
