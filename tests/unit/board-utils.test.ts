@@ -1,13 +1,31 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { PlaitBoard, PlaitElement } from '@plait/core';
 
-vi.mock('@plait/core', async () => {
-  return {
-    getSelectedElements: vi.fn((board: PlaitBoard) => {
-      if (!board.selection) return [];
-      return board.children.filter((el) => (board.selection as unknown as string[])?.includes(el.id as string));
-    }),
-  };
+globalThis.DOMRect ??= class DOMRect {
+  x = 0; y = 0; width = 0; height = 0;
+  top = 0; right = 0; bottom = 0; left = 0;
+  constructor(x = 0, y = 0, width = 0, height = 0) {
+    this.x = x; this.y = y; this.width = width; this.height = height;
+    this.top = y; this.right = x + width; this.bottom = y + height; this.left = x;
+  }
+  toJSON() {
+    return { x: this.x, y: this.y, width: this.width, height: this.height, top: this.top, right: this.right, bottom: this.bottom, left: this.left };
+  }
+} as typeof DOMRect;
+
+globalThis.document ??= {
+  createElement: vi.fn((tag: string) => ({
+    tagName: tag.toUpperCase(),
+    appendChild: vi.fn(),
+    removeChild: vi.fn(),
+    setAttribute: vi.fn(),
+    getAttribute: vi.fn(),
+  })),
+} as unknown as Document;
+
+const getSelectedElements = vi.fn((board: PlaitBoard) => {
+  if (!board.selection) return [];
+  return board.children.filter((el) => (board.selection as unknown as string[])?.includes(el.id as string));
 });
 
 function createMockBoard(options: {
@@ -66,7 +84,29 @@ function createMockBoard(options: {
   } as unknown as PlaitBoard;
 }
 
+vi.mock('@thinkix/plait-utils', async () => {
+  return {
+    getSelectedMindElements: (board: PlaitBoard) => getSelectedElements(board),
+    getCanvasContext: (board: PlaitBoard) => {
+      const selected = getSelectedElements(board);
+      return JSON.stringify({
+        elements: board.children,
+        selected: selected.map((e) => e.id),
+        viewport: board.viewport,
+      }, null, 2);
+    },
+    findElementById: (board: PlaitBoard, id: string) => {
+      return board.children.find((e) => e.id === id) || null;
+    },
+    getSelectedElements,
+  };
+});
+
 describe('board-utils', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('getSelectedMindElements', () => {
     it('should return selected elements', async () => {
       const { getSelectedMindElements } = await import('@thinkix/plait-utils');

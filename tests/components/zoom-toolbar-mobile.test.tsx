@@ -16,6 +16,13 @@ vi.mock('@plait/core', () => ({
     fitViewport: vi.fn(),
   },
   ATTACHED_ELEMENT_CLASS_NAME: 'attached-element',
+  PlaitPointerType: {
+    hand: 'hand',
+    selection: 'selection',
+    crosshair: 'crosshair',
+    text: 'text',
+    draw: 'draw',
+  },
 }));
 
 vi.mock('@/features/board/hooks/use-board-state', () => ({

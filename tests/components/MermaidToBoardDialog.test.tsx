@@ -35,6 +35,49 @@ vi.mock('@/features/board/utils', () => ({
   insertElementsSafely: vi.fn(),
 }));
 
+let currentSelectValue = 'simple';
+let onValueChangeCallback: ((val: string) => void) | null = null;
+
+vi.mock('@thinkix/ui', () => ({
+  Dialog: ({ open, children }: { open: boolean; children: React.ReactNode }) =>
+    open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Button: ({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) => (
+    <button onClick={onClick} disabled={disabled}>
+      {children}
+    </button>
+  ),
+  Input: ({ ...props }) => <input {...props} data-testid="input" />,
+  Select: ({ value, onValueChange, children }: { value: string; onValueChange: (val: string) => void; children: React.ReactNode }) => {
+    currentSelectValue = value;
+    onValueChangeCallback = onValueChange;
+    return <div data-testid="select" data-value={value}>{children}</div>;
+  },
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => (
+    <button role="combobox" data-testid="select-trigger">
+      {children}
+    </button>
+  ),
+  SelectValue: () => <span data-testid="select-value">{currentSelectValue === 'simple' ? 'Simple' : currentSelectValue === 'link' ? 'With Link Labels' : currentSelectValue === 'complex' ? 'Complex' : currentSelectValue === 'sequence' ? 'Sequence' : currentSelectValue === 'class' ? 'Class' : currentSelectValue}</span>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
+  SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => (
+    <div
+      role="option"
+      data-value={value}
+      onClick={() => onValueChangeCallback?.(value)}
+    >
+      {children}
+    </div>
+  ),
+  Label: ({ children }: { children: React.ReactNode }) => <label>{children}</label>,
+}));
+
 describe('MermaidToBoardDialog', () => {
   const mockOnOpenChange = vi.fn();
 
@@ -75,10 +118,14 @@ describe('MermaidToBoardDialog', () => {
     );
 
     const select = screen.getByRole('combobox');
-    expect(select).toHaveValue('simple');
+    expect(select).toHaveTextContent(/Simple/i);
 
-    await userEvent.selectOptions(select, 'With Link Labels');
-    expect(select).toHaveValue('link');
+    const linkItem = document.querySelector('[data-value="link"]');
+    expect(linkItem).toBeInTheDocument();
+    if (linkItem) {
+      await userEvent.click(linkItem);
+    }
+    expect(select).toHaveTextContent(/With Link Labels/i);
   });
 
   it('should call onOpenChange with false when cancel clicked', async () => {

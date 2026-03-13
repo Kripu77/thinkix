@@ -454,10 +454,19 @@ test.describe('Grid Background E2E Tests', () => {
 
     test('should toggle major grid visibility', async ({ page }) => {
       await selectGridType(page, 'Lines');
-      
+
+      // Initial state should be false (new default)
+      let config = await getLocalStorageGridConfig(page);
+      expect(config?.showMajor).toBe(false);
+
+      // Toggle to true
       await toggleMajorGrid(page);
-      
-      const config = await getLocalStorageGridConfig(page);
+      config = await getLocalStorageGridConfig(page);
+      expect(config?.showMajor).toBe(true);
+
+      // Toggle back to false
+      await toggleMajorGrid(page);
+      config = await getLocalStorageGridConfig(page);
       expect(config?.showMajor).toBe(false);
     });
   });

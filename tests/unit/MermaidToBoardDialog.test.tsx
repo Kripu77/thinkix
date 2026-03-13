@@ -52,6 +52,9 @@ interface ButtonProps {
   disabled?: boolean;
 }
 
+let currentSelectValue = 'simple';
+let onValueChangeCallback: ((val: string) => void) | null = null;
+
 vi.mock('@thinkix/ui', () => ({
   Dialog: ({ open, onOpenChange, children }: DialogProps) =>
     open ? (
@@ -69,7 +72,81 @@ vi.mock('@thinkix/ui', () => ({
       {children}
     </button>
   ),
+  Select: ({ value, onValueChange, children }: { value: string; onValueChange: (val: string) => void; children: ReactNode }) => {
+    currentSelectValue = value;
+    onValueChangeCallback = onValueChange;
+    return <div data-value={value} data-testid="select">{children}</div>;
+  },
+  SelectTrigger: ({ children, className }: { children: ReactNode; className?: string }) => (
+    <button role="combobox" className={className} data-testid="select-trigger">
+      {children}
+    </button>
+  ),
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
+    <span data-testid="select-value">{placeholder || 'Select example'}</span>
+  ),
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
+  SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
+    <div
+      role="option"
+      data-value={value}
+      data-testid="select-item"
+      onClick={() => onValueChangeCallback?.(value)}
+    >
+      {children}
+    </div>
+  ),
 }));
+
+vi.mock('@/shared/constants', async () => {
+  const actual = await vi.importActual('@/shared/constants');
+  return {
+    ...actual,
+    THEME: {
+      toolbar: {
+        container: '',
+        button: '',
+        buttonSelected: '',
+        separator: '',
+        mobileButton: '',
+      },
+      control: {
+        container: '',
+        button: '',
+      },
+      dropdown: {
+        content: '',
+        item: '',
+        icon: '',
+        label: '',
+        shortcut: '',
+      },
+      dialog: {
+        container: '',
+        header: '',
+        title: '',
+        description: '',
+        content: '',
+        footer: '',
+      },
+      input: '',
+      button: {
+        primary: '',
+        secondary: '',
+        ghost: '',
+      },
+      collab: {
+        container: '',
+        statusDot: '',
+        statusConnected: '',
+        statusDisconnected: '',
+      },
+      tip: '',
+    },
+  };
+});
 
 describe('MermaidToBoardDialog', () => {
   beforeEach(() => {
@@ -183,8 +260,11 @@ describe('MermaidToBoardDialog', () => {
 
       render(<MermaidToBoardDialog open={true} onOpenChange={vi.fn()} />);
 
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
-      fireEvent.change(select, { target: { value: 'link' } });
+      const linkItem = document.querySelector('[data-value="link"]');
+      expect(linkItem).toBeInTheDocument();
+      if (linkItem) {
+        fireEvent.click(linkItem);
+      }
 
       const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
       await waitFor(() => {
@@ -195,14 +275,11 @@ describe('MermaidToBoardDialog', () => {
     it('should support all example types', () => {
       render(<MermaidToBoardDialog open={true} onOpenChange={vi.fn()} />);
 
-      const select = screen.getByRole('combobox');
-      const options = Array.from(select.options).map((o) => o.value);
-
-      expect(options).toContain('simple');
-      expect(options).toContain('link');
-      expect(options).toContain('complex');
-      expect(options).toContain('sequence');
-      expect(options).toContain('class');
+      expect(document.querySelector('[data-value="simple"]')).toBeInTheDocument();
+      expect(document.querySelector('[data-value="link"]')).toBeInTheDocument();
+      expect(document.querySelector('[data-value="complex"]')).toBeInTheDocument();
+      expect(document.querySelector('[data-value="sequence"]')).toBeInTheDocument();
+      expect(document.querySelector('[data-value="class"]')).toBeInTheDocument();
     });
   });
 

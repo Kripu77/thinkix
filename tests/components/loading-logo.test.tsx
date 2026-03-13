@@ -32,12 +32,12 @@ describe('LoadingLogo Component', () => {
     expect(textElement).toHaveClass('loading-shimmer');
   });
 
-  it('should render the star icon', () => {
+  it('should render the canvas icon', () => {
     const { container } = render(<LoadingLogo />);
 
     const svg = container.querySelector('svg');
     expect(svg).toBeInTheDocument();
-    expect(svg).toHaveClass('animate-spin');
+    expect(svg).toHaveClass('loading-icon-pulse');
   });
 
   it('should use Geist Sans font family', () => {
