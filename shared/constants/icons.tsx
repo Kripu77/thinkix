@@ -148,3 +148,54 @@ export function DashedFillIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/**
+ * Mixed canvas icon - represents a board with mixed content
+ * Shows a rounded rectangle with content hints (dot + lines)
+ */
+export function MixedCanvasIcon({ size = 16, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none" opacity="0.35" />
+      <line x1="11" y1="14" x2="17" y2="14" opacity="0.35" />
+      <line x1="11" y1="17" x2="15" y2="17" opacity="0.35" />
+    </svg>
+  );
+}
+
+/**
+ * Laser beam icon - represents the laser pointer tool
+ * Shows a diagonal beam with emission point
+ */
+export function LaserBeamIcon({ size = 18, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="6" cy="18" r="2.5" />
+      <line x1="8" y1="16" x2="18" y2="6" />
+      <line x1="18" y1="6" x2="21" y2="3" opacity="0.5" />
+      <line x1="18" y1="6" x2="21" y2="6" opacity="0.5" />
+      <line x1="18" y1="6" x2="18" y2="3" opacity="0.5" />
+    </svg>
+  );
+}
+
+/**
+ * Handdrawn icon - represents hand-drawn mode
+ * Shows a pencil with wavy line underneath
+ */
+export function HanddrawnIcon({ size = 18, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M17 3l4 4L8 20H4v-4L17 3z" />
+      <path d="M4 22c2-2 4-2 6 0s4 0 6 0" opacity="0.5" />
+    </svg>
+  );
+}
+
+// Re-exports of commonly used Lucide icons for convenience
+// These are re-exported to allow importing from a single place
+export { ChevronDown, Plus, Trash2, Pencil, Check } from 'lucide-react';
