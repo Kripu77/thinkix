@@ -1,91 +1,59 @@
 # Thinkix
 
-An AI-powered infinite canvas whiteboard for visual thinking. Create mind maps, draw freehand, add shapes, and let AI help organize your thoughts.
+Thinkix is an AI-native infinite canvas for visual thinking. You can sketch, map ideas, build diagrams, and then ask an agent to inspect the board, create new structures, or edit what is already on the canvas.
 
-## Features
+## Why Thinkix
 
-- **Infinite Canvas** - Pan, zoom, and explore without limits
-- **Mind Maps** - Create structured diagrams with the mind map tool
-- **Freehand Drawing** - Sketch ideas with the pen tool
-- **Shapes & Text** - Add rectangles, ellipses, diamonds, and text elements
-- **Images** - Drag, drop, or paste images with an integrated viewer
-- **Grid Backgrounds** - Choose from dots, square, blueprint, isometric, ruled, or blank paper styles
-- **AI Assistant** - Chat with AI to organize and structure your thinking using local settings or server env defaults
-- **Board Management** - Open, save, and export boards as `.thinkix` files
-- **Auto-Save** - Automatic saving to IndexedDB with browser-level persistence
+Most whiteboards stop at drawing, and most AI tools stop at chat. Thinkix combines both:
 
-## Tech Stack
+- AI can read the active board state
+- AI can create diagrams directly on the canvas
+- AI can modify existing board content with board-aware tools
+- Humans and AI work in the same visual space instead of separate tabs
 
-- **Framework:** Next.js 16 (React 19, Turbopack)
-- **Canvas:** [Plait Board](https://github.com/worktile/plait) - Infinite whiteboard engine
-- **AI:** Vercel AI SDK (OpenAI, Anthropic support)
-- **UI:** shadcn/ui components with Tailwind CSS v4
-- **Monorepo:** Bun workspaces with shared packages
-- **Runtime:** Bun for package management and execution
-- **Testing:** Vitest with happy-dom
+## Current Capabilities
 
-## Project Structure
+- Infinite canvas with pan, zoom, selection, and history
+- Mind maps, freehand drawing, shapes, arrows, text, sticky notes, and images
+- Multiple boards with local persistence
+- Live collaboration with Liveblocks
+- AI agent pane with server defaults or per-user API keys
+- Agent tools for board inspection, search, creation, patching, selection, and layout-aware inserts
+- Mermaid and markdown-to-mindmap flows that insert directly onto the board
+- Import/export for `.thinkix`, SVG, PNG, and JPG
 
-```
-thinkix/
-├── app/                      # Next.js app router & API routes
-│   ├── api/
-│   │   ├── chat/            # AI chat streaming endpoint
-│   │   └── structure/       # Content-to-mindmap endpoint
-│   ├── styles/              # Global styles
-│   └── globals.css          # CSS variables & animations
-│
-├── packages/                # Workspace packages
-│   ├── ui/                  # @thinkix/ui - Shared UI components
-│   ├── ai/                  # @thinkix/ai - AI SDK integration
-│   ├── plait-utils/         # @thinkix/plait-utils - Board helpers
-│   ├── storage/             # @thinkix/storage - IndexedDB storage
-│   ├── shared/              # @thinkix/shared - Shared types
-│   └── file-utils/          # @thinkix/file-utils - File operations
-│
-├── features/                # Feature modules
-│   ├── board/               # Canvas, state, plugins
-│   │   ├── components/      # BoardCanvas
-│   │   ├── hooks/           # Board state management
-│   │   ├── plugins/         # Custom Plait plugins
-│   │   └── utils/           # Laser pointer, etc.
-│   ├── toolbar/             # Toolbar UI components
-│   │   └── components/
-│   │       ├── BoardToolbar.tsx
-│   │       ├── AppMenu.tsx
-│   │       └── inline/      # Selection toolbar
-│   └── storage/             # Board persistence
-│       ├── components/      # BoardSwitcher
-│       └── hooks/           # Auto-save hook
-│
-├── shared/                  # App-level shared code (JSX allowed)
-│   └── constants/           # Tool configs, icons
-│
-└── tests/                   # Test suite
-    ├── __mocks__/           # Global mocks
-    ├── __utils__/           # Test utilities
-    ├── components/          # Component tests
-    ├── integration/         # Integration tests
-    └── unit/                # Unit tests
-```
+## Signature Workflows
 
-## Getting Started
+Try one of these first:
+
+- Turn rough notes into a mind map
+- Generate a system design diagram from a prompt
+- Ask the agent to inspect an existing board and restructure it
+- Research a topic and map the findings onto the canvas
+
+The agent pane opens with `Cmd/Ctrl + J`.
+
+## Quick Start
 
 ### Prerequisites
 
-Install [Bun](https://bun.sh):
+- [Bun](https://bun.sh)
 
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-### Installation
+### Install
 
 ```bash
 bun install
 ```
 
-### Development
+### Configure Environment
+
+Copy the template if you want server-backed AI, collaboration, analytics, or web search:
+
+```bash
+cp .env.example .env.local
+```
+
+### Run the App
 
 ```bash
 bun dev
@@ -93,183 +61,154 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Build
+## Environment Variables
+
+### AI
+
+Thinkix supports two AI modes:
+
+- local user settings entered in the agent pane
+- server defaults configured through environment variables
+
+Supported variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `AI_PROVIDER` | Optional default provider: `openai` or `anthropic` |
+| `AI_MODEL` | Optional default model |
+| `AI_API_KEY` | Generic fallback API key |
+| `AI_BASE_URL` | Generic server-side fallback base URL |
+| `OPENAI_API_KEY` | Preferred OpenAI server key |
+| `OPENAI_BASE_URL` | Optional OpenAI server base URL |
+| `ANTHROPIC_API_KEY` | Preferred Anthropic server key |
+| `ANTHROPIC_BASE_URL` | Optional Anthropic server base URL |
+
+If only one provider key is configured, Thinkix will use that provider automatically when the user has not saved a local key.
+
+### Collaboration
+
+| Variable | Purpose |
+| --- | --- |
+| `LIVEBLOCKS_SECRET_KEY` | Required for collaboration auth |
+| `NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY` | Client-side collaboration key |
+
+### Search
+
+| Variable | Purpose |
+| --- | --- |
+| `EXA_API_KEY` | Enables server-side web search for the agent |
+
+### Analytics
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Optional PostHog project key |
+| `NEXT_PUBLIC_POSTHOG_HOST` | Optional PostHog host |
+
+## Example Prompts
+
+- `Create a system design diagram for a ride-sharing app and highlight the real-time components.`
+- `Inspect this board and turn the current notes into a cleaner decision tree.`
+- `Research the top technology trends for 2026 and build a visual map with relationships.`
+- `Create a mind map from these rough product launch notes.`
+
+## Scripts
 
 ```bash
+bun dev
 bun run build
 bun start
+bun run lint
+bun run typecheck
+bun run test:run
+bun run test:e2e
+bun run build:parser
 ```
 
 ## Testing
 
-This project uses **Vitest** (not Bun's native test runner).
+Thinkix uses:
+
+- Vitest for unit, component, and integration coverage
+- Playwright for end-to-end coverage
+
+Run the core validation set:
 
 ```bash
-bun run test          # Run tests in watch mode
-bun run test:run      # Run tests once (CI)
-bun run test:coverage # Run with coverage
+bun run lint
+bun run typecheck
+bun run test:run
+bun run test:e2e
 ```
 
-**Note:** Do NOT use `bun test` - use `bun run test` commands.
+## Architecture Overview
 
-## Usage
+### App Surface
 
-### Tools
+- `app/page.tsx` hosts the main board experience
+- `app/api/agent` streams AI responses and tool calls
+- `app/api/agent/config` exposes safe client config such as default provider availability
+- `app/api/collaboration/auth` handles collaboration auth
 
-| Tool | Shortcut | Description |
-|------|----------|-------------|
-| Select | V | Select and move elements |
-| Hand | H | Pan around the canvas |
-| Mind Map | - | Create mind map diagrams |
-| Freehand | - | Draw with pen/pencil |
-| Shapes | - | Add rectangles, ellipses, diamonds, etc. |
-| Text | T | Add text elements |
+### Feature Modules
 
-### File Operations
+- `features/board/` contains the Plait canvas, plugins, board utilities, and insertion logic
+- `features/agent/` contains the agent pane, tool rendering, tool execution, serializer, and DSL
+- `features/toolbar/` contains app, zoom, selection, and board toolbar controls
+- `features/dialogs/` contains import/transform flows such as Mermaid and markdown-to-mindmap
 
-- **Open File** - Load `.thinkix` board files from your computer
-- **Save File** - Export current board as `.thinkix` file
-- **Export Image** - Export as SVG, PNG (transparent/white BG), or JPG
-- **Clear Board** - Remove all elements from the current board
+### Workspace Packages
 
-### AI Features
+- `@thinkix/ai` for provider resolution, prompts, and tool schemas
+- `@thinkix/storage` for IndexedDB-backed board persistence
+- `@thinkix/file-utils` for import/export flows
+- `@thinkix/plait-utils` for board helpers
+- `@thinkix/ui` for shared UI primitives
+- `@thinkix/collaboration` for collaboration support
 
-Thinkix supports AI-powered assistance through either per-user settings in the Agent pane or server-side environment defaults:
+## Project Structure
 
-1. **Chat** - Stream responses from OpenAI or Anthropic (Claude)
-2. **Structure** - Convert unstructured content into mind map JSON
-
-Recommended server env configuration:
-
-```bash
-AI_PROVIDER=openai                  # optional: openai | anthropic
-AI_MODEL=gpt-4o                     # optional: default model when the client does not override it
-AI_API_KEY=sk-...                   # optional generic fallback key
-AI_BASE_URL=https://api.openai.com/v1 # optional generic fallback endpoint
-
-OPENAI_API_KEY=sk-...               # optional, preferred for OpenAI
-OPENAI_BASE_URL=https://api.openai.com/v1
-
-ANTHROPIC_API_KEY=sk-ant-...        # optional, preferred for Anthropic
-ANTHROPIC_BASE_URL=https://api.anthropic.com
+```text
+thinkix/
+├── app/
+│   ├── api/
+│   │   ├── agent/
+│   │   └── collaboration/
+│   ├── globals.css
+│   └── page.tsx
+├── features/
+│   ├── agent/
+│   ├── board/
+│   ├── dialogs/
+│   ├── storage/
+│   └── toolbar/
+├── packages/
+│   ├── ai/
+│   ├── collaboration/
+│   ├── file-utils/
+│   ├── mermaid-to-thinkix/
+│   ├── plait-utils/
+│   ├── shared/
+│   ├── storage/
+│   └── ui/
+└── tests/
 ```
 
-Resolution order:
+## Known Limitations
 
-1. Agent settings entered by the user in the UI
-2. Provider-specific env vars such as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`
-3. Generic env vars such as `AI_API_KEY`, `AI_PROVIDER`, `AI_MODEL`, and `AI_BASE_URL`
-4. Built-in provider defaults from `@thinkix/ai`
+- The agent is optimized around supported board tools and diagram workflows, not arbitrary code execution.
+- Collaboration requires Liveblocks configuration.
+- Web search requires `EXA_API_KEY`.
+- Thinkix is still in active product iteration, so some UI flows may continue to evolve quickly.
 
-If `AI_PROVIDER` is not set and only one provider key is configured, Thinkix will use that provider automatically.
+## Contributing
 
-## Workspace Packages
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-### `@thinkix/ui`
-Shared React components built on shadcn/ui patterns.
+## Security
 
-```tsx
-import { Button, Tooltip, Dialog, LoadingLogo } from '@thinkix/ui';
-```
-
-### `@thinkix/ai`
-AI SDK integration with multi-provider support.
-
-```ts
-import { createAIProvider, resolveAIProvider, resolveAIModel } from '@thinkix/ai';
-```
-
-### `@thinkix/plait-utils`
-Helper functions for Plait board operations.
-
-```ts
-import { getCanvasContext, findElementById, getSelectedElements } from '@thinkix/plait-utils';
-```
-
-### `@thinkix/storage`
-IndexedDB-based board storage with Dexie.
-
-```ts
-import { useBoardStore, useAutoSave } from '@thinkix/storage';
-```
-
-### `@thinkix/file-utils`
-File operations for board import/export.
-
-```ts
-import { 
-  saveBoardToFile, 
-  loadBoardFromFile, 
-  exportAsPng, 
-  exportAsSvg 
-} from '@thinkix/file-utils';
-```
-
-### `@thinkix/shared`
-Shared TypeScript types.
-
-```ts
-import type { DrawingTool, BoardState } from '@thinkix/shared';
-```
-
-## Custom Plugins
-
-Thinkix extends Plait with custom plugins:
-
-| Plugin | Description |
-|--------|-------------|
-| `withGrid` | Grid background patterns (dots, lines, blueprint, isometric, ruled) |
-| `addTextRenderer` | Custom Slate-based text editor |
-| `addImageRenderer` | React-based image rendering |
-| `addEmojiRenderer` | Emoji rendering for mind maps |
-| `addMindNodeResize` | Resize handles for mind nodes |
-| `addPenMode` | Stylus/pencil detection |
-| `addImageInteractions` | Drag-drop, paste, view images |
-| `withScribble` | Freehand drawing with smoothing |
-| `withEraser` | Eraser tool |
-| `withStickyNote` | Sticky note support with drag-preview |
-| `withHanddrawn` | Hand-drawn style mode |
-
-## Keyboard Shortcuts
-
-- `Cmd/Ctrl + Z` - Undo
-- `Cmd/Ctrl + Shift + Z` - Redo
-- `Delete/Backspace` - Delete selected elements
-- `Escape` - Exit pen mode or close dialogs
-
-## Development Scripts
-
-```bash
-bun dev             # Start development server
-bun run build       # Build for production
-bun run lint        # Run ESLint
-bun run typecheck   # Run TypeScript check
-bun run test        # Run Vitest in watch mode
-bun run test:run    # Run tests once
-bun run test:coverage # Run tests with coverage report
-```
-
-## CI/CD
-
-Tests run automatically on:
-- Every push to `main`
-- Every pull request to `main`
-
-The CI workflow runs:
-1. **Lint** - ESLint code quality checks
-2. **Type Check** - TypeScript validation
-3. **Test with Coverage** - Vitest with v8 coverage
-4. **Build** - Next.js production build
-
-### Coverage Reports
-
-For pull requests:
-- Coverage summary is posted as a PR comment
-- Full HTML coverage report is uploaded as an artifact
-- Download from the workflow run → Artifacts section
-
-Coverage reports are retained for 14 days.
+See [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)
