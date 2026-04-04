@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible problem in Thinkix
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected instead.
+      placeholder: The agent pane opened, but sending a prompt failed with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Give a minimal set of steps so we can reproduce the issue.
+      placeholder: |
+        1. Open the board
+        2. Press Cmd/Ctrl + J
+        3. Send...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, deployment setup, and any relevant AI or collaboration config.
+      placeholder: macOS 15, Chrome 135, local Bun dev server, OPENAI_API_KEY configured
+    validations:
+      required: true
+
+  - type: textarea
+    id: extras
+    attributes:
+      label: Extra context
+      description: Logs, screenshots, recordings, or related notes.

@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an improvement or new workflow for Thinkix
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Start with the workflow or pain point.
+      placeholder: I want the agent to restructure an existing system diagram without rebuilding it from scratch.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+      description: Describe the desired behavior or user experience.
+      placeholder: Add a board-aware "re-layout" command that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, examples, adjacent tools, or implementation notes.
