@@ -10,7 +10,7 @@ An AI-powered infinite canvas whiteboard for visual thinking. Create mind maps, 
 - **Shapes & Text** - Add rectangles, ellipses, diamonds, and text elements
 - **Images** - Drag, drop, or paste images with an integrated viewer
 - **Grid Backgrounds** - Choose from dots, square, blueprint, isometric, ruled, or blank paper styles
-- **AI Assistant** - Chat with AI to organize and structure your thinking (BYOK - Bring Your Own Key)
+- **AI Assistant** - Chat with AI to organize and structure your thinking using local settings or server env defaults
 - **Board Management** - Open, save, and export boards as `.thinkix` files
 - **Auto-Save** - Automatic saving to IndexedDB with browser-level persistence
 
@@ -134,17 +134,34 @@ bun run test:coverage # Run with coverage
 
 ### AI Features
 
-Thinkix supports AI-powered assistance through a Bring-Your-Own-Key (BYOK) model:
+Thinkix supports AI-powered assistance through either per-user settings in the Agent pane or server-side environment defaults:
 
 1. **Chat** - Stream responses from OpenAI or Anthropic (Claude)
 2. **Structure** - Convert unstructured content into mind map JSON
 
-To use AI features, provide your API key when prompted, or set environment variables:
+Recommended server env configuration:
 
 ```bash
-OPENAI_API_KEY=sk-...    # For GPT-4o
-ANTHROPIC_API_KEY=sk-... # For Claude
+AI_PROVIDER=openai                  # optional: openai | anthropic
+AI_MODEL=gpt-4o                     # optional: default model when the client does not override it
+AI_API_KEY=sk-...                   # optional generic fallback key
+AI_BASE_URL=https://api.openai.com/v1 # optional generic fallback endpoint
+
+OPENAI_API_KEY=sk-...               # optional, preferred for OpenAI
+OPENAI_BASE_URL=https://api.openai.com/v1
+
+ANTHROPIC_API_KEY=sk-ant-...        # optional, preferred for Anthropic
+ANTHROPIC_BASE_URL=https://api.anthropic.com
 ```
+
+Resolution order:
+
+1. Agent settings entered by the user in the UI
+2. Provider-specific env vars such as `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`
+3. Generic env vars such as `AI_API_KEY`, `AI_PROVIDER`, `AI_MODEL`, and `AI_BASE_URL`
+4. Built-in provider defaults from `@thinkix/ai`
+
+If `AI_PROVIDER` is not set and only one provider key is configured, Thinkix will use that provider automatically.
 
 ## Workspace Packages
 
@@ -159,7 +176,7 @@ import { Button, Tooltip, Dialog, LoadingLogo } from '@thinkix/ui';
 AI SDK integration with multi-provider support.
 
 ```ts
-import { MODELS, createAIProvider, executeCommand } from '@thinkix/ai';
+import { createAIProvider, resolveAIProvider, resolveAIModel } from '@thinkix/ai';
 ```
 
 ### `@thinkix/plait-utils`
