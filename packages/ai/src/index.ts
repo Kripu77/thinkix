@@ -1,3 +1,3 @@
-export * from '../lib';
-
-// Components will be added here when we build AI chat components
+export * from './core';
+export { toolSchemas } from './tool-schemas';
+export type { SystemPromptContext } from '../prompts/system';

@@ -3,20 +3,22 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "main": "./lib/index.ts",
-  "types": "./lib/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
-    ".": "./lib/index.ts",
-    "./commands": "./lib/commands.ts",
-    "./providers": "./lib/providers.ts",
-    "./types": "./lib/types.ts"
+    ".": "./src/index.ts",
+    "./tool-schemas": "./src/tool-schemas.ts",
+    "./prompts": "./src/prompts.ts",
+    "./tools": "./src/tools/index.ts"
   },
   "scripts": {
-    "lint": "eslint \"lib/**/*.ts*\"",
+    "lint": "eslint \"src/**/*.ts*\"",
     "typecheck": "tsc --noEmit",
     "build": "tsc"
   },
-  "dependencies": {},
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
   "devDependencies": {
     "typescript": "^5"
   }
