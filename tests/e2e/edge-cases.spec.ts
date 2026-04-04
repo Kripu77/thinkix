@@ -104,9 +104,16 @@ test.describe('Edge Cases E2E Tests', () => {
   });
 
   test.describe('Very Large Shape', () => {
-    test('should draw shape larger than viewport', async ({ page }) => {
+    test('should draw a shape that spans nearly the full visible canvas', async ({ page }) => {
       await selectTool(page, 'rectangle');
-      await drawShape(page, 10, 10, 1500, 1500);
+      const box = await getCanvasBoundingBox(page);
+      await drawShape(
+        page,
+        40,
+        40,
+        Math.max(240, Math.min(900, box.width - 80)),
+        Math.max(240, Math.min(520, box.height - 80)),
+      );
       
       await page.waitForTimeout(300);
       

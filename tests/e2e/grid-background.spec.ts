@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, getCanvas, selectTool, drawShape } from './utils';
+import { waitForBoard, getCanvas, openAppMenu, selectTool, drawShape } from './utils';
 
 const GRID_TYPE_MAP: Record<string, string> = {
   'Dots': 'dot',
@@ -51,17 +51,8 @@ async function toggleMajorGrid(page: import('@playwright/test').Page): Promise<v
 }
 
 async function openExportMenu(page: import('@playwright/test').Page): Promise<boolean> {
-  const menuButton = page.getByRole('button', { name: /menu|thinkix/i }).first()
-    .or(page.locator('button').filter({ hasText: /Thinkix/ }).first())
-    .or(page.locator('[data-testid="app-menu-button"]'));
-  
-  const isVisible = await menuButton.isVisible({ timeout: 2000 }).catch(() => false);
-  if (isVisible) {
-    await menuButton.click();
-    await page.waitForTimeout(200);
-    return true;
-  }
-  return false;
+  await openAppMenu(page);
+  return true;
 }
 
 async function getGridBackgroundColor(page: import('@playwright/test').Page): Promise<string | null> {
@@ -484,9 +475,7 @@ test.describe('Grid Background E2E Tests', () => {
       const configAfterReload = await getLocalStorageGridConfig(page);
       expect(configAfterReload?.type).toBe('isometric');
       
-      const canvas = await getCanvas(page);
-      const content = await canvas.innerHTML();
-      expect(content).toContain('line');
+      await expect(page.locator('.grid-layer line').first()).toBeVisible();
     });
   });
 });

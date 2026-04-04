@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, hasElementOnCanvas } from './utils';
+import { waitForBoard, selectTool, drawShape, getElementCount, clickOnCanvas } from './utils';
 
 test.describe('Board Management E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -71,24 +71,27 @@ test.describe('Board Management E2E Tests', () => {
 
   test.describe('Board Persistence', () => {
     test('should persist elements after page refresh', async ({ page }) => {
-      await selectTool(page, 'rectangle');
-      await drawShape(page, 100, 100, 200, 200);
+      const stickySelected = await selectTool(page, 'stickyNote');
+      expect(stickySelected).toBe(true);
+      await clickOnCanvas(page, 200, 200);
+      await page.keyboard.type('Persistent note');
+      await page.waitForTimeout(300);
       
-      const hasElementBefore = await hasElementOnCanvas(page);
-      expect(hasElementBefore).toBe(true);
+      await expect
+        .poll(() => getElementCount(page), { timeout: 5000 })
+        .toBeGreaterThan(0);
       
       await page.waitForTimeout(1000);
       
-      await page.reload();
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(3000);
+      await page.reload({ waitUntil: 'domcontentloaded' });
       
       const canvas = page.locator('.board-wrapper');
       await canvas.waitFor({ state: 'visible', timeout: 20000 });
-      await page.waitForTimeout(1000);
-      
-      const hasElementAfter = await hasElementOnCanvas(page);
-      expect(hasElementAfter).toBe(true);
+      await page.locator('[data-board="true"]').waitFor({ state: 'visible', timeout: 20000 });
+
+      await expect
+        .poll(() => getElementCount(page), { timeout: 10000 })
+        .toBeGreaterThan(0);
     });
   });
 

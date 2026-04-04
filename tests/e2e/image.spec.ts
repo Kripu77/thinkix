@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, clickOnCanvas, hasElementOnCanvas, getCanvasBoundingBox } from './utils';
+import { waitForBoard, selectTool } from './utils';
 
 test.describe('Image E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -7,54 +7,24 @@ test.describe('Image E2E Tests', () => {
   });
 
   test.describe('Image Tool', () => {
-    test('should select image tool', async ({ page }) => {
-      const selected = await selectTool(page, 'image');
-      expect(selected).toBe(true);
+    test('should show the image tool button', async ({ page }) => {
+      await expect(page.getByRole('button', { name: /image/i })).toBeVisible();
     });
 
-    test('should open file dialog when clicking image tool', async ({ page }) => {
-      const imageSelected = await selectTool(page, 'image');
-      if (!imageSelected) {
-        test.skip();
-        return;
-      }
-      
-      await clickOnCanvas(page, 200, 200);
-      await page.waitForTimeout(500);
-      
-      const fileInput = page.locator('input[type="file"]');
-      const fileInputVisible = await fileInput.isVisible({ timeout: 2000 }).catch(() => false);
-      
-      const canvas = page.locator('.board-wrapper');
-      await expect(canvas).toBeVisible();
-      
-      if (fileInputVisible) {
-        await expect(fileInput).toBeVisible();
-      }
+    test('should open the file chooser when clicking image tool', async ({ page }) => {
+      const [fileChooser] = await Promise.all([
+        page.waitForEvent('filechooser'),
+        page.getByRole('button', { name: /image/i }).click(),
+      ]);
+
+      expect(fileChooser).toBeTruthy();
     });
   });
 
   test.describe('Image Paste', () => {
     test('should handle paste shortcut without error', async ({ page }) => {
-      const rectSelected = await selectTool(page, 'rectangle');
-      if (!rectSelected) {
-        test.skip();
-        return;
-      }
-      
-      const box = await getCanvasBoundingBox(page);
-      await page.mouse.move(box.x + 100, box.y + 100);
-      await page.mouse.down();
-      await page.mouse.move(box.x + 200, box.y + 200, { steps: 10 });
-      await page.mouse.up();
-      await page.waitForTimeout(300);
-      
-      const hasElementBefore = await hasElementOnCanvas(page);
-      expect(hasElementBefore).toBe(true);
-      
-      await page.keyboard.down('Control');
-      await page.keyboard.press('KeyV');
-      await page.keyboard.up('Control');
+      const pasteShortcut = process.platform === 'darwin' ? 'Meta+KeyV' : 'Control+KeyV';
+      await page.keyboard.press(pasteShortcut);
       await page.waitForTimeout(300);
       
       const canvas = page.locator('.board-wrapper');

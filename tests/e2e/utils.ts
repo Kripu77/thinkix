@@ -1,26 +1,82 @@
-import type { Page, Locator } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
-function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+export const E2E_BASE_URL =
+  process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3100';
+const PRIMARY_MODIFIER = process.platform === 'darwin' ? 'Meta' : 'Control';
 
 async function dismissOverlays(page: Page): Promise<void> {
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(100);
-  // Check for and close Next.js error overlay
   const overlay = page.locator('nextjs-portal');
-  if (await overlay.count() > 0) {
+  const isOverlayVisible = await overlay
+    .first()
+    .isVisible({ timeout: 250 })
+    .catch(() => false);
+
+  if (isOverlayVisible) {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(100);
   }
 }
 
+async function dismissCollaborationStartDialog(page: Page): Promise<void> {
+  const dialog = page.getByRole('dialog').filter({
+    has: page.getByText(/start collaborating/i),
+  });
+  const isDialogVisible = await dialog.isVisible({ timeout: 500 }).catch(() => false);
+
+  if (!isDialogVisible) {
+    return;
+  }
+
+  const closeButton = dialog.getByRole('button', { name: /got it/i });
+  await closeButton.click();
+  await expect(dialog).toBeHidden({ timeout: 5000 });
+}
+
+async function waitForBoardShell(page: Page): Promise<void> {
+  const boardWrapper = page.locator('.board-wrapper');
+  const boardRoot = page.locator('[data-board="true"]');
+
+  await boardWrapper.waitFor({ state: 'visible', timeout: 15000 });
+  await boardRoot.waitFor({ state: 'visible', timeout: 15000 });
+  await dismissOverlays(page);
+}
+
+export async function waitForMainBoard(page: Page): Promise<void> {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await waitForBoardShell(page);
+}
+
+export async function waitForCollaborationBoard(
+  page: Page,
+  url = `${E2E_BASE_URL}/test/collaboration`,
+): Promise<void> {
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await waitForBoardShell(page);
+  await dismissCollaborationStartDialog(page);
+}
+
+export async function waitForRadixMenu(page: Page): Promise<Locator> {
+  const menu = page.locator('[role="menu"]').last();
+  await expect(menu).toBeVisible({ timeout: 5000 });
+  return menu;
+}
+
+export async function openAppMenu(page: Page): Promise<Locator> {
+  await dismissOverlays(page);
+  const menuButton = page.getByTestId('app-menu-button');
+  await expect(menuButton).toBeVisible({ timeout: 5000 });
+  await menuButton.click();
+  return waitForRadixMenu(page);
+}
+
 export async function getCanvas(page: Page): Promise<Locator> {
   const selectors = [
+    page.locator('[data-board="true"]'),
     page.locator('.board-wrapper'),
     page.locator('[class*="plait-board"]'),
     page.locator('svg[class*="board"]'),
     page.locator('.plait-board'),
+    page.locator('.board-host-svg'),
   ];
   
   for (const selector of selectors) {
@@ -38,7 +94,20 @@ export async function getCanvasBoundingBox(page: Page): Promise<{ x: number; y: 
   if (!box) {
     throw new Error('Canvas bounding box not found');
   }
-  return box;
+
+  const safeInset = {
+    top: 96,
+    left: 80,
+    right: 24,
+    bottom: 24,
+  };
+
+  return {
+    x: box.x + safeInset.left,
+    y: box.y + safeInset.top,
+    width: Math.max(1, box.width - safeInset.left - safeInset.right),
+    height: Math.max(1, box.height - safeInset.top - safeInset.bottom),
+  };
 }
 
 export async function drawShape(page: Page, startX: number, startY: number, endX: number, endY: number): Promise<void> {
@@ -69,90 +138,77 @@ export async function drawFreehand(page: Page, points: Array<[number, number]>):
 }
 
 export async function selectTool(page: Page, toolName: string): Promise<boolean> {
-  // Dismiss any overlays first
   await dismissOverlays(page);
 
-  // Arrow is now a standalone button, not in the shapes dropdown
-  if (toolName === 'arrow') {
-    await dismissOverlays(page);
-    const arrowButton = page.locator('button[aria-label="Arrow"]')
-      .or(page.locator(`button:has(svg[class*="lucide-arrow-right"])`))
-      .or(page.getByRole('button', { name: /arrow/i }));
-    
-    if (await arrowButton.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-      try {
-        await arrowButton.first().click({ force: true, timeout: 5000 });
-        await page.waitForTimeout(100);
-        return true;
-      } catch {
-        return false;
-      }
+  const openMenu = page.locator('[role="menu"]').last();
+  if (await openMenu.isVisible({ timeout: 250 }).catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
+  }
+
+  const canvasModePanel = page.getByTestId('canvas-mode-panel');
+  if (await canvasModePanel.isVisible({ timeout: 250 }).catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(100);
+  }
+
+  const directToolLabels: Record<string, string> = {
+    arrow: 'Arrow',
+    select: 'Select',
+    draw: 'Freehand',
+    eraser: 'Eraser',
+    text: 'Text',
+    stickyNote: 'Sticky Note',
+    image: 'Image',
+  };
+
+  const shapeToolLabels: Record<string, string> = {
+    rectangle: 'Rectangle',
+    ellipse: 'Ellipse',
+    diamond: 'Diamond',
+    triangle: 'Triangle',
+    roundRectangle: 'Rounded Rect',
+    parallelogram: 'Parallelogram',
+    trapezoid: 'Trapezoid',
+    pentagon: 'Pentagon',
+    hexagon: 'Hexagon',
+    octagon: 'Octagon',
+    star: 'Star',
+    cloud: 'Cloud',
+  };
+
+  const directToolLabel = directToolLabels[toolName];
+  if (directToolLabel) {
+    const button = page.getByRole('button', { name: directToolLabel }).first();
+
+    if (await button.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await button.click({ force: true, timeout: 5000 });
+      await page.waitForTimeout(100);
+      return true;
     }
+
     return false;
   }
 
-  const shapeTools = ['rectangle', 'ellipse', 'diamond', 'triangle', 'roundRectangle', 
-    'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'star', 'cloud'];
-  
-  if (shapeTools.includes(toolName)) {
-    await dismissOverlays(page);
-    
-    // Try multiple ways to find the shapes dropdown trigger
-    const shapesDropdown = page.getByTestId('shapes-dropdown-trigger')
-      .or(page.locator('button[aria-label="Shapes"]'))
-      .or(page.getByRole('button', { name: /shapes/i }))
-      .or(page.locator('button').filter({ has: page.locator('svg.lucide-shapes') }));
-    
-    const dropdownButton = shapesDropdown.first();
-    
-    if (await dropdownButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await dropdownButton.click({ force: true });
-      await page.waitForTimeout(300);
-      
-      // Try to find the menu item with case-insensitive matching
-      const toolItem = page.getByRole('menuitem', { name: new RegExp(escapeRegExp(toolName), 'i') })
-        .or(page.locator(`[role="menuitem"]`).filter({ hasText: new RegExp(escapeRegExp(toolName), 'i') }));
-      
-      if (await toolItem.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-        await toolItem.first().click({ force: true });
-        await page.waitForTimeout(200);
-        return true;
-      }
-      
-      // Fallback: try keyboard navigation
-      await page.keyboard.type(toolName.charAt(0).toUpperCase() + toolName.slice(1));
-      await page.waitForTimeout(100);
-      await page.keyboard.press('Enter');
-      await page.waitForTimeout(200);
-      return true;
+  if (toolName in shapeToolLabels) {
+    const dropdownButton = page
+      .getByRole('button', { name: 'Shapes' })
+      .first();
+
+    if (!(await dropdownButton.isVisible({ timeout: 3000 }).catch(() => false))) {
+      return false;
     }
-    return false;
+
+    await dropdownButton.click({ force: true });
+    const toolItem = page
+      .getByRole('menuitem', { name: shapeToolLabels[toolName] })
+      .first();
+    await expect(toolItem).toBeVisible({ timeout: 3000 });
+    await toolItem.click({ force: true });
+    await page.waitForTimeout(100);
+    return true;
   }
-  
-  // For select and other tools
-  await dismissOverlays(page);
-  const tool = page.locator(`[aria-label*="${toolName}" i]`)
-    .or(page.locator(`[role="button"]:has-text("${toolName}")`))
-    .or(page.locator(`[data-tool="${toolName}"]`));
-  
-  const toolElement = tool.first();
-  if (await toolElement.isVisible({ timeout: 2000 }).catch(() => false)) {
-    try {
-      await toolElement.click({ force: true, timeout: 5000 });
-      await page.waitForTimeout(100);
-      return true;
-    } catch {
-      // Try again after dismissing overlays
-      await dismissOverlays(page);
-      try {
-        await toolElement.click({ force: true, timeout: 5000 });
-        await page.waitForTimeout(100);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-  }
+
   return false;
 }
 
@@ -163,44 +219,27 @@ export async function clickOnCanvas(page: Page, x: number, y: number): Promise<v
 }
 
 export async function waitForBoard(page: Page): Promise<void> {
-  await page.goto('/');
-  await page.waitForLoadState('networkidle');
-  await dismissOverlays(page);
-  const canvas = await getCanvas(page);
-  await canvas.waitFor({ state: 'visible', timeout: 10000 });
+  await waitForMainBoard(page);
 }
 
 export async function getElementCount(page: Page): Promise<number> {
-  const canvas = await getCanvas(page);
-  const content = await canvas.innerHTML();
-  const elementPatterns = [
-    /<g[^>]*class="[^"]*element/g,
-    /<path[^>]*class="[^"]*board/g,
-    /data-plait-id/g,
-  ];
-  
-  let count = 0;
-  for (const pattern of elementPatterns) {
-    const matches = content.match(pattern);
-    if (matches) {
-      count += matches.length;
+  return page.evaluate(() => {
+    const boardRoot = document.querySelector('[data-board="true"]');
+    const count = boardRoot?.getAttribute('data-element-count');
+
+    if (count !== null && count !== undefined) {
+      const parsed = Number.parseInt(count, 10);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
     }
-  }
-  
-  if (count > 0) {
-    return count;
-  }
-  
-  const svgElements = content.match(/<svg|<path|<rect|<ellipse|<circle|<polygon|<line/g);
-  return svgElements ? svgElements.length : 0;
+
+    return document.querySelectorAll('.board-wrapper [plait-data-id]').length;
+  });
 }
 
 export async function hasElementOnCanvas(page: Page): Promise<boolean> {
-  const canvas = await getCanvas(page);
-  const content = await canvas.innerHTML();
-  return content.includes('<path') || content.includes('<rect') || 
-         content.includes('<ellipse') || content.includes('<g') ||
-         content.includes('<circle') || content.includes('<polygon');
+  return (await getElementCount(page)) > 0;
 }
 
 export async function isSelectionToolbarVisible(page: Page): Promise<boolean> {
@@ -221,6 +260,26 @@ export async function pressEscape(page: Page): Promise<void> {
 
 export async function clearSelection(page: Page): Promise<void> {
   await pressEscape(page);
+}
+
+export async function selectAllElements(page: Page): Promise<void> {
+  await dismissOverlays(page);
+  await page.keyboard.press(`${PRIMARY_MODIFIER}+A`);
+  await page.waitForTimeout(150);
+}
+
+export async function undo(page: Page): Promise<void> {
+  await page.keyboard.press(`${PRIMARY_MODIFIER}+Z`);
+  await page.waitForTimeout(150);
+}
+
+export async function redo(page: Page): Promise<void> {
+  if (PRIMARY_MODIFIER === 'Meta') {
+    await page.keyboard.press('Meta+Shift+Z');
+  } else {
+    await page.keyboard.press('Control+Shift+Z');
+  }
+  await page.waitForTimeout(150);
 }
 
 export async function zoomIn(page: Page): Promise<void> {

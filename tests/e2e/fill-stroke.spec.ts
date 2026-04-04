@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape } from './utils';
+import { waitForBoard, selectTool, drawShape, selectAllElements } from './utils';
 
 test.describe('Fill and Stroke E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,16 +16,14 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const fillButton = page.getByTestId('fill-button');
       if (await fillButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await fillButton.click();
         await page.waitForTimeout(300);
         
-        const colorSwatches = page.locator('[data-color]');
+        const colorSwatches = page.locator('[data-testid="fill-dropdown"] [data-color]');
         const count = await colorSwatches.count();
         expect(count).toBeGreaterThan(0);
       }
@@ -40,16 +38,14 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const fillButton = page.getByTestId('fill-button');
       if (await fillButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await fillButton.click();
         await page.waitForTimeout(200);
         
-        const redSwatch = page.locator('[data-color="#ef4444"]');
+        const redSwatch = page.locator('[data-testid="fill-dropdown"] [data-color="#FF1313"]');
         if (await redSwatch.isVisible({ timeout: 1000 }).catch(() => false)) {
           await redSwatch.click();
           await page.waitForTimeout(300);
@@ -72,16 +68,14 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const strokeButton = page.getByTestId('stroke-button');
       if (await strokeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await strokeButton.click();
         await page.waitForTimeout(300);
         
-        const colorSwatches = page.locator('[data-color]');
+        const colorSwatches = page.locator('[data-testid="stroke-dropdown"] [data-color]');
         const count = await colorSwatches.count();
         expect(count).toBeGreaterThan(0);
       }
@@ -96,16 +90,14 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const strokeButton = page.getByTestId('stroke-button');
       if (await strokeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await strokeButton.click();
         await page.waitForTimeout(200);
         
-        const blueSwatch = page.locator('[data-color="#3b82f6"]');
+        const blueSwatch = page.locator('[data-testid="stroke-dropdown"] [data-color="#0078D7"]');
         if (await blueSwatch.isVisible({ timeout: 1000 }).catch(() => false)) {
           await blueSwatch.click();
           await page.waitForTimeout(300);
@@ -128,9 +120,7 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const strokeButton = page.getByTestId('stroke-button');
       if (await strokeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -167,9 +157,7 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const strokeButton = page.getByTestId('stroke-button');
       if (await strokeButton.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -197,9 +185,7 @@ test.describe('Fill and Stroke E2E Tests', () => {
       await drawShape(page, 100, 100, 300, 250);
       
       await selectTool(page, 'select');
-      const canvas = page.locator('.board-wrapper');
-      await canvas.click({ position: { x: 200, y: 175 } });
-      await page.waitForTimeout(800);
+      await selectAllElements(page);
       
       const fillButton = page.getByTestId('fill-button');
       if (await fillButton.isVisible({ timeout: 3000 }).catch(() => false)) {

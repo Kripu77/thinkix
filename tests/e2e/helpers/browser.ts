@@ -1,9 +1,8 @@
 import type { BrowserContext } from '@playwright/test';
 
-export async function safeClose(context1: BrowserContext, context2: BrowserContext): Promise<void> {
+export async function safeClose(...contexts: BrowserContext[]): Promise<void> {
   try {
-    await context1.close().catch(() => {});
-    await context2.close().catch(() => {});
+    await Promise.all(contexts.map((context) => context.close().catch(() => {})));
   } catch {
     // Ignore cleanup errors
   }

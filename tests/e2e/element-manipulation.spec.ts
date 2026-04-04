@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { waitForBoard, selectTool, drawShape, clickOnCanvas, getCanvasBoundingBox, getElementCount } from './utils';
+import {
+  waitForBoard,
+  selectTool,
+  drawShape,
+  clickOnCanvas,
+  getCanvasBoundingBox,
+  getElementCount,
+  selectAllElements,
+  undo,
+} from './utils';
 
 test.describe('Element Manipulation E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -20,8 +29,7 @@ test.describe('Element Manipulation E2E Tests', () => {
       expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
-      await clickOnCanvas(page, 150, 150);
-      await page.waitForTimeout(300);
+      await selectAllElements(page);
       
       const box = await getCanvasBoundingBox(page);
       
@@ -84,8 +92,7 @@ test.describe('Element Manipulation E2E Tests', () => {
       expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
-      await clickOnCanvas(page, 150, 150);
-      await page.waitForTimeout(500);
+      await selectAllElements(page);
       
       const box = await getCanvasBoundingBox(page);
       
@@ -142,8 +149,7 @@ test.describe('Element Manipulation E2E Tests', () => {
       expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
-      await clickOnCanvas(page, 150, 150);
-      await page.waitForTimeout(300);
+      await selectAllElements(page);
       
       const box = await getCanvasBoundingBox(page);
       
@@ -153,10 +159,7 @@ test.describe('Element Manipulation E2E Tests', () => {
       await page.mouse.up();
       await page.waitForTimeout(200);
       
-      await page.keyboard.down('Control');
-      await page.keyboard.press('KeyZ');
-      await page.keyboard.up('Control');
-      await page.waitForTimeout(300);
+      await undo(page);
       
       const countAfter = await getElementCount(page);
       expect(countAfter).toBe(countBefore);
