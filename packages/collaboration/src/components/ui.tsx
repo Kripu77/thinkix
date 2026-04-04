@@ -57,9 +57,10 @@ export function NicknameDialog({ open, onOpenChange, currentName, onSave }: Nick
 
 interface ShareButtonProps {
   roomId: string;
+  dataTestId?: string;
 }
 
-export function ShareButton({ roomId }: ShareButtonProps) {
+export function ShareButton({ roomId, dataTestId }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -77,6 +78,7 @@ export function ShareButton({ roomId }: ShareButtonProps) {
           size="sm"
           onClick={handleCopy}
           className="h-5 w-5 sm:h-auto sm:w-auto p-0 sm:px-2 sm:py-1"
+          data-testid={dataTestId}
         >
           {copied ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Link2 className="h-3 w-3 sm:h-4 sm:w-4" />}
           <span className="hidden sm:inline text-xs">Share</span>

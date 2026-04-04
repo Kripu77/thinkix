@@ -24,7 +24,7 @@ import type {
   UndoState,
 } from '../types';
 
-interface YjsCollaborationContextValue {
+export interface YjsCollaborationContextValue {
   ydoc: Y.Doc | null;
   elements: BoardElement[];
   isLocalChange: boolean;
@@ -40,7 +40,7 @@ interface YjsCollaborationContextValue {
   redo: () => void;
 }
 
-const YjsCollaborationContext = createContext<YjsCollaborationContextValue | null>(null);
+export const YjsCollaborationContext = createContext<YjsCollaborationContextValue | null>(null);
 
 const LOCAL_ORIGIN = Symbol('local-origin');
 

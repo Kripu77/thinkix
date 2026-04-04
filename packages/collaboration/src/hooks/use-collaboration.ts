@@ -13,6 +13,28 @@ export interface UseCollaborationState {
 const STORAGE_KEY_ENABLED = 'thinkix:collaboration:enabled';
 const STORAGE_KEY_ROOM = 'thinkix:collaboration:roomId';
 
+function setStoredEnabled(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ENABLED, String(enabled));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function setStoredRoom(roomId: string | null): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (roomId) {
+      localStorage.setItem(STORAGE_KEY_ROOM, roomId);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_ROOM);
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export function useCollaborationState(defaultRoomId?: string): UseCollaborationState {
   const [isEnabled, setIsEnabled] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -33,32 +55,25 @@ export function useCollaborationState(defaultRoomId?: string): UseCollaborationS
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_ENABLED, String(isEnabled));
-    } catch {
-      // Ignore storage errors
-    }
+    setStoredEnabled(isEnabled);
   }, [isEnabled]);
 
   useEffect(() => {
-    try {
-      if (roomId) {
-        localStorage.setItem(STORAGE_KEY_ROOM, roomId);
-      } else {
-        localStorage.removeItem(STORAGE_KEY_ROOM);
-      }
-    } catch {
-      // Ignore storage errors
-    }
+    setStoredRoom(roomId);
   }, [roomId]);
 
   const enableCollaboration = useCallback((room: string) => {
     setRoomId(room);
     setIsEnabled(true);
+    setStoredRoom(room);
+    setStoredEnabled(true);
   }, []);
 
   const disableCollaboration = useCallback(() => {
+    setRoomId(null);
     setIsEnabled(false);
+    setStoredRoom(null);
+    setStoredEnabled(false);
   }, []);
 
   const toggleCollaboration = useCallback(() => {

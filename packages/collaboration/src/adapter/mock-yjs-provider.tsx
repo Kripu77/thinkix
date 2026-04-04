@@ -21,6 +21,7 @@ import type {
   UserPresence,
 } from '../types';
 import { CollaborationRoomContext, type CollaborationRoomContextValue } from './collaboration-context';
+import { YjsCollaborationContext } from './yjs-provider';
 
 interface MockYjsContextValue {
   ydoc: Y.Doc | null;
@@ -53,6 +54,8 @@ interface MockYjsProviderProps {
   children: ReactNode;
   user: CollaborationUser;
   config?: AdapterConfig;
+  roomId?: string;
+  initialElements?: BoardElement[];
 }
 
 class MockBroadcastSync {
@@ -104,11 +107,13 @@ export function MockYjsProvider({
   children,
   user,
   config,
+  roomId: providedRoomId,
+  initialElements = [],
 }: MockYjsProviderProps) {
-  const [roomId] = useState(createMockRoomId);
+  const [roomId] = useState(() => providedRoomId ?? createMockRoomId());
   const [ydoc] = useState(() => new Y.Doc());
   const [yelements] = useState(() => ydoc.getMap<BoardElement>('elements'));
-  const [elements, setElementsState] = useState<BoardElement[]>([]);
+  const [elements, setElementsState] = useState<BoardElement[]>(initialElements);
   const [isLocalChange, setIsLocalChange] = useState(false);
   const [undoState, setUndoState] = useState<UndoState>({
     canUndo: false,
@@ -116,8 +121,24 @@ export function MockYjsProvider({
     undoStackSize: 0,
     redoStackSize: 0,
   });
+  const [syncState, setSyncState] = useState<SyncState>(() => ({
+    isConnected: typeof navigator === 'undefined' ? true : navigator.onLine,
+    isSyncing: false,
+    lastSyncedAt: initialElements.length > 0 ? Date.now() : 0,
+  }));
   
   const syncRef = useRef<MockBroadcastSync | null>(null);
+
+  useEffect(() => {
+    if (initialElements.length === 0) return;
+
+    ydoc.transact(() => {
+      yelements.clear();
+      initialElements.forEach((element) => {
+        yelements.set(element.id, element);
+      });
+    }, LOCAL_ORIGIN);
+  }, [initialElements, ydoc, yelements]);
 
   useEffect(() => {
     syncRef.current = new MockBroadcastSync(roomId);
@@ -145,6 +166,32 @@ export function MockYjsProvider({
       syncRef.current?.destroy();
     };
   }, [roomId]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setSyncState({
+        isConnected: true,
+        isSyncing: false,
+        lastSyncedAt: Date.now(),
+      });
+    };
+
+    const handleOffline = () => {
+      setSyncState((current) => ({
+        isConnected: false,
+        isSyncing: current.isConnected,
+        lastSyncedAt: current.lastSyncedAt,
+      }));
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const undoManager = useMemo(() => {
     return new Y.UndoManager(yelements, {
@@ -186,6 +233,10 @@ export function MockYjsProvider({
     }, LOCAL_ORIGIN);
 
     setElementsState(newElements);
+    setSyncState((current) => ({
+      ...current,
+      lastSyncedAt: Date.now(),
+    }));
     
     if (syncRef.current) {
       syncRef.current.broadcast(newElements);
@@ -225,19 +276,12 @@ export function MockYjsProvider({
      }
    }, [undoManager, updateElementsFromYElements]);
 
-   const redo = useCallback(() => {
+  const redo = useCallback(() => {
      if (undoManager.redoStack.length > 0) {
        undoManager.redo();
        updateElementsFromYElements();
      }
    }, [undoManager, updateElementsFromYElements]);
-
-  const syncState: SyncState = useMemo(() => ({
-    isConnected: true,
-    isSyncing: false,
-    connectionStatus: 'connected' as ConnectionStatus,
-    lastSyncedAt: 0,
-  }), []);
 
   const value = useMemo(() => ({
     ydoc,
@@ -259,7 +303,11 @@ export function MockYjsProvider({
     user,
     others: [] as UserPresence[],
     userCount: 1,
-    connectionStatus: 'connected' as ConnectionStatus,
+    connectionStatus: syncState.isConnected
+      ? ('connected' as ConnectionStatus)
+      : syncState.isSyncing
+        ? ('reconnecting' as ConnectionStatus)
+        : ('disconnected' as ConnectionStatus),
     syncState,
     updatePresence: () => {},
     elements,
@@ -273,19 +321,11 @@ export function MockYjsProvider({
 
   return (
     <MockYjsContext.Provider value={value}>
-      <CollaborationRoomContext.Provider value={roomContextValue}>
-        {children}
-      </CollaborationRoomContext.Provider>
+      <YjsCollaborationContext.Provider value={value}>
+        <CollaborationRoomContext.Provider value={roomContextValue}>
+          {children}
+        </CollaborationRoomContext.Provider>
+      </YjsCollaborationContext.Provider>
     </MockYjsContext.Provider>
   );
-}
-
-interface MockRoomProps {
-  children: ReactNode;
-  roomId: string;
-  initialElements?: BoardElement[];
-}
-
-export function MockRoom({ children }: MockRoomProps) {
-  return <>{children}</>;
 }
