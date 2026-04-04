@@ -179,7 +179,10 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
 
   const directToolLabel = directToolLabels[toolName];
   if (directToolLabel) {
-    const button = page.getByRole('button', { name: directToolLabel }).first();
+    const button = page
+      .locator(`button[aria-label="${directToolLabel}"]:visible`)
+      .first()
+      .or(page.getByRole('button', { name: directToolLabel }).first());
 
     if (await button.isVisible({ timeout: 3000 }).catch(() => false)) {
       await button.click({ force: true, timeout: 5000 });
