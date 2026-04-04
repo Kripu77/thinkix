@@ -9,71 +9,54 @@ vi.mock('@ai-sdk/anthropic', () => ({
 }));
 
 describe('ai/core', () => {
-  describe('MODELS', () => {
-    it('should have openai models defined', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      expect(MODELS.openai).toBeDefined();
-      expect(MODELS.openai.length).toBeGreaterThan(0);
+  describe('PROVIDERS', () => {
+    it('should have providers defined', async () => {
+      const { PROVIDERS } = await import('@thinkix/ai');
+      expect(PROVIDERS).toBeDefined();
+      expect(PROVIDERS.length).toBe(2);
     });
 
-    it('should have anthropic models defined', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      expect(MODELS.anthropic).toBeDefined();
-      expect(MODELS.anthropic.length).toBeGreaterThan(0);
-    });
+    it('should have correct provider structure', async () => {
+      const { PROVIDERS } = await import('@thinkix/ai');
 
-    it('should have correct model structure for openai', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      const openaiModels = MODELS.openai;
-
-      openaiModels.forEach((model) => {
-        expect(model).toHaveProperty('id');
-        expect(model).toHaveProperty('provider');
-        expect(model).toHaveProperty('name');
-        expect(model).toHaveProperty('model');
-        expect(model.provider).toBe('openai');
+      PROVIDERS.forEach((provider) => {
+        expect(provider).toHaveProperty('id');
+        expect(provider).toHaveProperty('name');
+        expect(provider).toHaveProperty('defaultModel');
       });
     });
 
-    it('should have correct model structure for anthropic', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      const anthropicModels = MODELS.anthropic;
-
-      anthropicModels.forEach((model) => {
-        expect(model).toHaveProperty('id');
-        expect(model).toHaveProperty('provider');
-        expect(model).toHaveProperty('name');
-        expect(model).toHaveProperty('model');
-        expect(model.provider).toBe('anthropic');
-      });
+    it('should have openai provider with correct default model', async () => {
+      const { PROVIDERS } = await import('@thinkix/ai');
+      const openai = PROVIDERS.find((p) => p.id === 'openai');
+      expect(openai).toBeDefined();
+      expect(openai?.name).toBe('OpenAI');
+      expect(openai?.defaultModel).toBe('gpt-4o');
     });
 
-    it('should have gpt-4o model', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      const gpt4o = MODELS.openai.find((m) => m.id === 'gpt-4o');
-      expect(gpt4o).toBeDefined();
-      expect(gpt4o?.model).toBe('gpt-4o');
+    it('should have anthropic provider with correct default model', async () => {
+      const { PROVIDERS } = await import('@thinkix/ai');
+      const anthropic = PROVIDERS.find((p) => p.id === 'anthropic');
+      expect(anthropic).toBeDefined();
+      expect(anthropic?.name).toBe('Anthropic');
+      expect(anthropic?.defaultModel).toBe('claude-opus-4-6');
+    });
+  });
+
+  describe('getDefaultModel', () => {
+    it('should return gpt-4o for openai', async () => {
+      const { getDefaultModel } = await import('@thinkix/ai');
+      expect(getDefaultModel('openai')).toBe('gpt-4o');
     });
 
-    it('should have gpt-4o-mini model', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      const gpt4oMini = MODELS.openai.find((m) => m.id === 'gpt-4o-mini');
-      expect(gpt4oMini).toBeDefined();
-      expect(gpt4oMini?.model).toBe('gpt-4o-mini');
+    it('should return claude-opus-4-6 for anthropic', async () => {
+      const { getDefaultModel } = await import('@thinkix/ai');
+      expect(getDefaultModel('anthropic')).toBe('claude-opus-4-6');
     });
 
-    it('should have claude-3-5-sonnet model', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      const claude = MODELS.anthropic.find((m) => m.id === 'claude-3-5-sonnet');
-      expect(claude).toBeDefined();
-      expect(claude?.model).toBe('claude-3-5-sonnet-20241022');
-    });
-
-    it('should have claude-3-5-haiku model', async () => {
-      const { MODELS } = await import('@thinkix/ai');
-      const claude = MODELS.anthropic.find((m) => m.id === 'claude-3-5-haiku');
-      expect(claude).toBeDefined();
-      expect(claude?.model).toBe('claude-3-5-haiku-20250107');
+    it('should return gpt-4o as fallback for unknown provider', async () => {
+      const { getDefaultModel } = await import('@thinkix/ai');
+      expect(getDefaultModel('unknown' as 'openai')).toBe('gpt-4o');
     });
   });
 
@@ -111,10 +94,110 @@ describe('ai/core', () => {
       expect(vi.mocked(createAnthropic)).toHaveBeenCalledWith({ apiKey: 'my-api-key' });
     });
 
+    it('should normalize z.ai anthropic base urls', async () => {
+      const { createAIProvider } = await import('@thinkix/ai');
+      const { createAnthropic } = await import('@ai-sdk/anthropic');
+
+      createAIProvider('anthropic', 'my-api-key', 'https://api.z.ai/api/anthropic');
+      expect(vi.mocked(createAnthropic)).toHaveBeenCalledWith({
+        apiKey: 'my-api-key',
+        baseURL: 'https://api.z.ai/api/anthropic/v1/',
+      });
+    });
+
     it('should handle empty api key', async () => {
       const { createAIProvider } = await import('@thinkix/ai');
       const provider = createAIProvider('openai', '');
       expect(provider).toBeDefined();
+    });
+  });
+
+  describe('env resolution', () => {
+    it('prefers explicit provider over env provider', async () => {
+      const { resolveAIProvider } = await import('@thinkix/ai');
+      expect(
+        resolveAIProvider('anthropic', {
+          AI_PROVIDER: 'openai',
+          OPENAI_API_KEY: 'openai-key',
+        }),
+      ).toBe('anthropic');
+    });
+
+    it('uses AI_PROVIDER when no explicit provider is passed', async () => {
+      const { resolveAIProvider } = await import('@thinkix/ai');
+      expect(
+        resolveAIProvider(undefined, {
+          AI_PROVIDER: 'anthropic',
+          ANTHROPIC_API_KEY: 'anthropic-key',
+        }),
+      ).toBe('anthropic');
+    });
+
+    it('falls back to the only configured provider key when AI_PROVIDER is not set', async () => {
+      const { resolveAIProvider } = await import('@thinkix/ai');
+      expect(
+        resolveAIProvider(undefined, {
+          ANTHROPIC_API_KEY: 'anthropic-key',
+        }),
+      ).toBe('anthropic');
+    });
+
+    it('prefers explicit model over AI_MODEL', async () => {
+      const { resolveAIModel } = await import('@thinkix/ai');
+      expect(
+        resolveAIModel('openai', 'gpt-5', {
+          AI_MODEL: 'gpt-4o',
+        }),
+      ).toBe('gpt-5');
+    });
+
+    it('uses AI_MODEL when no explicit model is passed', async () => {
+      const { resolveAIModel } = await import('@thinkix/ai');
+      expect(
+        resolveAIModel('anthropic', undefined, {
+          AI_MODEL: 'claude-sonnet-4-20250514',
+        }),
+      ).toBe('claude-sonnet-4-20250514');
+    });
+
+    it('prefers provider-specific keys over AI_API_KEY', async () => {
+      const { resolveAIKey } = await import('@thinkix/ai');
+      expect(
+        resolveAIKey('openai', undefined, {
+          AI_API_KEY: 'shared-key',
+          OPENAI_API_KEY: 'openai-key',
+        }),
+      ).toBe('openai-key');
+    });
+
+    it('uses AI_API_KEY as a generic fallback', async () => {
+      const { resolveAIKey } = await import('@thinkix/ai');
+      expect(
+        resolveAIKey('anthropic', undefined, {
+          AI_API_KEY: 'shared-key',
+        }),
+      ).toBe('shared-key');
+    });
+
+    it('builds a safe client config without exposing keys', async () => {
+      const { getClientAIConfig } = await import('@thinkix/ai');
+      expect(
+        getClientAIConfig({
+          AI_PROVIDER: 'anthropic',
+          AI_MODEL: 'claude-sonnet-4-20250514',
+          ANTHROPIC_API_KEY: 'secret-key',
+        }),
+      ).toEqual({
+        provider: 'anthropic',
+        model: 'claude-sonnet-4-20250514',
+        baseURL: undefined,
+        hasDefaultApiKey: true,
+        availableProviders: ['anthropic'],
+        providerApiKeys: {
+          openai: false,
+          anthropic: true,
+        },
+      });
     });
   });
 
@@ -124,12 +207,7 @@ describe('ai/core', () => {
       expect(mod).toBeDefined();
     });
 
-    it('should export AIModel type', async () => {
-      const mod = await import('@thinkix/ai');
-      expect(mod).toBeDefined();
-    });
-
-    it('should export UserSettings type', async () => {
+    it('should export ProviderConfig type', async () => {
       const mod = await import('@thinkix/ai');
       expect(mod).toBeDefined();
     });

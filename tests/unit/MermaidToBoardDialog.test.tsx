@@ -33,6 +33,7 @@ vi.mock('@plait/core', async () => {
 });
 
 vi.mock('@/features/board/utils', () => ({
+  focusAndRevealElements: vi.fn(),
   insertElementsSafely: vi.fn(),
 }));
 
@@ -78,7 +79,13 @@ vi.mock('@thinkix/ui', () => ({
     return <div data-value={value} data-testid="select">{children}</div>;
   },
   SelectTrigger: ({ children, className }: { children: ReactNode; className?: string }) => (
-    <button role="combobox" className={className} data-testid="select-trigger">
+    <button
+      aria-controls="select-content"
+      aria-expanded="true"
+      className={className}
+      data-testid="select-trigger"
+      role="combobox"
+    >
       {children}
     </button>
   ),
@@ -86,10 +93,11 @@ vi.mock('@thinkix/ui', () => ({
     <span data-testid="select-value">{placeholder || 'Select example'}</span>
   ),
   SelectContent: ({ children }: { children: ReactNode }) => (
-    <div data-testid="select-content">{children}</div>
+    <div data-testid="select-content" id="select-content">{children}</div>
   ),
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
     <div
+      aria-selected={currentSelectValue === value}
       role="option"
       data-value={value}
       data-testid="select-item"

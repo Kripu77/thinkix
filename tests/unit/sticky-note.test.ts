@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PlaitBoard, PlaitElement } from '@plait/core';
 
 const MOCK_STICKY_NOTE_POINTER = 'sticky-note';
+const MOCK_DEFAULT_STICKY_COLOR = 'yellow';
+const MOCK_STICKY_COLORS = {
+  yellow: { fill: '#FFEAA7', stroke: '#F1C40F' },
+  blue: { fill: '#AED6F1', stroke: '#3498DB' },
+  green: { fill: '#ABEBC6', stroke: '#27AE60' },
+  pink: { fill: '#F5B7B1', stroke: '#E74C3C' },
+  purple: { fill: '#D7BDE2', stroke: '#9B59B6' },
+  orange: { fill: '#FAD7A0', stroke: '#E67E22' },
+} as const;
 
 vi.mock('@plait/core', async () => {
   const actual = await vi.importActual('@plait/core');
@@ -44,6 +53,9 @@ vi.mock('@plait/draw', () => ({
 
 vi.mock('@/shared/constants', () => ({
   STICKY_NOTE_POINTER: MOCK_STICKY_NOTE_POINTER,
+  DEFAULT_STICKY_COLOR: MOCK_DEFAULT_STICKY_COLOR,
+  STICKY_COLORS: MOCK_STICKY_COLORS,
+  STICKY_SUBTYPE: 'stickyNote',
   CUSTOM_EVENTS: {
     TOOL_CHANGE: 'thinkix:toolchange',
   },
@@ -122,12 +134,16 @@ describe('with-sticky-note', () => {
 
     it('should export correct fill color', async () => {
       const { STICKY_NOTE_FILL } = await import('@/features/board/plugins/with-sticky-note');
-      expect(STICKY_NOTE_FILL).toBe('#FFEAA7');
+      expect(STICKY_NOTE_FILL).toBe(
+        MOCK_STICKY_COLORS[MOCK_DEFAULT_STICKY_COLOR].fill,
+      );
     });
 
     it('should export correct stroke color', async () => {
       const { STICKY_NOTE_STROKE } = await import('@/features/board/plugins/with-sticky-note');
-      expect(STICKY_NOTE_STROKE).toBe('#F1C40F');
+      expect(STICKY_NOTE_STROKE).toBe(
+        MOCK_STICKY_COLORS[MOCK_DEFAULT_STICKY_COLOR].stroke,
+      );
     });
 
     it('should export correct width', async () => {
@@ -138,6 +154,30 @@ describe('with-sticky-note', () => {
     it('should export correct height', async () => {
       const { STICKY_NOTE_HEIGHT } = await import('@/features/board/plugins/with-sticky-note');
       expect(STICKY_NOTE_HEIGHT).toBe(160);
+    });
+  });
+
+  describe('sticky sizing', () => {
+    it('grows height for multi-line sticky text', async () => {
+      const { estimateStickySize } = await import('@/features/board/utils/sticky-note');
+
+      const singleLine = estimateStickySize('Short note');
+      const multiLine = estimateStickySize(
+        'Line one\nLine two\nLine three\nLine four\nLine five\nLine six',
+      );
+
+      expect(multiLine.height).toBeGreaterThan(singleLine.height);
+    });
+
+    it('grows width for longer sticky text', async () => {
+      const { estimateStickySize } = await import('@/features/board/utils/sticky-note');
+
+      const short = estimateStickySize('Short');
+      const long = estimateStickySize(
+        'This sticky should reserve more width for a much longer line of text',
+      );
+
+      expect(long.width).toBeGreaterThan(short.width);
     });
   });
 
@@ -201,6 +241,30 @@ describe('with-sticky-note', () => {
       await board.pointerUp!(pointerUpEvent);
       
       expect(Transforms.insertNode).toHaveBeenCalled();
+    });
+
+    it('should tag created geometry with sticky note subtype', async () => {
+      const { withStickyNote } = await import('@/features/board/plugins/with-sticky-note');
+      const { Transforms } = await import('@plait/core');
+      const board = createMockBoard();
+
+      withStickyNote(board);
+
+      const pointerDownEvent = new PointerEvent('pointerdown', { clientX: 100, clientY: 100 });
+      const pointerUpEvent = new PointerEvent('pointerup', { clientX: 200, clientY: 200 });
+
+      await board.pointerDown!(pointerDownEvent);
+      await board.pointerUp!(pointerUpEvent);
+
+      expect(Transforms.insertNode).toHaveBeenCalledWith(
+        board,
+        expect.objectContaining({
+          subtype: 'stickyNote',
+          fill: MOCK_STICKY_COLORS[MOCK_DEFAULT_STICKY_COLOR].fill,
+          strokeColor: MOCK_STICKY_COLORS[MOCK_DEFAULT_STICKY_COLOR].stroke,
+        }),
+        [0],
+      );
     });
 
     it('should update pointer type to selection after creation', async () => {

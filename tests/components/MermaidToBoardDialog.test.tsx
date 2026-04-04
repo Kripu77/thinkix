@@ -32,6 +32,7 @@ vi.mock('@thinkix/mermaid-to-thinkix', () => ({
 }));
 
 vi.mock('@/features/board/utils', () => ({
+  focusAndRevealElements: vi.fn(),
   insertElementsSafely: vi.fn(),
 }));
 
@@ -58,16 +59,22 @@ vi.mock('@thinkix/ui', () => ({
     return <div data-testid="select" data-value={value}>{children}</div>;
   },
   SelectTrigger: ({ children }: { children: React.ReactNode }) => (
-    <button role="combobox" data-testid="select-trigger">
+    <button
+      aria-controls="select-content"
+      aria-expanded="true"
+      data-testid="select-trigger"
+      role="combobox"
+    >
       {children}
     </button>
   ),
   SelectValue: () => <span data-testid="select-value">{currentSelectValue === 'simple' ? 'Simple' : currentSelectValue === 'link' ? 'With Link Labels' : currentSelectValue === 'complex' ? 'Complex' : currentSelectValue === 'sequence' ? 'Sequence' : currentSelectValue === 'class' ? 'Class' : currentSelectValue}</span>,
   SelectContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="select-content">{children}</div>
+    <div data-testid="select-content" id="select-content">{children}</div>
   ),
   SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => (
     <div
+      aria-selected={currentSelectValue === value}
       role="option"
       data-value={value}
       onClick={() => onValueChangeCallback?.(value)}

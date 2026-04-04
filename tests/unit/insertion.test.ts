@@ -2,9 +2,27 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PlaitBoard, PlaitElement } from '@plait/core';
 
 const mockGetBoundingRectangle = vi.fn();
+const mockGetRectangleByElements = vi.fn();
+const mockGetViewportOrigination = vi.fn(() => [0, 0]);
+const mockUpdateViewport = vi.fn();
 
 vi.mock('@plait/core', () => ({
   getBoundingRectangleByElements: (...args: unknown[]) => mockGetBoundingRectangle(...args),
+  getRectangleByElements: (...args: unknown[]) => mockGetRectangleByElements(...args),
+  getViewportOrigination: (...args: unknown[]) => mockGetViewportOrigination(...args),
+  BoardTransforms: {
+    updateViewport: (...args: unknown[]) => mockUpdateViewport(...args),
+  },
+  PlaitBoard: {
+    getBoardContainer: vi.fn(() => ({
+      getBoundingClientRect: () => ({ width: 800, height: 600 }),
+    })),
+    getElementHost: vi.fn(),
+  },
+  PlaitElement: {
+    getContainerG: vi.fn(() => null),
+    hasMounted: vi.fn(() => false),
+  },
   WritableClipboardOperationType: {
     copy: 'copy',
     cut: 'cut',
@@ -24,10 +42,15 @@ describe('insertion utility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetBoundingRectangle.mockReset();
+    mockGetRectangleByElements.mockReset();
+    mockGetViewportOrigination.mockReset();
+    mockGetViewportOrigination.mockReturnValue([0, 0]);
+    mockUpdateViewport.mockReset();
   });
 
   afterEach(() => {
     mockGetBoundingRectangle.mockReset();
+    mockGetRectangleByElements.mockReset();
   });
 
   describe('getSafeInsertPosition', () => {
@@ -159,6 +182,48 @@ describe('insertion utility', () => {
         [500, 200],
         'paste'
       );
+    });
+  });
+
+  describe('calculateFocusedViewport', () => {
+    it('zooms out when bounds exceed the viewport', async () => {
+      const { calculateFocusedViewport } = await import('@/features/board/utils/insertion');
+
+      const result = calculateFocusedViewport(
+        { x: 100, y: 200, width: 1200, height: 800 },
+        { width: 800, height: 600 },
+        1,
+      );
+
+      expect(result).not.toBeNull();
+      expect(result!.zoom).toBeLessThan(1);
+      expect(result!.origination[0]).toBeGreaterThan(0);
+      expect(result!.origination[1]).toBeGreaterThan(0);
+    });
+
+    it('keeps the current zoom when the inserted diagram already fits', async () => {
+      const { calculateFocusedViewport } = await import('@/features/board/utils/insertion');
+
+      const result = calculateFocusedViewport(
+        { x: 40, y: 60, width: 240, height: 180 },
+        { width: 1200, height: 800 },
+        0.8,
+      );
+
+      expect(result).not.toBeNull();
+      expect(result!.zoom).toBe(0.8);
+    });
+
+    it('returns null for invalid bounds', async () => {
+      const { calculateFocusedViewport } = await import('@/features/board/utils/insertion');
+
+      const result = calculateFocusedViewport(
+        { x: 0, y: 0, width: 0, height: 180 },
+        { width: 1200, height: 800 },
+        1,
+      );
+
+      expect(result).toBeNull();
     });
   });
 });
