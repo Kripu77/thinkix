@@ -200,24 +200,31 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
 
   return (
     <>
-      <div className={cn(THEME.collab.container, 'hidden lg:flex')}>
+      <div
+        className={cn(THEME.collab.container, 'hidden lg:flex')}
+        data-testid="collaboration-status-bar"
+      >
         {isConnected ? (
           <>
             <div className={cn(THEME.collab.statusDot, THEME.collab.statusConnected)} />
-            <span className={THEME.collab.text}>
+            <span className={THEME.collab.text} data-testid="collaboration-status-text">
               {userCount === 1 ? 'Just you' : `${userCount} online`}
             </span>
-            <ShareButton roomId={roomId} />
+            <ShareButton dataTestId="collaboration-share-button" roomId={roomId} />
           </>
         ) : isReconnecting ? (
           <>
             <div className={THEME.collab.statusReconnecting} />
-            <span className={THEME.collab.text}>Reconnecting...</span>
+            <span className={THEME.collab.text} data-testid="collaboration-status-text">
+              Reconnecting...
+            </span>
           </>
         ) : (
           <>
             <div className={cn(THEME.collab.statusDot, THEME.collab.statusDisconnected)} />
-            <span className={THEME.collab.text}>Disconnected</span>
+            <span className={THEME.collab.text} data-testid="collaboration-status-text">
+              Disconnected
+            </span>
             <Button
               variant="ghost"
               size="sm"
@@ -234,6 +241,7 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
           size="sm"
           onClick={() => setNicknameDialogOpen(true)}
           className="h-6 w-6 p-0 overflow-hidden"
+          data-testid="collaboration-nickname-button"
         >
           <UserAvatar avatarDataUrl={user.avatar} size={16} />
         </Button>
@@ -243,12 +251,16 @@ export function CollaborationStatusBar({ roomId, onDisableCollaboration }: Colla
           size="sm"
           onClick={onDisableCollaboration}
           className={THEME.collab.closeButton}
+          data-testid="collaboration-leave-button"
         >
           <X className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className={cn(THEME.collab.container, 'lg:hidden')}>
+      <div
+        className={cn(THEME.collab.container, 'lg:hidden')}
+        data-testid="collaboration-status-bar-mobile"
+      >
         {isConnected ? (
           <>
             <div className={cn(THEME.collab.statusDot, THEME.collab.statusConnected)} />

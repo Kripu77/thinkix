@@ -16,6 +16,7 @@ export function CollaborateButton({ onClick }: CollaborateButtonProps) {
       size="sm"
       onClick={onClick}
       className={cn(THEME.button.secondary, 'hidden lg:flex')}
+      data-testid="collaborate-button"
     >
       <Users className="h-4 w-4" />
       <span>Collaborate</span>

@@ -211,15 +211,29 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
             <Menu className="h-5 w-5 max-[1024px]:h-4 max-[1024px]:w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className={THEME.dropdown.content} side="bottom" sideOffset={4}>
+        <DropdownMenuContent
+          align="start"
+          className={THEME.dropdown.content}
+          data-testid="app-menu-content"
+          side="bottom"
+          sideOffset={4}
+        >
           <DropdownMenuLabelItem>File</DropdownMenuLabelItem>
 
-          <DropdownMenuItem onSelect={handleOpenFile} disabled={isLoading}>
+          <DropdownMenuItem
+            data-testid="app-menu-open-file"
+            disabled={isLoading}
+            onSelect={handleOpenFile}
+          >
             <FolderOpen className={THEME.dropdown.icon} />
             Open File
             <DropdownMenuShortcut>⌘O</DropdownMenuShortcut>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleSaveFile} disabled={isSaving}>
+          <DropdownMenuItem
+            data-testid="app-menu-save-file"
+            disabled={isSaving}
+            onSelect={handleSaveFile}
+          >
             <Save className={THEME.dropdown.icon} />
             Save File
             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
@@ -230,22 +244,38 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
           <DropdownMenuLabelItem>Export</DropdownMenuLabelItem>
 
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger data-testid="app-menu-export-trigger">
               <FileImage className={THEME.dropdown.icon} />
               Export Image
               <ChevronRight className="h-4 w-4 ml-auto" />
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className={THEME.dropdown.content}>
-              <DropdownMenuItem onSelect={handleExportSvg} disabled={isExporting}>
+              <DropdownMenuItem
+                data-testid="app-menu-export-svg"
+                disabled={isExporting}
+                onSelect={handleExportSvg}
+              >
                 SVG
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleExportPng(true)} disabled={isExporting}>
+              <DropdownMenuItem
+                data-testid="app-menu-export-png-transparent"
+                disabled={isExporting}
+                onSelect={() => handleExportPng(true)}
+              >
                 PNG (Transparent)
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleExportPng(false)} disabled={isExporting}>
+              <DropdownMenuItem
+                data-testid="app-menu-export-png-white"
+                disabled={isExporting}
+                onSelect={() => handleExportPng(false)}
+              >
                 PNG (White BG)
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleExportJpg} disabled={isExporting}>
+              <DropdownMenuItem
+                data-testid="app-menu-export-jpg"
+                disabled={isExporting}
+                onSelect={handleExportJpg}
+              >
                 JPG
               </DropdownMenuItem>
             </DropdownMenuSubContent>
@@ -258,6 +288,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
           <DropdownMenuItem
             onSelect={() => { setIsOpen(false); setIsMarkdownDialogOpen(true); }}
             className={THEME.dropdown.item}
+            data-testid="app-menu-import-markdown"
           >
             <MindMapIcon className={THEME.dropdown.icon} />
             Markdown to Mind Map
@@ -265,6 +296,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
           <DropdownMenuItem
             onSelect={() => { setIsOpen(false); setIsMermaidDialogOpen(true); }}
             className={THEME.dropdown.item}
+            data-testid="app-menu-import-mermaid"
           >
             <MermaidIcon className={THEME.dropdown.icon} />
             Mermaid to Board
@@ -275,6 +307,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
           <DropdownMenuItem
             onSelect={handleClearBoard}
             className={THEME.dropdown.itemDestructive}
+            data-testid="app-menu-clear-board"
           >
             <Trash2 className={THEME.dropdown.icon} />
             Clear Board
@@ -285,6 +318,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
               <DropdownMenuSeparator className="lg:hidden" />
               <DropdownMenuItem
                 className="lg:hidden"
+                data-testid="app-menu-start-collaboration"
                 onSelect={() => { setIsOpen(false); onEnableCollaboration(); }}
               >
                 <Users className={THEME.dropdown.icon} />
@@ -304,6 +338,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
                 </div>
                 <DropdownMenuItem
                   className="lg:hidden"
+                  data-testid="app-menu-share-board"
                   onSelect={() => { setIsOpen(false); collaboration.onShare(); }}
                 >
                   <Link2 className={THEME.dropdown.icon} />
@@ -311,6 +346,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="lg:hidden"
+                  data-testid="app-menu-change-nickname"
                   onSelect={() => { setIsOpen(false); setIsNicknameDialogOpen(true); }}
                 >
                   <UserCircle2 className={THEME.dropdown.icon} />
@@ -318,6 +354,7 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className={cn(THEME.dropdown.itemDestructive, 'lg:hidden')}
+                  data-testid="app-menu-leave-collaboration"
                   onSelect={() => { setIsOpen(false); collaboration.onLeave(); }}
                 >
                   <Users className={THEME.dropdown.icon} />
@@ -340,12 +377,14 @@ export function AppMenu({ boardName, onEnableCollaboration, collaboration }: App
           </DialogHeader>
           <DialogFooter>
             <Button
+              data-testid="clear-board-cancel"
               variant="outline"
               onClick={() => setIsClearDialogOpen(false)}
             >
               Cancel
             </Button>
             <Button
+              data-testid="clear-board-confirm"
               variant="destructive"
               onClick={confirmClearBoard}
             >

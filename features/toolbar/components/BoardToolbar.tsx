@@ -153,6 +153,7 @@ export function BoardToolbar() {
               {SHAPE_TOOL_CONFIGS.map((tool) => (
                 <DropdownMenuItem
                   key={tool.id}
+                  data-testid={`shape-tool-${tool.id}`}
                   onClick={() => {
                     handleToolChange(tool.id);
                     setIsShapeMenuOpen(false);
