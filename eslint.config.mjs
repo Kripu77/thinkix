@@ -11,9 +11,13 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "components/**",
+    "features/agent/tools/dsl/parser.js",
     "next-env.d.ts",
     "scratch/**",
-    "coverage/**"
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**"
   ]),
   {
     files: ["features/board/plugins/add-image-renderer.tsx"],

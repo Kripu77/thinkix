@@ -16,7 +16,7 @@ export default defineConfig({
     ['github'],
   ],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://127.0.0.1:3100',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -28,9 +28,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'bun run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    command: 'bun run build && PORT=3100 bun run start',
+    url: 'http://127.0.0.1:3100',
+    reuseExistingServer: false,
+    timeout: 300 * 1000,
   },
 });

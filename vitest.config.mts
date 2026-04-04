@@ -21,6 +21,7 @@ export default defineConfig({
     ],
     exclude: [
       'node_modules/**',
+      '**/node_modules/**',
       'scratch/**',
       '**/scratch/**',
       '.next/**',
@@ -57,7 +58,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './'),
       '@thinkix/ui': path.resolve(__dirname, './packages/ui/src'),
-      '@thinkix/ai': path.resolve(__dirname, './packages/ai/lib'),
+      '@thinkix/ai': path.resolve(__dirname, './packages/ai/src'),
+      '@thinkix/ai/tool-schemas': path.resolve(__dirname, './packages/ai/src/tool-schemas'),
+      '@thinkix/ai/prompts': path.resolve(__dirname, './packages/ai/prompts'),
       '@thinkix/plait-utils': path.resolve(__dirname, './packages/plait-utils/lib'),
       '@thinkix/storage': path.resolve(__dirname, './packages/storage/lib'),
       '@thinkix/shared': path.resolve(__dirname, './packages/shared/src'),

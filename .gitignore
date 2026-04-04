@@ -18,3 +18,4 @@ playwright/.cache/
 .env.local
 .claude/
 redesign.plan.md
+components/*

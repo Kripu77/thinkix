@@ -28,7 +28,10 @@
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
       "@thinkix/ui": ["./packages/ui/src"],
-      "@thinkix/ai": ["./packages/ai/lib"],
+      "@thinkix/ai": ["./packages/ai/src"],
+      "@thinkix/ai/tool-schemas": ["./packages/ai/src/tool-schemas"],
+      "@thinkix/ai/prompts": ["./packages/ai/prompts/system"],
+      "@thinkix/ai/tools": ["./packages/ai/src/tools"],
       "@thinkix/plait-utils": ["./packages/plait-utils/lib"],
       "@thinkix/storage": ["./packages/storage/lib"],
       "@thinkix/shared": ["./packages/shared/src"],
@@ -52,6 +55,8 @@
   ],
   "exclude": [
     "node_modules",
+    "components",
+    "components/**",
     "scratch",
     "tests",
     "coverage"
