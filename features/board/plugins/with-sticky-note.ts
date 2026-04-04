@@ -7,12 +7,12 @@ import {
   BoardTransforms,
   PlaitPointerType,
 } from '@plait/core';
-import { createGeometryElement, BasicShapes } from '@plait/draw';
-import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER } from '@/shared/constants';
+import { STICKY_NOTE_POINTER as _STICKY_NOTE_POINTER, DEFAULT_STICKY_COLOR, STICKY_COLORS } from '@/shared/constants';
+import { createStickyNoteElement } from '../utils/sticky-note';
 
 export const STICKY_NOTE_POINTER = _STICKY_NOTE_POINTER;
-export const STICKY_NOTE_FILL = '#FFEAA7';
-export const STICKY_NOTE_STROKE = '#F1C40F';
+export const STICKY_NOTE_FILL = STICKY_COLORS[DEFAULT_STICKY_COLOR].fill;
+export const STICKY_NOTE_STROKE = STICKY_COLORS[DEFAULT_STICKY_COLOR].stroke;
 export const STICKY_NOTE_WIDTH = 160;
 export const STICKY_NOTE_HEIGHT = 160;
 
@@ -118,20 +118,11 @@ export const withStickyNote: PlaitPlugin = (board: PlaitBoard) => {
         [bounds.x + bounds.width, bounds.y + bounds.height]
       ];
       
-      const text = { children: [{ text: '' }], autoSize: true };
-      
-      const element = createGeometryElement(
-        BasicShapes.rectangle,
+      const element = createStickyNoteElement({
         points,
-        text,
-        {
-          fill: STICKY_NOTE_FILL,
-          strokeColor: STICKY_NOTE_STROKE,
-          strokeWidth: 1,
-        }
-      );
-      
-      element.fillStyle = 'solid';
+        text: '',
+        color: DEFAULT_STICKY_COLOR,
+      });
       
       const path = [board.children.length];
       Transforms.insertNode(board, element, path);

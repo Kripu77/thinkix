@@ -5,3 +5,4 @@ export * from './colors';
 export * from './breakpoints';
 export * from './events';
 export * from './storage';
+export * from './sticky-colors';
