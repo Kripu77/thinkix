@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Undo, Redo } from 'lucide-react';
 import { useBoard } from '@plait-board/react-board';
 import { Button } from '@thinkix/ui';
@@ -19,8 +20,6 @@ export function UndoRedoButtons() {
   const board = useBoard();
   const { state } = useBoardState();
   const { canUndo, canRedo, undoStackSize, redoStackSize, isCollaborationMode, undo, redo } = useUndoRedo(board);
-
-  if (!board) return null;
 
   const handleUndo = () => {
     posthog.capture('undo_triggered', {
@@ -44,6 +43,43 @@ export function UndoRedoButtons() {
   const mobileIconClass = cn(iconClass, state.isMobile && "h-3.5 w-3.5");
   const mobileButtonClass = state.isMobile ? "h-7 w-7" : "";
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          !!target.closest(
+            'input, textarea, select, [contenteditable="true"], [data-slate-editor="true"]',
+          ))
+      ) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+
+      if (key === 'z' && !event.shiftKey && canUndo) {
+        event.preventDefault();
+        undo();
+        return;
+      }
+
+      if ((key === 'y' || (key === 'z' && event.shiftKey)) && canRedo) {
+        event.preventDefault();
+        redo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canRedo, canUndo, redo, undo]);
+
+  if (!board) return null;
+
   return (
     <div className={THEME.control.container}>
       <TooltipProvider delayDuration={300}>
@@ -53,6 +89,7 @@ export function UndoRedoButtons() {
               variant="ghost"
               size="icon"
               className={cn(THEME.control.button, mobileButtonClass)}
+              data-testid="undo-button"
               disabled={!canUndo}
               onPointerDown={(e: React.PointerEvent) => {
                 e.preventDefault();
@@ -74,6 +111,7 @@ export function UndoRedoButtons() {
               variant="ghost"
               size="icon"
               className={cn(THEME.control.button, mobileButtonClass)}
+              data-testid="redo-button"
               disabled={!canRedo}
               onPointerDown={(e: React.PointerEvent) => {
                 e.preventDefault();
