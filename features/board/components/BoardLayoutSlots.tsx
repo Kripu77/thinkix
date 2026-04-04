@@ -26,7 +26,9 @@ export function BoardLayoutSlots({
             </div>
           )}
           {bottomLeft && (
-            <div className="absolute bottom-4 left-4 z-50 flex items-center gap-3 max-[1024px]:bottom-4 max-[1024px]:right-4 max-[1024px]:left-auto">
+            <div
+              className="absolute bottom-4 left-4 z-50 flex items-center gap-3 max-[1024px]:bottom-4 max-[1024px]:right-4 max-[1024px]:left-auto"
+            >
               {bottomLeft}
             </div>
           )}

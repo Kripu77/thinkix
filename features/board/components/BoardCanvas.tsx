@@ -176,7 +176,12 @@ export function BoardCanvas({
         theme={DEFAULT_THEME}
         onChange={handleChange}
       >
-        <div data-board="true" className="w-full h-full">
+        <div
+          data-board="true"
+          data-element-count={value.length}
+          data-has-elements={value.length > 0 ? 'true' : 'false'}
+          className="w-full h-full"
+        >
           <Board
             className="w-full h-full bg-background"
             afterInit={handleBoardInit}
