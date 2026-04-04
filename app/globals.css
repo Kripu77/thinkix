@@ -1,8 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
+@import "streamdown/styles.css";
+ 
 @custom-variant dark (&:is(.dark *));
-
+ 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -45,27 +46,27 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 }
-
+ 
 body {
   margin: 0;
   padding: 0;
 }
-
+ 
 .board-page {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
 }
-
+ 
 .board-wrapper {
   touch-action: none;
 }
-
+ 
 .drawnix-container {
   width: 100%;
   height: 100%;
 }
-
+ 
 .loading-container {
   display: flex;
   align-items: center;
@@ -75,7 +76,7 @@ body {
   font-size: 1.25rem;
   color: #666;
 }
-
+ 
 :root {
   --mobile-breakpoint: 1024px;
   --radius: 0.75rem;
@@ -132,6 +133,13 @@ body {
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
 }
 
 .dark {
@@ -166,13 +174,16 @@ body {
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
-
-  /* Shadows - Dark Mode */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
   --tx-shadow-toolbar: 0 2px 8px -1px rgba(0, 0, 0, 0.3), 0 1px 4px -1px rgba(0, 0, 0, 0.2);
   --tx-shadow-dropdown: 0 4px 12px -1px rgba(0, 0, 0, 0.4), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
   --tx-shadow-dialog: 0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
-
-  /* Backdrop - Dark Mode */
   --tx-backdrop-overlay: rgba(0, 0, 0, 0.6);
 }
 
@@ -184,7 +195,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
+ 
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -193,7 +204,7 @@ body {
     background-position: -200% 0;
   }
 }
-
+ 
 .loading-shimmer {
   animation: shimmer 2.2s linear infinite;
   background-size: 200% 100%;
@@ -202,34 +213,62 @@ body {
   color: transparent;
 }
 
-@keyframes icon-pulse {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-.loading-icon-pulse {
-  animation: icon-pulse 2s ease-in-out infinite;
-}
-
-/* Custom cursors for board tools - !important needed to override Plait's inline cursor styles */
 .board-wrapper.eraser-cursor {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21'/%3E%3Cpath d='M22 21H7'/%3E%3Cpath d='m5 11 9 9'/%3E%3C/svg%3E") 10 10, auto !important;
 }
-
+ 
 .board-wrapper.crosshair-cursor {
   cursor: crosshair !important;
 }
-
+ 
 .board-wrapper.pan-cursor {
   cursor: grab !important;
 }
-
+ 
 .board-wrapper.pan-cursor:active {
   cursor: grabbing !important;
+}
+ 
+@keyframes agent-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+ 
+.agent-reveal {
+  animation: agent-reveal 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+ 
+@keyframes slider-oscillate {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(3px); }
+  75% { transform: translateX(-3px); }
+}
+ 
+@keyframes icon-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+ 
+.animate-slider-oscillate {
+  animation: slider-oscillate 1.2s ease-in-out infinite;
+}
+ 
+.animate-icon-bounce {
+  animation: icon-bounce 0.8s ease-in-out infinite;
+}
+ 
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
 }
