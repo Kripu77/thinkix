@@ -420,10 +420,15 @@ export async function parseSequenceDiagram(
   }));
   const bgHighlights = computeHighlights(containerEl);
 
-  const rawActors = mermaidParser.getActors?.() ?? [];
+  const rawActors = mermaidParser.getActors?.() ?? {};
   const actorData: Record<string, MermaidActor> = {};
-  for (const actor of rawActors) {
-    actorData[actor.name] = actor;
+  
+  if (rawActors && typeof rawActors === 'object') {
+    for (const [key, actor] of Object.entries(rawActors)) {
+      if (actor && typeof actor === 'object' && 'name' in actor) {
+        actorData[key] = actor as MermaidActor;
+      }
+    }
   }
 
   const parseWarnings: string[] = [];

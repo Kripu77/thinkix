@@ -17,9 +17,12 @@ import type {
 import { computeEdgePositions } from '../edge-parser/path';
 import { getTransformAttr, entityCodesToText } from '../utils';
 import { MERMAID_DOM_PREFIX } from '../constants';
-import { createLogger } from '@thinkix/shared';
 
-const logger = createLogger('mermaid-to-thinkix:parser');
+const logger = {
+  log: (...args: unknown[]) => console.log('[mermaid-to-thinkix:parser]', ...args),
+  warn: (...args: unknown[]) => console.warn('[mermaid-to-thinkix:parser]', ...args),
+  error: (...args: unknown[]) => console.error('[mermaid-to-thinkix:parser]', ...args),
+};
 
 function injectSvg(svg: string): { container: HTMLDivElement; cleanup: () => void } {
   const container = document.createElement('div');

@@ -253,6 +253,9 @@ function transformText(
   );
 
   (element as { textHeight?: number }).textHeight = textSize.height;
+  if (text.metadata) {
+    (element as ExtendedPlaitElement).metadata = text.metadata;
+  }
 
   if (text.groupId) {
     let groupElement = groupMap[text.groupId];
