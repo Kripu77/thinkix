@@ -113,7 +113,6 @@ export const useBoardStore = create<BoardStore>()(
           }
         }
 
-        // If no boards at all, create a default one
         if (!activeBoard && boardMetadata.length === 0) {
           const now = Date.now();
           const newBoard: Board = {
@@ -137,7 +136,6 @@ export const useBoardStore = create<BoardStore>()(
       }
     },
 
-    // Create a new board
     createBoard: async (name: string) => {
       const now = Date.now();
       const newBoard: Board = {
@@ -160,7 +158,6 @@ export const useBoardStore = create<BoardStore>()(
       return newBoard;
     },
 
-    // Switch to a different board
     switchBoard: async (id: string) => {
       const boardDto = await db.boards.get(id);
       if (!boardDto) return null;
@@ -173,7 +170,6 @@ export const useBoardStore = create<BoardStore>()(
       return board;
     },
 
-    // Delete a board
     deleteBoard: async (id: string) => {
       const state = get();
       const boardToDelete = state.boards.find((board) => board.id === id);
@@ -214,7 +210,6 @@ export const useBoardStore = create<BoardStore>()(
       return deletingActiveBoard ? nextBoard : state.currentBoard;
     },
 
-    // Rename a board
     renameBoard: async (id: string, name: string) => {
       const updatedAt = Date.now();
       await db.boards.update(id, { name, updatedAt });
@@ -230,7 +225,6 @@ export const useBoardStore = create<BoardStore>()(
       }));
     },
 
-    // Save board (auto-save)
     saveBoard: async (board: Board) => {
       set({ saveStatus: 'saving' });
       try {
@@ -251,7 +245,6 @@ export const useBoardStore = create<BoardStore>()(
       }
     },
 
-    // Set save status directly
     setSaveStatus: (status: SaveStatus) => set({ saveStatus: status }),
   }))
 );

@@ -18,7 +18,6 @@ function setStoredEnabled(enabled: boolean): void {
   try {
     localStorage.setItem(STORAGE_KEY_ENABLED, String(enabled));
   } catch {
-    // Ignore storage errors
   }
 }
 
@@ -31,7 +30,6 @@ function setStoredRoom(roomId: string | null): void {
       localStorage.removeItem(STORAGE_KEY_ROOM);
     }
   } catch {
-    // Ignore storage errors
   }
 }
 

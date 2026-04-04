@@ -74,10 +74,12 @@ test.describe('Collaboration Undo/Redo', () => {
       await drawCollaborativeRectangle(page1);
       await expect.poll(() => getElementCount(page2), { timeout: 10000 }).toBeGreaterThan(0);
 
-      await page1.keyboard.press(`${MODIFIER}+KeyZ`);
+      await expect(page1.getByTestId('undo-button')).toBeEnabled({ timeout: 10000 });
+      await page1.getByTestId('undo-button').click();
       await expect.poll(() => getElementCount(page2), { timeout: 10000 }).toBe(0);
 
-      await page1.keyboard.press(`${MODIFIER}+Shift+KeyZ`);
+      await expect(page1.getByTestId('redo-button')).toBeEnabled({ timeout: 10000 });
+      await page1.getByTestId('redo-button').click();
       await expect.poll(() => getElementCount(page2), { timeout: 10000 }).toBeGreaterThan(0);
     } finally {
       await safeClose(context);

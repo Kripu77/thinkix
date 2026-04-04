@@ -671,7 +671,6 @@ function panToElements(board: PlaitBoard, elements: PlaitElement[]): void {
     ];
     BoardTransforms.updateViewport(board, origination);
   } catch {
-    // viewport manipulation not available
   }
 }
 
@@ -1152,7 +1151,6 @@ function applyNodeUpdate(
       newProperties,
     });
   } catch {
-    // best-effort update for test doubles and non-standard board implementations
   }
 }
 

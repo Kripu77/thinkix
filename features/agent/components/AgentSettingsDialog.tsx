@@ -34,7 +34,6 @@ export function loadAgentSettings(): AgentSettings {
       return { ...DEFAULT_SETTINGS, ...parsed };
     }
   } catch {
-    // ignore
   }
   return DEFAULT_SETTINGS;
 }
@@ -43,7 +42,6 @@ export function saveAgentSettings(settings: AgentSettings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
-    // ignore
   }
 }
 

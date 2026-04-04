@@ -70,7 +70,6 @@ class MockBroadcastSync {
           try {
             listener(event.data);
           } catch {
-            // Ignore listener errors
           }
         });
       };

@@ -346,8 +346,6 @@ function transformArrow(
   groupMap: Record<string, PlaitGroup>,
   warnings: string[] = []
 ): PlaitElement | null {
-  // TODO: elementMap is reserved for future element binding functionality
-  // Currently, arrows are created without binding to their source/target elements
   const element = transformArrowWithoutBinding(arrow, groupMap, warnings);
   if (!element) return null;
 

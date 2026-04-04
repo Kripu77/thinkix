@@ -220,7 +220,6 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
 
       if (!toolName) return;
       
-      // Skip server-side tools (they have execute functions on the server)
       const serverSideTools = ['web_search'];
       if (serverSideTools.includes(toolName)) {
         return;

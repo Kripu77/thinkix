@@ -6,10 +6,7 @@ let cachedParser: PeggyParser | null = null;
 
 async function getParser(): Promise<PeggyParser> {
   if (!cachedParser) {
-    const parserModule = await import(
-    /* @vite-ignore */
-    './parser.js'
-  );
+    const parserModule = await import('./parser.js');
     cachedParser = (parserModule as unknown as { parse: PeggyParser }).parse;
   }
   return cachedParser!;

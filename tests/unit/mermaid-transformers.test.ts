@@ -144,7 +144,6 @@ vi.mock('mermaid', () => ({
   },
 }));
 
-// Mock DOMPurify
 vi.mock('dompurify', () => ({
   default: {
     addHook: vi.fn(),

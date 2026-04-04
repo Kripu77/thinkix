@@ -60,7 +60,7 @@ function detectMobile(): boolean {
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const isSmallScreen = window.innerWidth < MOBILE_BREAKPOINT;
   const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  return isMobileUA || (isTouchDevice && isSmallScreen);
+  return isSmallScreen || isMobileUA || (isTouchDevice && isSmallScreen);
 }
  
 function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number): T {

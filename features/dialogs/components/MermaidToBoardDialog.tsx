@@ -60,7 +60,6 @@ const MERMAID_COMPLEX_EXAMPLE = `flowchart TB
     A --> H[Auth]
     H --> D`;
 
-// Sequence diagram example
 const MERMAID_SEQUENCE_EXAMPLE = `sequenceDiagram
     participant Alice
     participant Bob
@@ -73,7 +72,6 @@ const MERMAID_SEQUENCE_EXAMPLE = `sequenceDiagram
     John->>Bob: How about you?
     Bob-->>John: Jolly good!`;
 
-// Class diagram example
 const MERMAID_CLASS_EXAMPLE = `classDiagram
     direction LR
 
@@ -254,7 +252,6 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
         </DialogHeader>
 
         <div className="flex-1 min-h-0 grid grid-cols-2 gap-4 px-6 pb-6">
-          {/* Input Panel */}
           <div className="flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium">Mermaid Syntax</label>
@@ -285,7 +282,6 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
             </div>
           </div>
 
-          {/* Preview Panel */}
           <div className="flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium">
