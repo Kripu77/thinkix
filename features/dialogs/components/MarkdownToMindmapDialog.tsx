@@ -14,7 +14,7 @@ import {
   DialogDescription,
 } from '@thinkix/ui';
 import { Button } from '@thinkix/ui';
-import { insertElementsSafely } from '@/features/board/utils';
+import { focusAndRevealElements, insertElementDirect } from '@/features/board/utils';
 import { parseMarkdownToMindElement } from '@thinkix/plait-utils';
 import posthog from 'posthog-js';
 
@@ -71,13 +71,19 @@ interface MarkdownToMindmapDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function parseMarkdown(text: string): PlaitElement | null {
+function parseMarkdownForPreview(text: string): PlaitElement | null {
   const result = parseMarkdownToMindElement(text);
   if (!result) return null;
   return {
     ...result,
     points: [[0, 0]] as [number, number][],
-  };
+  } as unknown as PlaitElement;
+}
+
+function parseMarkdownForInsert(text: string): PlaitElement | null {
+  const result = parseMarkdownToMindElement(text);
+  if (!result) return null;
+  return result as unknown as PlaitElement;
 }
 
 const PREVIEW_PLUGINS: PlaitPlugin[] = [withDraw, withMind, withGroup];
@@ -103,21 +109,25 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
   const board = useBoard();
   const [text, setText] = useState(MARKDOWN_EXAMPLE);
 
-  const elements = useMemo(() => {
-    const mind = parseMarkdown(text.trim());
+  const previewElements = useMemo(() => {
+    const mind = parseMarkdownForPreview(text.trim());
     return mind ? [mind] : [];
   }, [text]);
 
-  const error = elements.length === 0 && text.trim().length > 0
+  const error = previewElements.length === 0 && text.trim().length > 0
     ? 'Failed to parse markdown'
     : null;
 
   const handleInsert = useCallback(() => {
-    if (elements.length === 0) return;
-    insertElementsSafely(board, elements);
+    const insertElement = parseMarkdownForInsert(text.trim());
+    if (!insertElement) return;
+    const previousCount = board.children.length;
+    insertElementDirect(board, insertElement);
+    const insertedElement = board.children[previousCount] ?? insertElement;
+    focusAndRevealElements(board, [insertedElement]);
     posthog.capture('markdown_to_mindmap_inserted', { markdown_length: text.trim().length });
     onOpenChange(false);
-  }, [board, elements, text, onOpenChange]);
+  }, [board, text, onOpenChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -165,8 +175,8 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
                 <div className="flex items-center justify-center h-full text-destructive text-sm p-4">
                   {error}
                 </div>
-              ) : elements.length > 0 ? (
-                <PreviewCanvas elements={elements} />
+              ) : previewElements.length > 0 ? (
+                <PreviewCanvas elements={previewElements} />
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                   Enter markdown to preview
@@ -180,7 +190,7 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleInsert} disabled={elements.length === 0}>
+          <Button onClick={handleInsert} disabled={previewElements.length === 0}>
             Insert to Board
           </Button>
         </div>

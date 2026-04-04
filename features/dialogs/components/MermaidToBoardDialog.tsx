@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@thinkix/ui';
-import { insertElementsSafely } from '@/features/board/utils';
+import { focusAndRevealElements, insertElementsSafely } from '@/features/board/utils';
 import { parseMermaidToBoard } from '@thinkix/mermaid-to-thinkix';
 import posthog from 'posthog-js';
 import { Board, Wrapper } from '@plait-board/react-board';
@@ -207,7 +207,13 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
     if (elements.length === 0) return;
 
     try {
+      const previousCount = board.children.length;
       insertElementsSafely(board, elements);
+      const insertedElements = board.children.slice(previousCount);
+      focusAndRevealElements(
+        board,
+        insertedElements.length > 0 ? insertedElements : elements,
+      );
       posthog.capture('mermaid_to_board_inserted', {
         element_count: elements.length,
         diagram_length: text.trim().length,
