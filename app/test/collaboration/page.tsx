@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, Suspense, useCallback, useMemo } from 'react';
+import { useEffect, useRef, Suspense, useCallback, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { BoardProvider } from '@/features/board/hooks/use-board-state';
+import { BoardProvider, useBoardState } from '@/features/board/hooks/use-board-state';
 import { BoardSwitcher, useBoardStore } from '@/features/storage';
 import { LoadingLogo } from '@thinkix/ui';
 import { 
@@ -12,26 +12,96 @@ import {
   CollaborateButton,
   CollaborationStartDialog,
 } from '@/features/collaboration';
-import { useCollaborationState, useCollaborationSession, SyncBusProvider, getOrCreateUser } from '@thinkix/collaboration';
+import {
+  useCollaborationState,
+  useCollaborationSession,
+  SyncBusProvider,
+  useSyncBus,
+  useYjsCollaboration,
+  getOrCreateUser,
+  type BoardElement,
+} from '@thinkix/collaboration';
 import { MockYjsProvider } from '@thinkix/collaboration/test-utils';
 import { BoardLayoutSlots } from '@/features/board';
-import { useState } from 'react';
 
-const MockCollaborativeRoom = ({ children }: { 
+const MockCollaborativeRoom = ({ children, roomId, initialElements }: { 
   children: React.ReactNode; 
   roomId?: string; 
-  initialElements?: unknown[];
+  initialElements?: BoardElement[];
 }) => {
   const [user] = useState(() => getOrCreateUser());
   
   return (
     <SyncBusProvider>
-      <MockYjsProvider user={user}>
+      <MockYjsProvider
+        user={user}
+        roomId={roomId}
+        initialElements={initialElements}
+      >
         {children}
       </MockYjsProvider>
     </SyncBusProvider>
   );
 };
+
+function hashElements(elements: BoardElement[]): string {
+  try {
+    return JSON.stringify(
+      elements.map(({ id, type, ...rest }) => ({
+        id,
+        type,
+        rest,
+      })),
+    );
+  } catch {
+    return `${Date.now()}:${elements.length}`;
+  }
+}
+
+function MockCollaborationBridge() {
+  const { board } = useBoardState();
+  const { elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
+  const { syncBus } = useSyncBus();
+  const lastElementsHashRef = useRef('');
+  const isSyncingRef = useRef(false);
+
+  useEffect(() => {
+    if (!board || isLocalChange || isSyncingRef.current) return;
+
+    const hash = hashElements(elements);
+    if (hash === lastElementsHashRef.current) return;
+
+    lastElementsHashRef.current = hash;
+    // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
+    board.children = elements as unknown as typeof board.children;
+    syncBus.emitRemoteChange(elements);
+  }, [board, elements, isLocalChange, syncBus]);
+
+  useEffect(() => {
+    const unsubscribe = syncBus.subscribeToLocalChanges((localElements: BoardElement[]) => {
+      if (!syncState.isConnected) {
+        return;
+      }
+
+      const hash = hashElements(localElements);
+      if (hash === lastElementsHashRef.current || isSyncingRef.current) {
+        return;
+      }
+
+      isSyncingRef.current = true;
+      lastElementsHashRef.current = hash;
+      setElements(localElements);
+
+      queueMicrotask(() => {
+        isSyncingRef.current = false;
+      });
+    });
+
+    return unsubscribe;
+  }, [setElements, syncBus, syncState.isConnected]);
+
+  return null;
+}
 
 const BoardCanvas = dynamic(
   () => import('@/features/board').then((mod) => mod.BoardCanvas),
@@ -133,12 +203,13 @@ function TestBoardAppContent() {
   }, [roomFromUrl, session]);
 
   const handleDisableCollaboration = useCallback(() => {
+    session.markAsDisabled();
     disableCollaboration();
     
     if (roomFromUrl) {
       router.push(pathname);
     }
-  }, [disableCollaboration, roomFromUrl, pathname, router]);
+  }, [disableCollaboration, roomFromUrl, pathname, router, session]);
 
   useEffect(() => {
     if (!roomFromUrl && session.wasDisabled === false) {
@@ -213,6 +284,7 @@ function TestBoardAppContent() {
         <MockCollaborativeRoom roomId={activeRoomId} initialElements={currentBoard?.elements}>
           <main className="w-screen h-screen overflow-hidden bg-background">
             <BoardCanvas boardData={currentBoard}>
+              <MockCollaborationBridge />
               <BoardToolbar />
               <BoardLayoutSlots
                 topLeft={collaborativeTopLeftSlot}
