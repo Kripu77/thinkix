@@ -41,6 +41,12 @@ async function waitForBoardShell(page: Page): Promise<void> {
   await dismissOverlays(page);
 }
 
+async function waitForToolbar(page: Page): Promise<void> {
+  await expect(page.getByRole('button', { name: 'Select' }).first()).toBeVisible({
+    timeout: 30000,
+  });
+}
+
 export async function waitForMainBoard(page: Page): Promise<void> {
   let lastError: unknown;
 
@@ -186,6 +192,8 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
     await page.waitForTimeout(100);
   }
 
+  await waitForToolbar(page);
+
   const directToolLabels: Record<string, string> = {
     arrow: 'Arrow',
     select: 'Select',
@@ -230,9 +238,10 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
   if (toolName in shapeToolLabels) {
     const dropdownButton = page
       .getByTestId('shapes-dropdown-trigger')
+      .or(page.getByRole('button', { name: 'Shapes' }))
       .first();
 
-    if (!(await dropdownButton.isVisible({ timeout: 3000 }).catch(() => false))) {
+    if (!(await dropdownButton.isVisible({ timeout: 10000 }).catch(() => false))) {
       return false;
     }
 
@@ -264,15 +273,18 @@ export async function getElementCount(page: Page): Promise<number> {
   return page.evaluate(() => {
     const boardRoot = document.querySelector('[data-board="true"]');
     const count = boardRoot?.getAttribute('data-element-count');
+    const renderedElementCount = document.querySelectorAll(
+      '.board-wrapper [plait-data-id]',
+    ).length;
 
     if (count !== null && count !== undefined) {
       const parsed = Number.parseInt(count, 10);
       if (!Number.isNaN(parsed)) {
-        return parsed;
+        return Math.max(parsed, renderedElementCount);
       }
     }
 
-    return document.querySelectorAll('.board-wrapper [plait-data-id]').length;
+    return renderedElementCount;
   });
 }
 

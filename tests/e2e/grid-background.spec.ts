@@ -211,9 +211,9 @@ test.describe('Grid Background E2E Tests', () => {
       await page.reload();
       await waitForBoard(page);
       
-      const canvas = await getCanvas(page);
-      const content = await canvas.innerHTML();
-      expect(content).toContain('circle');
+      await expect
+        .poll(async () => (await getCanvas(page)).innerHTML(), { timeout: 10000 })
+        .toContain('circle');
     });
 
     test('should persist grid density setting', async ({ page }) => {

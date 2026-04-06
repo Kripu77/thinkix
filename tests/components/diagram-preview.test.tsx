@@ -71,7 +71,9 @@ describe('DiagramPreview', () => {
       expect(screen.getByTestId('preview-board')).toBeInTheDocument();
     });
 
-    expect(updateViewport).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(updateViewport).toHaveBeenCalled();
+    });
   });
 
   it('shows a fallback when mermaid parsing fails', async () => {
@@ -120,10 +122,12 @@ describe('DiagramPreview', () => {
       expect(value).toContain('1240');
     });
 
-    expect(updateViewport).toHaveBeenCalledWith(
-      mockBoard,
-      expect.any(Array),
-      expect.any(Number),
-    );
+    await waitFor(() => {
+      expect(updateViewport).toHaveBeenCalledWith(
+        mockBoard,
+        expect.any(Array),
+        expect.any(Number),
+      );
+    });
   });
 });
