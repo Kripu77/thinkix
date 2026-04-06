@@ -10,7 +10,6 @@ async function seedAgentSettings(
   page: Page,
   overrides: Partial<{
     apiKey: string;
-    baseURL: string;
     customModel: string;
     provider?: 'openai' | 'anthropic';
   }> = {},
@@ -21,7 +20,6 @@ async function seedAgentSettings(
         storageKey,
         JSON.stringify({
           apiKey: 'test-key',
-          baseURL: '',
           customModel: '',
           provider: 'anthropic',
           ...seededOverrides,
@@ -78,7 +76,7 @@ test.describe('Agent Pane E2E', () => {
     );
   });
 
-  test('uses mocked server defaults without opening settings when no local key is saved', async ({
+  test('uses mocked Thinkix defaults without opening settings when no local key is saved', async ({
     page,
   }) => {
     await seedAgentSettings(page, { apiKey: '', provider: 'anthropic' });
@@ -88,8 +86,6 @@ test.describe('Agent Pane E2E', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           provider: 'openai',
-          model: 'gpt-4o',
-          baseURL: '',
           hasDefaultApiKey: true,
           availableProviders: ['openai'],
           providerApiKeys: {
@@ -103,7 +99,7 @@ test.describe('Agent Pane E2E', () => {
     await page.route('**/api/agent', async (route) => {
       await fulfillUIMessageStream(
         route,
-        textResponseChunks('agent-server-default-response', 'Server defaults handled this request.'),
+        textResponseChunks('agent-default-response', 'Thinkix defaults handled this request.'),
       );
     });
 
@@ -117,11 +113,11 @@ test.describe('Agent Pane E2E', () => {
     await expect(page.getByTestId('agent-provider-option-anthropic')).toHaveCount(0);
     await page.keyboard.press('Escape');
 
-    await sendAgentPrompt(page, 'Use the server defaults.');
+    await sendAgentPrompt(page, 'Use the Thinkix defaults.');
 
     await expect(page.getByRole('dialog', { name: 'AI Settings' })).toHaveCount(0);
     await expect(page.getByTestId('agent-message-list')).toContainText(
-      'Server defaults handled this request.',
+      'Thinkix defaults handled this request.',
     );
   });
 

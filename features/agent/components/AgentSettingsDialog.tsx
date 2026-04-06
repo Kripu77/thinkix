@@ -77,10 +77,6 @@ function AgentSettingsForm({
     ? PROVIDERS
     : PROVIDERS.filter((provider) => availableServerProviders.includes(provider.id));
   const providerConfig = PROVIDERS.find((provider) => provider.id === selectedProvider);
-  const effectiveProviderConfig =
-    providerConfig ??
-    PROVIDERS.find((provider) => provider.id === serverConfig?.provider) ??
-    PROVIDERS[0];
 
   const handleSave = () => {
     onSave({
@@ -112,7 +108,7 @@ function AgentSettingsForm({
               });
             }}
           >
-            <option value="auto">Auto (server default)</option>
+            <option value="auto">Auto (Thinkix default)</option>
             {selectableProviders.map((provider) => (
               <option key={provider.id} value={provider.id}>
                 {provider.name}
@@ -121,8 +117,8 @@ function AgentSettingsForm({
           </select>
           <p className="text-xs text-muted-foreground">
             {selectedProvider
-              ? `Uses ${providerConfig?.name}'s default model unless you override it below.`
-              : `Uses ${serverConfig?.provider ? `${effectiveProviderConfig.name} from server env` : 'the server default provider'} unless you choose one here.`}
+              ? 'Uses this provider with your key unless you switch back to Auto.'
+              : 'Uses the default AI setup when available.'}
           </p>
         </div>
         <div className="grid gap-2">
@@ -136,7 +132,7 @@ function AgentSettingsForm({
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Leave empty to use `AI_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY` on the server.
+            Leave empty to use the default AI setup when available.
           </p>
         </div>
         <div className="grid gap-2">
@@ -145,14 +141,14 @@ function AgentSettingsForm({
           </label>
           <Input
             type="text"
-            placeholder={selectedProvider ? providerConfig?.defaultModel : (serverConfig?.model ?? effectiveProviderConfig.defaultModel)}
+            placeholder={selectedProvider ? providerConfig?.defaultModel : 'Default model'}
             value={settings.customModel ?? ''}
             onChange={(event) => {
               setSettings({ ...settings, customModel: event.target.value });
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Leave empty to use `AI_MODEL` on the server, then fall back to the provider default.
+            Leave empty to use the default model.
           </p>
         </div>
       </div>

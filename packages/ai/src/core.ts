@@ -27,8 +27,6 @@ export const PROVIDERS: ProviderConfig[] = [
 
 export interface ClientAIConfig {
   provider: AIProvider;
-  model: string;
-  baseURL?: string;
   hasDefaultApiKey: boolean;
   availableProviders: AIProvider[];
   providerApiKeys: Record<AIProvider, boolean>;
@@ -67,6 +65,52 @@ function getProviderBaseURL(provider: AIProvider, env: AIEnvironment): string | 
   return readEnvValue(env.AI_BASE_URL);
 }
 
+function inferProviderFromBaseURL(baseURL?: string): AIProvider | undefined {
+  const normalizedBaseURL = readEnvValue(baseURL)?.toLowerCase();
+
+  if (!normalizedBaseURL) {
+    return undefined;
+  }
+
+  if (normalizedBaseURL.includes('anthropic')) {
+    return 'anthropic';
+  }
+
+  if (normalizedBaseURL.includes('api.openai.com') || normalizedBaseURL.includes('/openai')) {
+    return 'openai';
+  }
+
+  return undefined;
+}
+
+function inferProviderFromModel(model?: string): AIProvider | undefined {
+  const normalizedModel = readEnvValue(model)?.toLowerCase();
+
+  if (!normalizedModel) {
+    return undefined;
+  }
+
+  if (
+    normalizedModel.startsWith('claude') ||
+    normalizedModel.startsWith('opus') ||
+    normalizedModel.startsWith('sonnet') ||
+    normalizedModel.startsWith('haiku')
+  ) {
+    return 'anthropic';
+  }
+
+  if (
+    normalizedModel.startsWith('gpt') ||
+    normalizedModel.startsWith('o1') ||
+    normalizedModel.startsWith('o3') ||
+    normalizedModel.startsWith('o4')
+  ) {
+    return 'openai';
+  }
+
+  return undefined;
+}
+
 export function resolveAIProvider(
   requestedProvider?: string | null,
   env: AIEnvironment = process.env,
@@ -79,6 +123,25 @@ export function resolveAIProvider(
   const envProvider = readEnvValue(env.AI_PROVIDER);
   if (envProvider && isAIProvider(envProvider)) {
     return envProvider;
+  }
+
+  const providerSpecificBaseURLs = [
+    readEnvValue(env.OPENAI_BASE_URL) ? 'openai' : undefined,
+    readEnvValue(env.ANTHROPIC_BASE_URL) ? 'anthropic' : undefined,
+  ].filter((provider): provider is AIProvider => provider !== undefined);
+
+  if (providerSpecificBaseURLs.length === 1) {
+    return providerSpecificBaseURLs[0];
+  }
+
+  const inferredBaseURLProvider = inferProviderFromBaseURL(env.AI_BASE_URL);
+  if (inferredBaseURLProvider) {
+    return inferredBaseURLProvider;
+  }
+
+  const inferredModelProvider = inferProviderFromModel(env.AI_MODEL);
+  if (inferredModelProvider) {
+    return inferredModelProvider;
   }
 
   const configuredProviders = PROVIDERS.filter((provider) =>
@@ -143,18 +206,18 @@ export function normalizeAIBaseURL(
 export function getClientAIConfig(
   env: AIEnvironment = process.env,
 ): ClientAIConfig {
+  const resolvedProvider = resolveAIProvider(undefined, env);
+  const hasGenericApiKey = Boolean(readEnvValue(env.AI_API_KEY));
+  const hasOpenAIKey = Boolean(readEnvValue(env.OPENAI_API_KEY));
+  const hasAnthropicKey = Boolean(readEnvValue(env.ANTHROPIC_API_KEY));
   const providerApiKeys: Record<AIProvider, boolean> = {
-    openai: Boolean(getProviderApiKey('openai', env)),
-    anthropic: Boolean(getProviderApiKey('anthropic', env)),
+    openai: hasOpenAIKey || (hasGenericApiKey && resolvedProvider === 'openai'),
+    anthropic: hasAnthropicKey || (hasGenericApiKey && resolvedProvider === 'anthropic'),
   };
 
-  const provider = resolveAIProvider(undefined, env);
-
   return {
-    provider,
-    model: resolveAIModel(provider, undefined, env),
-    baseURL: resolveAIBaseURL(provider, undefined, env),
-    hasDefaultApiKey: Boolean(resolveAIKey(provider, undefined, env)),
+    provider: resolvedProvider,
+    hasDefaultApiKey: Boolean(resolveAIKey(resolvedProvider, undefined, env)),
     availableProviders: PROVIDERS.filter((item) => providerApiKeys[item.id]).map(
       (item) => item.id,
     ),

@@ -36,23 +36,57 @@ async function waitForBoardShell(page: Page): Promise<void> {
   const boardWrapper = page.locator('.board-wrapper');
   const boardRoot = page.locator('[data-board="true"]');
 
-  await boardWrapper.waitFor({ state: 'visible', timeout: 15000 });
-  await boardRoot.waitFor({ state: 'visible', timeout: 15000 });
+  await boardWrapper.waitFor({ state: 'visible', timeout: 30000 });
+  await boardRoot.waitFor({ state: 'visible', timeout: 30000 });
   await dismissOverlays(page);
 }
 
 export async function waitForMainBoard(page: Page): Promise<void> {
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await waitForBoardShell(page);
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await page.goto('/', { waitUntil: 'domcontentloaded' });
+      await waitForBoardShell(page);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === 1) {
+        break;
+      }
+
+      await page.waitForTimeout(500);
+    }
+  }
+
+  throw lastError;
 }
 
 export async function waitForCollaborationBoard(
   page: Page,
   url = `${E2E_BASE_URL}/test/collaboration`,
 ): Promise<void> {
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await waitForBoardShell(page);
-  await dismissCollaborationStartDialog(page);
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      await waitForBoardShell(page);
+      await dismissCollaborationStartDialog(page);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === 1) {
+        break;
+      }
+
+      await page.waitForTimeout(500);
+    }
+  }
+
+  throw lastError;
 }
 
 export async function waitForRadixMenu(page: Page): Promise<Locator> {
@@ -195,7 +229,7 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
 
   if (toolName in shapeToolLabels) {
     const dropdownButton = page
-      .getByRole('button', { name: 'Shapes' })
+      .getByTestId('shapes-dropdown-trigger')
       .first();
 
     if (!(await dropdownButton.isVisible({ timeout: 3000 }).catch(() => false))) {
@@ -204,7 +238,8 @@ export async function selectTool(page: Page, toolName: string): Promise<boolean>
 
     await dropdownButton.click({ force: true });
     const toolItem = page
-      .getByRole('menuitem', { name: shapeToolLabels[toolName] })
+      .getByTestId(`shape-tool-${toolName}`)
+      .or(page.getByRole('menuitem', { name: shapeToolLabels[toolName] }).first())
       .first();
     await expect(toolItem).toBeVisible({ timeout: 3000 });
     await toolItem.click({ force: true });

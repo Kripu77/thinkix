@@ -133,6 +133,26 @@ describe('ai/core', () => {
       ).toBe('anthropic');
     });
 
+    it('infers anthropic from a shared anthropic-style base url', async () => {
+      const { resolveAIProvider } = await import('@thinkix/ai');
+      expect(
+        resolveAIProvider(undefined, {
+          AI_API_KEY: 'shared-key',
+          AI_BASE_URL: 'https://api.z.ai/api/anthropic',
+        }),
+      ).toBe('anthropic');
+    });
+
+    it('infers anthropic from opus models when provider is otherwise ambiguous', async () => {
+      const { resolveAIProvider } = await import('@thinkix/ai');
+      expect(
+        resolveAIProvider(undefined, {
+          AI_API_KEY: 'shared-key',
+          AI_MODEL: 'opus-4.6',
+        }),
+      ).toBe('anthropic');
+    });
+
     it('falls back to the only configured provider key when AI_PROVIDER is not set', async () => {
       const { resolveAIProvider } = await import('@thinkix/ai');
       expect(
@@ -179,7 +199,7 @@ describe('ai/core', () => {
       ).toBe('shared-key');
     });
 
-    it('builds a safe client config without exposing keys', async () => {
+    it('builds a safe client config without exposing server transport details', async () => {
       const { getClientAIConfig } = await import('@thinkix/ai');
       expect(
         getClientAIConfig({
@@ -189,8 +209,25 @@ describe('ai/core', () => {
         }),
       ).toEqual({
         provider: 'anthropic',
-        model: 'claude-sonnet-4-20250514',
-        baseURL: undefined,
+        hasDefaultApiKey: true,
+        availableProviders: ['anthropic'],
+        providerApiKeys: {
+          openai: false,
+          anthropic: true,
+        },
+      });
+    });
+
+    it('exposes only the inferred provider for shared z.ai-style envs', async () => {
+      const { getClientAIConfig } = await import('@thinkix/ai');
+      expect(
+        getClientAIConfig({
+          AI_API_KEY: 'shared-key',
+          AI_BASE_URL: 'https://api.z.ai/api/anthropic',
+          AI_MODEL: 'opus-4.6',
+        }),
+      ).toEqual({
+        provider: 'anthropic',
         hasDefaultApiKey: true,
         availableProviders: ['anthropic'],
         providerApiKeys: {

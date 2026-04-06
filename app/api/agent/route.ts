@@ -15,10 +15,13 @@ import { toolSchemas } from '@thinkix/ai/tool-schemas';
 import { buildSystemPrompt } from '@thinkix/ai/prompts';
 import {
   createAIProvider,
+  getClientAIConfig,
+  resolveAIBaseURL,
   resolveAIKey,
   resolveAIModel,
   resolveAIProvider,
 } from '@thinkix/ai';
+import type { AIProvider } from '@thinkix/ai';
 import type { SystemPromptContext } from '@thinkix/ai';
 import { webSearch } from '@thinkix/ai/tools';
  
@@ -239,14 +242,27 @@ export function resolveAgentRequestConfig(
   },
   env: NodeJS.ProcessEnv = process.env,
 ) {
-  const typedProvider = resolveAIProvider(toOptionalString(raw.provider), env);
+  const requestedApiKey = toOptionalString(raw.apiKey);
+  const requestedProvider = toOptionalString(raw.provider);
+  const serverConfig = getClientAIConfig(env);
+  const requestedTypedProvider = requestedProvider as AIProvider | undefined;
+  const canUseRequestedProvider =
+    requestedTypedProvider != null &&
+    (requestedApiKey != null ||
+      serverConfig.availableProviders.includes(requestedTypedProvider));
+  const typedProvider = resolveAIProvider(
+    canUseRequestedProvider ? requestedTypedProvider : undefined,
+    env,
+  );
   const modelName = resolveAIModel(typedProvider, toOptionalString(raw.model), env);
-  const effectiveKey = resolveAIKey(typedProvider, toOptionalString(raw.apiKey), env);
+  const effectiveKey = resolveAIKey(typedProvider, requestedApiKey, env);
+  const baseURL = resolveAIBaseURL(typedProvider, undefined, env);
 
   return {
     provider: typedProvider,
     model: modelName,
     apiKey: effectiveKey,
+    baseURL,
   };
 }
  
@@ -262,7 +278,7 @@ export async function POST(req: Request) {
     return new Response(
       JSON.stringify({
         error:
-          'No API key provided. Set AI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY, or add a key in Agent Settings.',
+          'No AI key is configured. Add a key in Agent Settings or enable the default AI setup.',
       }),
       { status: 401 },
     );
@@ -271,6 +287,7 @@ export async function POST(req: Request) {
   const aiProvider = createAIProvider(
     resolvedRequest.provider,
     resolvedRequest.apiKey,
+    resolvedRequest.baseURL,
   );
 
   const modelMessages = uiToModelMessages(messages);

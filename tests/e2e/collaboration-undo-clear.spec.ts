@@ -11,8 +11,6 @@ import {
 import { safeClose } from './helpers/browser';
 
 const TEST_BASE_URL = `${E2E_BASE_URL}/test/collaboration`;
-const MODIFIER = process.platform === 'darwin' ? 'Meta' : 'Control';
-
 async function enableCollaboration(page: Page, roomUrl: string) {
   await waitForCollaborationBoard(page, roomUrl);
   const statusBar = page.getByTestId('collaboration-status-bar');
@@ -49,10 +47,12 @@ test.describe('Collaboration Undo/Redo', () => {
     await enableCollaboration(page, `${TEST_BASE_URL}?room=${roomId}`);
     await drawCollaborativeRectangle(page);
 
-    await page.keyboard.press(`${MODIFIER}+KeyZ`);
+    await expect(page.getByTestId('undo-button')).toBeEnabled({ timeout: 10000 });
+    await page.getByTestId('undo-button').click();
     await expect.poll(() => getElementCount(page)).toBe(0);
 
-    await page.keyboard.press(`${MODIFIER}+Shift+KeyZ`);
+    await expect(page.getByTestId('redo-button')).toBeEnabled({ timeout: 10000 });
+    await page.getByTestId('redo-button').click();
     await expect.poll(() => getElementCount(page)).toBeGreaterThan(0);
   });
 

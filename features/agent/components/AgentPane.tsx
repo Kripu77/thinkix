@@ -202,11 +202,10 @@ export function AgentPane({
     (normalizedProviderSetting
       ? serverAvailableProviders.includes(normalizedProviderSetting)
       : hasServerApiKey);
-  const defaultModel =
-    normalizedProviderSetting == null && serverConfig?.provider === selectedProvider
-      ? serverConfig.model
-      : getDefaultModel(selectedProvider);
-  const effectiveModel = settings.customModel?.trim() || defaultModel;
+  const isUsingServerDefault = !hasLocalApiKey && normalizedProviderSetting == null;
+  const effectiveModel =
+    settings.customModel?.trim() ||
+    (isUsingServerDefault ? 'Default model' : getDefaultModel(selectedProvider));
   const providerConfig =
     PROVIDERS.find((provider) => provider.id === selectedProvider) ?? PROVIDERS[0];
   const requestedProvider = hasLocalApiKey
@@ -260,7 +259,7 @@ export function AgentPane({
 
   const handleAgentError = useCallback(
     (error: Error) => {
-      if (/No API key provided|OPENAI_API_KEY|ANTHROPIC_API_KEY|Agent Settings/i.test(error.message)) {
+      if (/No AI key|No API key provided|Agent Settings/i.test(error.message)) {
         void loadServerConfig();
         setSettingsOpen(true);
       }
@@ -402,12 +401,12 @@ export function AgentPane({
                     {!canUseAgent ? (
                       <p className="text-xs text-muted-foreground">
                         {isCheckingServerConfig
-                          ? 'Checking server AI defaults...'
-                          : 'Add an API key or configure server AI env vars to start using the agent.'}
+                          ? 'Checking AI defaults...'
+                          : 'Add an API key or enable AI defaults.'}
                       </p>
                     ) : hasServerApiKey && !hasLocalApiKey ? (
                       <p className="text-xs text-muted-foreground">
-                        Using server AI defaults.
+                        Using Thinkix AI defaults.
                       </p>
                     ) : null}
                   </div>

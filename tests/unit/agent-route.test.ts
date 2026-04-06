@@ -117,6 +117,48 @@ describe('agent route helpers', () => {
       provider: 'anthropic',
       model: 'claude-opus-4-6',
       apiKey: 'local-key',
+      baseURL: 'https://api.anthropic.com',
+    });
+  });
+
+  it('uses server baseURL and infers anthropic for z.ai-style shared envs', () => {
+    expect(
+      resolveAgentRequestConfig(
+        {
+          model: 'opus-4.6',
+        },
+        {
+          AI_API_KEY: 'shared-key',
+          AI_BASE_URL: 'https://api.z.ai/api/anthropic',
+          AI_MODEL: 'opus-4.6',
+        },
+      ),
+    ).toEqual({
+      provider: 'anthropic',
+      model: 'opus-4.6',
+      apiKey: 'shared-key',
+      baseURL: 'https://api.z.ai/api/anthropic',
+    });
+  });
+
+  it('ignores unsupported client provider overrides when only anthropic-compatible server defaults exist', () => {
+    expect(
+      resolveAgentRequestConfig(
+        {
+          provider: 'openai',
+          model: 'opus-4.6',
+        },
+        {
+          AI_API_KEY: 'shared-key',
+          AI_BASE_URL: 'https://api.z.ai/api/anthropic',
+          AI_MODEL: 'opus-4.6',
+        },
+      ),
+    ).toEqual({
+      provider: 'anthropic',
+      model: 'opus-4.6',
+      apiKey: 'shared-key',
+      baseURL: 'https://api.z.ai/api/anthropic',
     });
   });
 });
