@@ -67,10 +67,13 @@ export function ZoomToolbar() {
   };
 
   return (
-    <div className={cn(
-      THEME.control.container,
-      ATTACHED_ELEMENT_CLASS_NAME
-    )}>
+    <div
+      data-testid="zoom-toolbar"
+      className={cn(
+        THEME.control.container,
+        ATTACHED_ELEMENT_CLASS_NAME
+      )}
+    >
       <Button
         variant="ghost"
         size="icon"

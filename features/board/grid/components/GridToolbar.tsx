@@ -7,6 +7,7 @@ import { ChevronUp } from 'lucide-react';
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@thinkix/ui';
 import { cn } from '@thinkix/ui';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
+import { THEME } from '@/shared/constants';
 import { getGridConfig, setGridConfig } from '../grid-plugin';
 import type { GridType, GridDensity, BoardBackground } from '../types';
 import { DEFAULT_BOARD_BACKGROUND } from '../types';
@@ -140,8 +141,10 @@ export function GridToolbar() {
 
   return (
     <div
+      data-testid="canvas-mode-toolbar"
       className={cn(
-        'absolute bottom-4 right-4 inline-flex items-center gap-0.5 rounded-lg border bg-background/95 backdrop-blur p-1 shadow-lg',
+        'absolute bottom-4 right-4 inline-flex items-center gap-0.5 rounded-lg p-1',
+        THEME.control.container,
         ATTACHED_ELEMENT_CLASS_NAME
       )}
     >
@@ -150,7 +153,7 @@ export function GridToolbar() {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-2 gap-2"
+            className="h-8 gap-2 px-2 text-foreground hover:bg-accent/85"
             title="Canvas mode"
             data-testid="canvas-mode-trigger"
           >
@@ -159,7 +162,7 @@ export function GridToolbar() {
             <ChevronUp className="h-3.5 w-3.5 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" side="top">
+        <DropdownMenuContent align="end" side="top" className={THEME.dropdown.content}>
           <CanvasModePanel
             config={currentConfig}
             onTypeChange={handleGridTypeChange}

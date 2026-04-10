@@ -12,10 +12,14 @@ interface CollaborateButtonProps {
 export function CollaborateButton({ onClick }: CollaborateButtonProps) {
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       onClick={onClick}
-      className={cn(THEME.button.secondary, 'hidden lg:flex')}
+      className={cn(
+        THEME.button.secondary,
+        THEME.surface.floating,
+        'hidden lg:flex hover:bg-accent/85'
+      )}
       data-testid="collaborate-button"
     >
       <Users className="h-4 w-4" />

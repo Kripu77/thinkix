@@ -79,7 +79,7 @@ export function BoardToolbar() {
   return (
     <TooltipProvider delayDuration={300}>
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50">
-        <div className={THEME.toolbar.container}>
+        <div className={THEME.toolbar.container} data-testid="board-toolbar">
           {BASIC_TOOLS.map((tool) => (
             <Tooltip key={tool.id}>
               <TooltipTrigger asChild>

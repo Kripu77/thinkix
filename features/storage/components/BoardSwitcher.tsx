@@ -106,8 +106,10 @@ export function BoardSwitcher({
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="default" className={cn(
+          <Button variant="ghost" size="default" className={cn(
+            THEME.surface.floating,
             "gap-2 min-w-[200px] justify-start text-base",
+            "hover:bg-accent/85",
             "max-[1024px]:min-w-[140px] max-[1024px]:text-sm"
           )}>
             <MixedCanvasIcon className="h-5 w-5 shrink-0 max-[1024px]:h-4 max-[1024px]:w-4" />
