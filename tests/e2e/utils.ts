@@ -314,6 +314,9 @@ export async function clearSelection(page: Page): Promise<void> {
 
 export async function selectAllElements(page: Page): Promise<void> {
   await dismissOverlays(page);
+  const box = await getCanvasBoundingBox(page);
+  await page.mouse.click(box.x + 8, box.y + 8);
+  await page.waitForTimeout(50);
   await page.keyboard.press(`${PRIMARY_MODIFIER}+A`);
   await page.waitForTimeout(150);
 }
