@@ -34,6 +34,7 @@ vi.mock('@thinkix/mermaid-to-thinkix', () => ({
 vi.mock('@/features/board/utils', () => ({
   focusAndRevealElements: vi.fn(),
   insertElementsSafely: vi.fn(),
+  syncElementsForBoardTheme: vi.fn((elements) => elements),
 }));
 
 let currentSelectValue = 'simple';

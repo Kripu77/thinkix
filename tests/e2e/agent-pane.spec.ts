@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { UIMessageChunk } from 'ai';
 import { fulfillUIMessageStream } from './helpers/agent-stream';
-import { getElementCount, waitForBoard } from './utils';
+import { getElementCount, openAppMenu, waitForBoard } from './utils';
 
 const AGENT_SETTINGS_STORAGE_KEY = 'thinkix-agent-settings';
 const AGENT_SHORTCUT = process.platform === 'darwin' ? 'Meta+KeyJ' : 'Control+KeyJ';
@@ -40,6 +40,21 @@ async function sendAgentPrompt(page: Page, prompt: string) {
   await textarea.fill(prompt);
   await page.getByTestId('agent-send-button').click();
   await expect(textarea).toHaveValue('');
+}
+
+async function selectCanvasTheme(
+  page: Page,
+  theme: 'default' | 'dark' | 'soft' | 'retro' | 'starry' | 'colorful',
+) {
+  await page.keyboard.press('Escape').catch(() => undefined);
+  await openAppMenu(page);
+  await page.getByTestId('app-menu-theme-trigger').hover();
+  await page.getByTestId('app-menu-theme-trigger').click();
+  await expect(page.getByTestId(`app-menu-theme-${theme}`)).toBeVisible();
+  await page.getByTestId(`app-menu-theme-${theme}`).click();
+  await expect(page.getByTestId('app-menu-content')).not.toBeVisible({
+    timeout: 5000,
+  });
 }
 
 function textResponseChunks(messageId: string, text: string): UIMessageChunk[] {
@@ -119,6 +134,49 @@ test.describe('Agent Pane E2E', () => {
     await expect(page.getByTestId('agent-message-list')).toContainText(
       'Thinkix defaults handled this request.',
     );
+  });
+
+  test('keeps pane and board chrome on the same surface system in dark mode', async ({
+    page,
+  }) => {
+    await waitForBoard(page);
+    await selectCanvasTheme(page, 'dark');
+    await openAgentPane(page);
+    await page.mouse.move(640, 360);
+
+    const styles = await page.evaluate(() => {
+      const read = (selector: string) => {
+        const element = document.querySelector(selector);
+        if (!element) {
+          return null;
+        }
+
+        const css = window.getComputedStyle(element);
+        return {
+          backgroundColor: css.backgroundColor,
+          borderColor: css.borderColor,
+          color: css.color,
+        };
+      };
+
+      return {
+        rootTheme: document.documentElement.getAttribute('data-board-theme'),
+        appMenu: read('[data-testid="app-menu-button"]'),
+        boardToolbar: read('[data-testid="board-toolbar"]'),
+        zoomToolbar: read('[data-testid="zoom-toolbar"]'),
+        canvasModeToolbar: read('[data-testid="canvas-mode-toolbar"]'),
+        agentPane: read('[data-testid="agent-pane"]'),
+        agentPrompt: read('[data-testid="agent-prompt-shell"]'),
+      };
+    });
+
+    expect(styles.rootTheme).toBe('dark');
+    expect(styles.appMenu?.backgroundColor).toBe(styles.zoomToolbar?.backgroundColor);
+    expect(styles.boardToolbar?.backgroundColor).toBe(styles.zoomToolbar?.backgroundColor);
+    expect(styles.appMenu?.borderColor).toBe(styles.boardToolbar?.borderColor);
+    expect(styles.canvasModeToolbar?.backgroundColor).toBe(styles.zoomToolbar?.backgroundColor);
+    expect(styles.canvasModeToolbar?.borderColor).toBe(styles.agentPrompt?.borderColor);
+    expect(styles.agentPane?.backgroundColor).not.toBe('rgb(255, 255, 255)');
   });
 
   test('renders tool activity and inserts a sticky note via mocked agent tool call', async ({

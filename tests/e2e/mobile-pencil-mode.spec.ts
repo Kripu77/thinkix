@@ -105,15 +105,8 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
 
     test('should hide zoom toolbar on mobile', async ({ page }) => {
       await waitForBoard(page);
-      
-      const zoomInBtn = page.getByRole('button', { name: 'Zoom in' });
-      const zoomOutBtn = page.getByRole('button', { name: 'Zoom out' });
-      
-      const zoomInVisible = await zoomInBtn.isVisible({ timeout: 1000 }).catch(() => false);
-      const zoomOutVisible = await zoomOutBtn.isVisible({ timeout: 1000 }).catch(() => false);
-      
-      expect(zoomInVisible).toBe(false);
-      expect(zoomOutVisible).toBe(false);
+
+      await expect(page.getByTestId('zoom-toolbar')).toHaveCount(0);
     });
 
     test('should still allow drawing on mobile', async ({ page }) => {
@@ -178,11 +171,8 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
     
     test('should show zoom toolbar on desktop', async ({ page }) => {
       await waitForBoard(page);
-      
-      const zoomContainer = page.locator('.absolute.bottom-4.left-4');
-      const isVisible = await zoomContainer.isVisible({ timeout: 2000 }).catch(() => false);
-      
-      expect(isVisible).toBe(true);
+
+      await expect(page.getByTestId('zoom-toolbar').first()).toBeVisible();
     });
 
     test('should position toolbar at top center on desktop', async ({ page }) => {
@@ -198,20 +188,9 @@ test.describe('Mobile and Pencil Mode E2E Tests', () => {
 
     test('should show undo/redo buttons on desktop', async ({ page }) => {
       await waitForBoard(page);
-      
-      const undoRedoContainer = page.locator('.absolute.bottom-4.left-4');
-      const isVisible = await undoRedoContainer.isVisible({ timeout: 2000 }).catch(() => false);
-      
-      expect(isVisible).toBe(true);
-      
-      const undoButton = undoRedoContainer.getByRole('button').first();
-      const redoButton = undoRedoContainer.getByRole('button').last();
-      
-      const undoVisible = await undoButton.isVisible().catch(() => false);
-      const redoVisible = await redoButton.isVisible().catch(() => false);
-      
-      expect(undoVisible).toBe(true);
-      expect(redoVisible).toBe(true);
+
+      await expect(page.getByTestId('undo-button').first()).toBeVisible();
+      await expect(page.getByTestId('redo-button').first()).toBeVisible();
     });
   });
 });

@@ -35,6 +35,7 @@ vi.mock('@plait/core', async () => {
 vi.mock('@/features/board/utils', () => ({
   focusAndRevealElements: vi.fn(),
   insertElementsSafely: vi.fn(),
+  syncElementsForBoardTheme: vi.fn((elements) => elements),
 }));
 
 vi.mock('@thinkix/mermaid-to-thinkix', () => ({

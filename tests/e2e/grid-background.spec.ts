@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import type { Download } from '@playwright/test';
+import { stat } from 'node:fs/promises';
 import { waitForBoard, getCanvas, openAppMenu, selectTool, drawShape } from './utils';
 
 const GRID_TYPE_MAP: Record<string, string> = {
@@ -50,9 +52,34 @@ async function toggleMajorGrid(page: import('@playwright/test').Page): Promise<v
   await page.waitForTimeout(200);
 }
 
-async function openExportMenu(page: import('@playwright/test').Page): Promise<boolean> {
+async function openExportSubmenu(page: import('@playwright/test').Page): Promise<void> {
   await openAppMenu(page);
-  return true;
+  const exportTrigger = page.getByTestId('app-menu-export-trigger');
+  await expect(exportTrigger).toBeVisible({ timeout: 5000 });
+  await exportTrigger.hover();
+  await exportTrigger.click();
+  await expect(page.getByTestId('app-menu-export-svg')).toBeVisible({ timeout: 5000 });
+}
+
+async function selectCanvasTheme(
+  page: import('@playwright/test').Page,
+  theme: 'default' | 'dark' | 'soft' | 'retro' | 'starry' | 'colorful',
+): Promise<void> {
+  await page.keyboard.press('Escape').catch(() => undefined);
+  await openAppMenu(page);
+  const themeTrigger = page.getByTestId('app-menu-theme-trigger');
+  await expect(themeTrigger).toBeVisible({ timeout: 5000 });
+  await themeTrigger.hover();
+  await themeTrigger.click();
+  await expect(page.getByTestId(`app-menu-theme-${theme}`)).toBeVisible({ timeout: 5000 });
+  await page.getByTestId(`app-menu-theme-${theme}`).click();
+}
+
+async function expectNonEmptyDownload(download: Download): Promise<void> {
+  const path = await download.path();
+  expect(path).toBeTruthy();
+  const file = await stat(path!);
+  expect(file.size).toBeGreaterThan(0);
 }
 
 async function getGridBackgroundColor(page: import('@playwright/test').Page): Promise<string | null> {
@@ -63,6 +90,33 @@ async function getGridBackgroundColor(page: import('@playwright/test').Page): Pr
       return style.backgroundColor;
     }
     return null;
+  });
+}
+
+async function getChromeStyles(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const readStyles = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) {
+        return null;
+      }
+
+      const styles = window.getComputedStyle(element);
+      return {
+        backgroundColor: styles.backgroundColor,
+        color: styles.color,
+        borderColor: styles.borderColor,
+      };
+    };
+
+    return {
+      rootTheme: document.documentElement.getAttribute('data-board-theme'),
+      rootDark: document.documentElement.classList.contains('dark'),
+      appMenu: readStyles('[data-testid="app-menu-button"]'),
+      boardToolbar: readStyles('[data-testid="board-toolbar"]'),
+      zoomToolbar: readStyles('[data-testid="zoom-toolbar"]'),
+      collaborate: readStyles('[data-testid="collaborate-button"]'),
+    };
   });
 }
 
@@ -167,11 +221,30 @@ test.describe('Grid Background E2E Tests', () => {
       expect(bgColor).toMatch(/rgb\(232,\s*244,\s*252\)|#e8f4fc/i);
     });
 
-    test('ruled grid should have cream background', async ({ page }) => {
+    test('ruled grid should have cream background in the default theme', async ({ page }) => {
       await selectGridType(page, 'Ruled');
       
-      const bgColor = await getGridBackgroundColor(page);
-      expect(bgColor).toBeTruthy();
+      await expect
+        .poll(() => getGridBackgroundColor(page), { timeout: 5000 })
+        .toMatch(/rgb\(248,\s*248,\s*245\)|#f8f8f5/i);
+    });
+
+    test('ruled grid should switch to a dark background in dark theme', async ({ page }) => {
+      await selectGridType(page, 'Ruled');
+      await selectCanvasTheme(page, 'dark');
+
+      await expect
+        .poll(() => getGridBackgroundColor(page), { timeout: 5000 })
+        .toMatch(/rgb\(24,\s*24,\s*27\)|#18181b/i);
+    });
+
+    test('ruled grid should switch to a starry background in starry theme', async ({ page }) => {
+      await selectGridType(page, 'Ruled');
+      await selectCanvasTheme(page, 'starry');
+
+      await expect
+        .poll(() => getGridBackgroundColor(page), { timeout: 5000 })
+        .toMatch(/rgb\(16,\s*41,\s*61\)|#10293d/i);
     });
 
     test('dots grid should have default white background', async ({ page }) => {
@@ -179,6 +252,40 @@ test.describe('Grid Background E2E Tests', () => {
       
       const bgColor = await getGridBackgroundColor(page);
       expect(bgColor).toBeTruthy();
+    });
+
+    test('updates blank canvas background when theme changes and keeps it after reload', async ({ page }) => {
+      await selectGridType(page, 'Blank');
+      await selectCanvasTheme(page, 'dark');
+
+      await expect
+        .poll(() => getGridBackgroundColor(page), { timeout: 5000 })
+        .toMatch(/rgb\(26,\s*26,\s*26\)|#1a1a1a/i);
+
+      await page.reload();
+      await waitForBoard(page);
+
+      await expect
+        .poll(() => getGridBackgroundColor(page), { timeout: 5000 })
+        .toMatch(/rgb\(26,\s*26,\s*26\)|#1a1a1a/i);
+    });
+
+    test('applies starry theme to the app chrome, not just the canvas background', async ({ page }) => {
+      await selectGridType(page, 'Blank');
+      await selectCanvasTheme(page, 'starry');
+
+      await expect
+        .poll(() => getChromeStyles(page), { timeout: 5000 })
+        .toMatchObject({
+          rootTheme: 'starry',
+          rootDark: true,
+        });
+
+      const chrome = await getChromeStyles(page);
+      expect(chrome.appMenu?.backgroundColor).not.toMatch(/rgb\(255,\s*255,\s*255\)/);
+      expect(chrome.boardToolbar?.backgroundColor).not.toMatch(/rgb\(255,\s*255,\s*255\)/);
+      expect(chrome.zoomToolbar?.backgroundColor).not.toMatch(/rgb\(255,\s*255,\s*255\)/);
+      expect(chrome.collaborate?.backgroundColor).not.toMatch(/rgb\(255,\s*255,\s*255\)/);
     });
   });
 
@@ -235,43 +342,43 @@ test.describe('Grid Background E2E Tests', () => {
     test('should export SVG with grid background for blueprint', async ({ page }) => {
       await selectGridType(page, 'Blueprint');
       await drawShape(page, 100, 100, 200, 200);
-      
-      const menuOpened = await openExportMenu(page);
-      if (!menuOpened) {
-        test.skip();
-        return;
-      }
-      
-      const exportSubMenu = page.getByText(/export/i).first();
-      await expect(exportSubMenu).toBeVisible({ timeout: 2000 });
+
+      await openExportSubmenu(page);
+      const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('app-menu-export-svg').click(),
+      ]);
+
+      expect(download.suggestedFilename()).toMatch(/\.svg$/i);
+      await expectNonEmptyDownload(download);
     });
 
     test('should export PNG with grid background for ruled', async ({ page }) => {
       await selectGridType(page, 'Ruled');
       await drawShape(page, 100, 100, 200, 200);
-      
-      const menuOpened = await openExportMenu(page);
-      if (!menuOpened) {
-        test.skip();
-        return;
-      }
-      
-      const exportSubMenu = page.getByText(/export/i).first();
-      await expect(exportSubMenu).toBeVisible({ timeout: 2000 });
+
+      await openExportSubmenu(page);
+      const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('app-menu-export-png-white').click(),
+      ]);
+
+      expect(download.suggestedFilename()).toMatch(/\.png$/i);
+      await expectNonEmptyDownload(download);
     });
 
     test('should export JPG with grid background', async ({ page }) => {
       await selectGridType(page, 'Blueprint');
       await drawShape(page, 100, 100, 200, 200);
-      
-      const menuOpened = await openExportMenu(page);
-      if (!menuOpened) {
-        test.skip();
-        return;
-      }
-      
-      const exportSubMenu = page.getByText(/export/i).first();
-      await expect(exportSubMenu).toBeVisible({ timeout: 2000 });
+
+      await openExportSubmenu(page);
+      const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByTestId('app-menu-export-jpg').click(),
+      ]);
+
+      expect(download.suggestedFilename()).toMatch(/\.jpg$/i);
+      await expectNonEmptyDownload(download);
     });
   });
 

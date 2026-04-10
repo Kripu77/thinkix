@@ -23,6 +23,24 @@ async function enableCollaboration(page: Page) {
   });
 }
 
+async function selectCanvasTheme(
+  page: Page,
+  theme: 'default' | 'dark' | 'soft' | 'retro' | 'starry' | 'colorful',
+) {
+  await page.keyboard.press('Escape').catch(() => undefined);
+  await page.getByTestId('app-menu-button').click({ force: true });
+  await expect(page.getByTestId('app-menu-content')).toBeVisible({ timeout: 5000 });
+  const themeTrigger = page.getByTestId('app-menu-theme-trigger');
+  await expect(themeTrigger).toBeVisible({ timeout: 5000 });
+  await themeTrigger.hover();
+  await themeTrigger.click();
+
+  const themeOption = page.getByTestId(`app-menu-theme-${theme}`);
+  await expect(themeOption).toBeVisible({ timeout: 5000 });
+  await themeOption.click();
+  await expect(page.getByTestId('app-menu-content')).not.toBeVisible({ timeout: 5000 });
+}
+
 test.describe('Collaboration Flow', () => {
   test('displays collaborate button on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
@@ -85,6 +103,45 @@ test.describe('Multi-User Collaboration', () => {
     await expect(page.getByTestId('collaboration-status-text')).toHaveText(
       /Just you|online/i,
     );
+  });
+
+  test('syncs board theme changes across collaborators', async ({ browser }) => {
+    const roomId = `theme-sync-${Date.now()}`;
+    const roomUrl = `${TEST_BASE_URL}?room=${roomId}`;
+
+    const context = await browser.newContext();
+    const page1 = await context.newPage();
+    const page2 = await context.newPage();
+
+    await page1.setViewportSize({ width: 1280, height: 720 });
+    await page2.setViewportSize({ width: 1280, height: 720 });
+
+    try {
+      await waitForCollaborationBoard(page1, roomUrl);
+      await waitForCollaborationBoard(page2, roomUrl);
+      await enableCollaboration(page1);
+      await enableCollaboration(page2);
+
+      await selectCanvasTheme(page1, 'dark');
+
+      await expect
+        .poll(
+          () => page2.evaluate(() => document.documentElement.getAttribute('data-board-theme')),
+          { timeout: 10000 },
+        )
+        .toBe('dark');
+
+      await selectCanvasTheme(page1, 'colorful');
+
+      await expect
+        .poll(
+          () => page2.evaluate(() => document.documentElement.getAttribute('data-board-theme')),
+          { timeout: 10000 },
+        )
+        .toBe('colorful');
+    } finally {
+      await context.close();
+    }
   });
 
   test('can leave collaboration', async ({ page }) => {

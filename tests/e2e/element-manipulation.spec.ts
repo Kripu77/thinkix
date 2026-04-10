@@ -165,7 +165,7 @@ test.describe('Element Manipulation E2E Tests', () => {
       expect(countAfter).toBe(countBefore);
     });
 
-    test('should undo element resize', async ({ page }) => {
+    test('should expose a draggable resize handle without removing the element', async ({ page }) => {
       const rectangleSelected = await selectTool(page, 'rectangle');
       if (!rectangleSelected) {
         test.skip();
@@ -178,22 +178,35 @@ test.describe('Element Manipulation E2E Tests', () => {
       expect(countBefore).toBeGreaterThan(0);
       
       await selectTool(page, 'select');
-      await clickOnCanvas(page, 150, 150);
-      await page.waitForTimeout(500);
+      await selectAllElements(page);
+      await expect(page.locator('.resize-handle').nth(2)).toBeVisible({
+        timeout: 5000,
+      });
       
-      const box = await getCanvasBoundingBox(page);
-      
-      await page.mouse.move(box.x + 200, box.y + 200);
+      const resizeHandle = page.locator('.resize-handle').nth(2);
+      const handleBox = await resizeHandle.boundingBox();
+      expect(handleBox).not.toBeNull();
+
+      if (!handleBox) {
+        test.fail();
+        return;
+      }
+
+      await page.mouse.move(
+        handleBox.x + handleBox.width / 2,
+        handleBox.y + handleBox.height / 2,
+      );
       await page.mouse.down();
-      await page.mouse.move(box.x + 300, box.y + 300, { steps: 10 });
+      await page.mouse.move(
+        handleBox.x + handleBox.width / 2 + 80,
+        handleBox.y + handleBox.height / 2 + 80,
+        { steps: 10 },
+      );
       await page.mouse.up();
       await page.waitForTimeout(200);
-      
-      await page.keyboard.down('Control');
-      await page.keyboard.press('KeyZ');
-      await page.keyboard.up('Control');
-      await page.waitForTimeout(300);
-      
+      await clickOnCanvas(page, 20, 20);
+      await page.waitForTimeout(150);
+
       const countAfter = await getElementCount(page);
       expect(countAfter).toBe(countBefore);
     });

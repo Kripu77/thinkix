@@ -12,6 +12,7 @@ vi.mock('@plait/core', async () => {
     toSvgData: vi.fn().mockResolvedValue('<svg></svg>'),
     toImage: vi.fn().mockResolvedValue('data:image/png;base64,mock'),
     getSelectedElements: vi.fn().mockReturnValue([]),
+    getViewBox: vi.fn((board: PlaitBoard) => board.getViewBox()),
     ThemeColorMode: {
       default: 'default',
       dark: 'dark',
@@ -80,6 +81,51 @@ function createMockBoard(options: {
 }
 
 describe('board-export', () => {
+  const mockRasterCanvas = (imageData = 'data:image/png;base64,bW9jaw==') => {
+    const getContextSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({ drawImage: vi.fn() } as unknown as CanvasRenderingContext2D);
+    const toDataURLSpy = vi
+      .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
+      .mockReturnValue(imageData);
+    const OriginalImage = globalThis.Image;
+    const originalCreateObjectURL = URL.createObjectURL;
+    const originalRevokeObjectURL = URL.revokeObjectURL;
+
+    class MockImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.());
+      }
+    }
+
+    vi.stubGlobal('Image', MockImage);
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: vi.fn(() => 'blob:thinkix-export'),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    return () => {
+      getContextSpy.mockRestore();
+      toDataURLSpy.mockRestore();
+      vi.stubGlobal('Image', OriginalImage);
+      Object.defineProperty(URL, 'createObjectURL', {
+        configurable: true,
+        value: originalCreateObjectURL,
+      });
+      Object.defineProperty(URL, 'revokeObjectURL', {
+        configurable: true,
+        value: originalRevokeObjectURL,
+      });
+    };
+  };
+
   describe('getBackgroundColor', () => {
     it('should return white for light theme', async () => {
       const { getBackgroundColor } = await import('@thinkix/file-utils');
@@ -249,6 +295,48 @@ describe('board-export', () => {
       const board = createMockBoard({ elements: [element] });
 
       await exportAsPng(board);
+    });
+
+    it('should render visible grid backgrounds through the enhanced SVG path', async () => {
+      const restoreRasterCanvas = mockRasterCanvas();
+      try {
+        const { exportAsPng } = await import('@thinkix/file-utils');
+        const { toImage, toSvgData } = await import('@plait/core');
+        vi.mocked(toImage).mockClear();
+        vi.mocked(toSvgData).mockResolvedValueOnce(
+          '<svg width="100" height="80" viewBox="0,0,120,100"><g data-board-content="true" /></svg>',
+        );
+        const board = {
+          ...createMockBoard({ elements: [] }),
+          getGridConfig: vi.fn().mockReturnValue({ type: 'square', density: 24, showMajor: true }),
+        } as unknown as PlaitBoard;
+
+        await exportAsPng(board, false, 'grid-board');
+
+        expect(toSvgData).toHaveBeenCalled();
+        expect(toImage).not.toHaveBeenCalled();
+      } finally {
+        restoreRasterCanvas();
+      }
+    });
+
+    it('should reject empty canvas data instead of downloading a zero-byte grid export', async () => {
+      const restoreRasterCanvas = mockRasterCanvas('data:,');
+      try {
+        const { exportAsPng } = await import('@thinkix/file-utils');
+        const { toSvgData } = await import('@plait/core');
+        vi.mocked(toSvgData).mockResolvedValueOnce(
+          '<svg width="100" height="80" viewBox="0,0,120,100"><g data-board-content="true" /></svg>',
+        );
+        const board = {
+          ...createMockBoard({ elements: [] }),
+          getGridConfig: vi.fn().mockReturnValue({ type: 'square', density: 24, showMajor: true }),
+        } as unknown as PlaitBoard;
+
+        await expect(exportAsPng(board, false, 'grid-board')).rejects.toThrow('Failed to export image data');
+      } finally {
+        restoreRasterCanvas();
+      }
     });
   });
 

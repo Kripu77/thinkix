@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getGridThemeColors, getBlueprintColors, rgba } from '@/features/board/grid/utils/theme-colors';
+import { getGridThemeColors, getBlueprintColors, getRuledColors, rgba } from '@/features/board/grid/utils/theme-colors';
 import { ThemeColorMode } from '@plait/core';
 
 describe('theme-colors', () => {
@@ -65,6 +65,25 @@ describe('theme-colors', () => {
       const starryBlueprint = getBlueprintColors(ThemeColorMode.starry);
       
       expect(starryBlueprint.background).toMatch(/^#[0-9a-fA-F]{6}$/);
+    });
+  });
+
+  describe('getRuledColors', () => {
+    it('should return a paper-like ruled palette for the default theme', () => {
+      const colors = getRuledColors(ThemeColorMode.default);
+
+      expect(colors.background).toBe('#f8f8f5');
+      expect(colors.primary).toMatch(/^#[0-9a-fA-F]{6}$/);
+    });
+
+    it('should return dark ruled palettes for dark and starry themes', () => {
+      const darkRuled = getRuledColors(ThemeColorMode.dark);
+      const starryRuled = getRuledColors(ThemeColorMode.starry);
+
+      expect(darkRuled.background).not.toBe('#f8f8f5');
+      expect(starryRuled.background).not.toBe('#f8f8f5');
+      expect(darkRuled.background).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(starryRuled.background).toMatch(/^#[0-9a-fA-F]{6}$/);
     });
   });
 

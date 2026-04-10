@@ -14,8 +14,20 @@ vi.mock('@thinkix/mermaid-to-thinkix', () => ({
 
 vi.mock('@plait-board/react-board', () => ({
   useBoard: () => mockBoard,
-  Wrapper: ({ children, value }: { children: ReactNode; value: unknown }) => (
-    <div data-elements={JSON.stringify(value)} data-testid="preview-wrapper">
+  Wrapper: ({
+    children,
+    value,
+    theme,
+  }: {
+    children: ReactNode;
+    value: unknown;
+    theme?: unknown;
+  }) => (
+    <div
+      data-elements={JSON.stringify(value)}
+      data-testid="preview-wrapper"
+      data-theme={JSON.stringify(theme)}
+    >
       {children}
     </div>
   ),
@@ -36,6 +48,22 @@ vi.mock('@plait/core', async () => {
 
 vi.mock('@/features/board/plugins/add-text-renderer', () => ({
   addTextRenderer: vi.fn(),
+}));
+
+vi.mock('@thinkix/plait-utils', () => ({
+  parseMarkdownToMindElement: vi.fn((text: string) => ({
+    id: 'mind-root',
+    type: 'mindmap',
+    isRoot: true,
+    points: [[0, 0]],
+    fill: undefined,
+    data: {
+      topic: {
+        children: [{ text }],
+      },
+    },
+    children: [],
+  })),
 }));
 
 describe('DiagramPreview', () => {
@@ -128,6 +156,22 @@ describe('DiagramPreview', () => {
         expect.any(Array),
         expect.any(Number),
       );
+    });
+  });
+
+  it('applies the active board theme to mind map previews', async () => {
+    render(
+      <DiagramPreview
+        content={'# 2026 Tech Trends\n- Agentic AI'}
+        theme={{ themeColorMode: 'starry' } as never}
+        type="mindmap"
+      />,
+    );
+
+    await waitFor(() => {
+      const wrapper = screen.getByTestId('preview-wrapper');
+      expect(wrapper.getAttribute('data-theme')).toContain('starry');
+      expect(wrapper.getAttribute('data-elements')).toContain('#17344b');
     });
   });
 });

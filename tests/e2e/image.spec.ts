@@ -8,13 +8,16 @@ test.describe('Image E2E Tests', () => {
 
   test.describe('Image Tool', () => {
     test('should show the image tool button', async ({ page }) => {
-      await expect(page.getByRole('button', { name: /image/i })).toBeVisible();
+      await expect(page.locator('button[aria-label="Image"]:visible').first()).toBeVisible();
     });
 
     test('should open the file chooser when clicking image tool', async ({ page }) => {
+      const imageButton = page.locator('button[aria-label="Image"]:visible').first();
+      await expect(imageButton).toBeVisible();
+
       const [fileChooser] = await Promise.all([
         page.waitForEvent('filechooser'),
-        page.getByRole('button', { name: /image/i }).click(),
+        imageButton.click({ force: true }),
       ]);
 
       expect(fileChooser).toBeTruthy();
