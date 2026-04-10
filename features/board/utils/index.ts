@@ -11,3 +11,5 @@ export {
   estimateStickySize,
   isStickyColorName,
 } from './sticky-note';
+export { syncElementsForBoardTheme } from './theme-elements';
+export { THINKIX_MIND_THEME_COLORS } from './mind-theme';
