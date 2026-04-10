@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ThemeColorMode } from '@plait/core';
 import type { BoardDto } from './db';
 
 const { mockDb } = vi.hoisted(() => ({
@@ -36,6 +37,7 @@ function createBoardDto(id: string, name: string): BoardDto {
     name,
     elements: [],
     viewport: { x: 0, y: 0, zoom: 1 },
+    theme: { themeColorMode: ThemeColorMode.default },
     createdAt: 1,
     updatedAt: 1,
   };
@@ -47,6 +49,7 @@ function createBoard(board: BoardDto): Board {
     name: board.name,
     elements: [],
     viewport: board.viewport,
+    theme: board.theme ?? { themeColorMode: ThemeColorMode.default },
     createdAt: board.createdAt,
     updatedAt: board.updatedAt,
   };

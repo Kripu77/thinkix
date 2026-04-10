@@ -1,3 +1,4 @@
+import type { PlaitTheme } from '@plait/core';
 import Dexie, { Table } from 'dexie';
 
 export interface BoardDto {
@@ -5,6 +6,7 @@ export interface BoardDto {
   name: string;
   elements: unknown[];
   viewport: { x: number; y: number; zoom: number };
+  theme?: PlaitTheme;
   createdAt: number;
   updatedAt: number;
 }

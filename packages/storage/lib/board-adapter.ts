@@ -1,5 +1,5 @@
 import { db, type BoardDto } from './db';
-import type { PlaitElement } from '@plait/core';
+import { ThemeColorMode, type PlaitElement, type PlaitTheme } from '@plait/core';
 
 export interface BoardInfo {
   id: string;
@@ -14,6 +14,7 @@ export interface BoardData {
   name: string;
   elements: PlaitElement[];
   viewport: { x: number; y: number; zoom: number };
+  theme: PlaitTheme;
 }
 
 let isInitialized = false;
@@ -47,6 +48,7 @@ export const boardAdapter = {
       name: board.name,
       elements: board.elements as PlaitElement[],
       viewport: board.viewport,
+      theme: board.theme ?? { themeColorMode: ThemeColorMode.default },
     };
   },
   
@@ -59,6 +61,7 @@ export const boardAdapter = {
       name: board.name,
       elements: board.elements as PlaitElement[],
       viewport: board.viewport,
+      theme: board.theme ?? { themeColorMode: ThemeColorMode.default },
     };
   },
   
@@ -71,6 +74,7 @@ export const boardAdapter = {
       name,
       elements: [],
       viewport: { x: 0, y: 0, zoom: 1 },
+      theme: { themeColorMode: ThemeColorMode.default },
       createdAt: now,
       updatedAt: now,
     };

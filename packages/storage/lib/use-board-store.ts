@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { db, type BoardDto } from './db';
-import type { PlaitElement } from '@plait/core';
+import { ThemeColorMode, type PlaitElement, type PlaitTheme } from '@plait/core';
 
 export interface BoardMetadata {
   id: string;
@@ -18,6 +18,7 @@ export interface Board {
   name: string;
   elements: PlaitElement[];
   viewport: { x: number; y: number; zoom: number };
+  theme: PlaitTheme;
   createdAt: number;
   updatedAt: number;
 }
@@ -38,6 +39,7 @@ interface BoardActions {
   deleteBoard: (id: string) => Promise<Board | null>;
   renameBoard: (id: string, name: string) => Promise<void>;
   saveBoard: (board: Board) => Promise<void>;
+  updateBoardTheme: (id: string, theme: PlaitTheme) => Promise<void>;
   setSaveStatus: (status: SaveStatus) => void;
 }
 
@@ -49,6 +51,7 @@ function mapBoardDtoToBoard(boardDto: BoardDto): Board {
     name: boardDto.name,
     elements: boardDto.elements as PlaitElement[],
     viewport: boardDto.viewport,
+    theme: boardDto.theme ?? { themeColorMode: ThemeColorMode.default },
     createdAt: boardDto.createdAt,
     updatedAt: boardDto.updatedAt,
   };
@@ -120,6 +123,7 @@ export const useBoardStore = create<BoardStore>()(
             name: 'My Board',
             elements: [],
             viewport: { x: 0, y: 0, zoom: 1 },
+            theme: { themeColorMode: ThemeColorMode.default },
             createdAt: now,
             updatedAt: now,
           };
@@ -143,6 +147,7 @@ export const useBoardStore = create<BoardStore>()(
         name,
         elements: [],
         viewport: { x: 0, y: 0, zoom: 1 },
+        theme: { themeColorMode: ThemeColorMode.default },
         createdAt: now,
         updatedAt: now,
       };
@@ -243,6 +248,21 @@ export const useBoardStore = create<BoardStore>()(
         set({ saveStatus: 'error' });
         setTimeout(() => set({ saveStatus: 'idle' }), 3000);
       }
+    },
+
+    updateBoardTheme: async (id: string, theme: PlaitTheme) => {
+      const updatedAt = Date.now();
+      await db.boards.update(id, { theme, updatedAt });
+
+      set((state) => ({
+        boards: state.boards.map((board) =>
+          board.id === id ? { ...board, updatedAt } : board,
+        ),
+        currentBoard:
+          state.currentBoard?.id === id
+            ? { ...state.currentBoard, theme, updatedAt }
+            : state.currentBoard,
+      }));
     },
 
     setSaveStatus: (status: SaveStatus) => set({ saveStatus: status }),
