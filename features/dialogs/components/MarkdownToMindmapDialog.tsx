@@ -2,10 +2,16 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useBoard, Board, Wrapper } from '@plait-board/react-board';
-import { type PlaitElement, type PlaitPlugin } from '@plait/core';
+import {
+  PlaitHistoryBoard,
+  Transforms,
+  type PlaitElement,
+  type PlaitPlugin,
+  type PlaitTheme,
+} from '@plait/core';
 import { withGroup } from '@plait/common';
 import { withDraw } from '@plait/draw';
-import { withMind, MindThemeColors } from '@plait/mind';
+import { withMind } from '@plait/mind';
 import {
   Dialog,
   DialogContent,
@@ -14,9 +20,15 @@ import {
   DialogDescription,
 } from '@thinkix/ui';
 import { Button } from '@thinkix/ui';
-import { focusAndRevealElements, insertElementDirect } from '@/features/board/utils';
+import {
+  focusAndRevealElements,
+  insertElementDirect,
+  syncElementsForBoardTheme,
+  THINKIX_MIND_THEME_COLORS,
+} from '@/features/board/utils';
 import { parseMarkdownToMindElement } from '@thinkix/plait-utils';
 import posthog from 'posthog-js';
+import { getBoardThemeMode } from '@thinkix/shared';
 
 const MARKDOWN_EXAMPLE = `# Project Title
 Brief description of the project or topic.
@@ -92,14 +104,20 @@ const PREVIEW_OPTIONS = {
   readonly: true,
   hideScrollbar: false,
   disabledScrollOnNonFocus: true,
-  themeColors: MindThemeColors,
+  themeColors: THINKIX_MIND_THEME_COLORS,
 };
 
-function PreviewCanvas({ elements }: { elements: PlaitElement[] }) {
+function PreviewCanvas({
+  elements,
+  theme,
+}: {
+  elements: PlaitElement[];
+  theme: PlaitTheme;
+}) {
   if (elements.length === 0) return null;
 
   return (
-    <Wrapper value={elements} options={PREVIEW_OPTIONS} plugins={PREVIEW_PLUGINS}>
+    <Wrapper value={elements} options={PREVIEW_OPTIONS} plugins={PREVIEW_PLUGINS} theme={theme}>
       <Board className="w-full h-full" />
     </Wrapper>
   );
@@ -108,11 +126,12 @@ function PreviewCanvas({ elements }: { elements: PlaitElement[] }) {
 export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindmapDialogProps) {
   const board = useBoard();
   const [text, setText] = useState(MARKDOWN_EXAMPLE);
+  const boardThemeMode = useMemo(() => getBoardThemeMode(board.theme), [board.theme]);
 
   const previewElements = useMemo(() => {
     const mind = parseMarkdownForPreview(text.trim());
-    return mind ? [mind] : [];
-  }, [text]);
+    return mind ? syncElementsForBoardTheme([mind], boardThemeMode) : [];
+  }, [boardThemeMode, text]);
 
   const error = previewElements.length === 0 && text.trim().length > 0
     ? 'Failed to parse markdown'
@@ -121,13 +140,27 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
   const handleInsert = useCallback(() => {
     const insertElement = parseMarkdownForInsert(text.trim());
     if (!insertElement) return;
+
     const previousCount = board.children.length;
     insertElementDirect(board, insertElement);
+
     const insertedElement = board.children[previousCount] ?? insertElement;
-    focusAndRevealElements(board, [insertedElement]);
+    const [themedInsertedElement] = syncElementsForBoardTheme([insertedElement], boardThemeMode);
+
+    if (themedInsertedElement && themedInsertedElement !== insertedElement) {
+      PlaitHistoryBoard.withoutSaving(board, () => {
+        Transforms.setNode(board, { ...themedInsertedElement }, [previousCount]);
+      });
+    }
+
+    const focusedElement = board.children[previousCount] ?? themedInsertedElement ?? insertedElement;
+    focusAndRevealElements(
+      board,
+      focusedElement ? [focusedElement] : [insertElement],
+    );
     posthog.capture('markdown_to_mindmap_inserted', { markdown_length: text.trim().length });
     onOpenChange(false);
-  }, [board, text, onOpenChange]);
+  }, [board, boardThemeMode, text, onOpenChange]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -176,7 +209,7 @@ export function MarkdownToMindmapDialog({ open, onOpenChange }: MarkdownToMindma
                   {error}
                 </div>
               ) : previewElements.length > 0 ? (
-                <PreviewCanvas elements={previewElements} />
+                <PreviewCanvas elements={previewElements} theme={board.theme} />
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                   Enter markdown to preview

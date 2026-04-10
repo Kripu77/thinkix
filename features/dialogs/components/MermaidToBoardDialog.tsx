@@ -21,12 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@thinkix/ui';
-import { focusAndRevealElements, insertElementsSafely } from '@/features/board/utils';
+import {
+  focusAndRevealElements,
+  insertElementsSafely,
+  syncElementsForBoardTheme,
+} from '@/features/board/utils';
 import { parseMermaidToBoard } from '@thinkix/mermaid-to-thinkix';
 import posthog from 'posthog-js';
 import { Board, Wrapper } from '@plait-board/react-board';
 import { addTextRenderer } from '@/features/board/plugins/add-text-renderer';
-import { createLogger } from '@thinkix/shared';
+import { createLogger, getBoardThemeMode } from '@thinkix/shared';
 
 const logger = createLogger('dialog:mermaid-to-board');
 
@@ -161,7 +165,12 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
       setIsLoading(true);
       try {
         const result = await parseMermaidToBoard(deferredText);
-        setElements(result.elements as PlaitElement[]);
+        setElements(
+          syncElementsForBoardTheme(
+            result.elements as PlaitElement[],
+            getBoardThemeMode(board.theme),
+          ),
+        );
         setWarnings(result.warnings || []);
         setError(null);
       } catch (err) {
@@ -191,7 +200,7 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [deferredText]);
+  }, [board.theme, deferredText]);
 
   const plugins: PlaitPlugin[] = [withDraw, withMind, withGroup, withText, addTextRenderer];
   const boardOptions = {
@@ -306,7 +315,7 @@ function MermaidToBoardDialog({ open, onOpenChange }: MermaidToBoardDialogProps)
                 </div>
               ) : isValid ? (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Wrapper value={elements} options={boardOptions} plugins={plugins}>
+                  <Wrapper value={elements} options={boardOptions} plugins={plugins} theme={board.theme}>
                     <Board />
                   </Wrapper>
                 </div>
