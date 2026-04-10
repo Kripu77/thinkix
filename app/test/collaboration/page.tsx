@@ -23,11 +23,14 @@ import {
 } from '@thinkix/collaboration';
 import { MockYjsProvider } from '@thinkix/collaboration/test-utils';
 import { BoardLayoutSlots } from '@/features/board';
+import { refreshGrid } from '@/features/board/grid';
+import { getBoardThemeMode, isDarkBoardTheme } from '@thinkix/shared';
 
-const MockCollaborativeRoom = ({ children, roomId, initialElements }: { 
+const MockCollaborativeRoom = ({ children, roomId, initialElements, initialTheme }: { 
   children: React.ReactNode; 
   roomId?: string; 
   initialElements?: BoardElement[];
+  initialTheme?: import('@plait/core').PlaitTheme;
 }) => {
   const [user] = useState(() => getOrCreateUser());
   
@@ -37,6 +40,7 @@ const MockCollaborativeRoom = ({ children, roomId, initialElements }: {
         user={user}
         roomId={roomId}
         initialElements={initialElements}
+        initialTheme={initialTheme}
       >
         {children}
       </MockYjsProvider>
@@ -60,8 +64,11 @@ function hashElements(elements: BoardElement[]): string {
 
 function MockCollaborationBridge() {
   const { board } = useBoardState();
-  const { elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
+  const { elements, theme, isLocalChange, setElements, syncState } = useYjsCollaboration();
   const { syncBus } = useSyncBus();
+  const currentBoardId = useBoardStore((state) => state.currentBoard?.id);
+  const currentBoardTheme = useBoardStore((state) => state.currentBoard?.theme);
+  const updateBoardTheme = useBoardStore((state) => state.updateBoardTheme);
   const lastElementsHashRef = useRef('');
   const isSyncingRef = useRef(false);
 
@@ -76,6 +83,25 @@ function MockCollaborationBridge() {
     board.children = elements as unknown as typeof board.children;
     syncBus.emitRemoteChange(elements);
   }, [board, elements, isLocalChange, syncBus]);
+
+  useEffect(() => {
+    if (!board || !theme) return;
+
+    if (getBoardThemeMode(board.theme) !== getBoardThemeMode(theme)) {
+      // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
+      board.theme = theme;
+      refreshGrid(board);
+    }
+  }, [board, theme]);
+
+  useEffect(() => {
+    if (!currentBoardId || !theme) return;
+    if (currentBoardTheme && getBoardThemeMode(currentBoardTheme) === getBoardThemeMode(theme)) {
+      return;
+    }
+
+    void updateBoardTheme(currentBoardId, theme);
+  }, [currentBoardId, currentBoardTheme, theme, updateBoardTheme]);
 
   useEffect(() => {
     const unsubscribe = syncBus.subscribeToLocalChanges((localElements: BoardElement[]) => {
@@ -141,7 +167,7 @@ function TestBoardAppContent() {
   const pathname = usePathname();
   const roomFromUrl = searchParams.get('room');
   
-  const { 
+  const {
     initialize, 
     boards, 
     currentBoard, 
@@ -151,6 +177,30 @@ function TestBoardAppContent() {
     deleteBoard, 
     renameBoard 
   } = useBoardStore();
+
+  const boardThemeMode = useMemo(
+    () => getBoardThemeMode(currentBoard?.theme),
+    [currentBoard?.theme],
+  );
+  const boardUsesDarkShell = isDarkBoardTheme(boardThemeMode);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousTheme = root.getAttribute('data-board-theme');
+    const previousDark = root.classList.contains('dark');
+
+    root.setAttribute('data-board-theme', boardThemeMode);
+    root.classList.toggle('dark', boardUsesDarkShell);
+
+    return () => {
+      if (previousTheme) {
+        root.setAttribute('data-board-theme', previousTheme);
+      } else {
+        root.removeAttribute('data-board-theme');
+      }
+      root.classList.toggle('dark', previousDark);
+    };
+  }, [boardThemeMode, boardUsesDarkShell]);
 
   const activeRoomId = roomFromUrl || currentBoard?.id || null;
   const { isEnabled, enableCollaboration, disableCollaboration } = useCollaborationState(activeRoomId ?? undefined);
@@ -281,8 +331,15 @@ function TestBoardAppContent() {
   if (isEnabled && activeRoomId) {
     return (
       <>
-        <MockCollaborativeRoom roomId={activeRoomId} initialElements={currentBoard?.elements}>
-          <main className="w-screen h-screen overflow-hidden bg-background">
+        <MockCollaborativeRoom
+          roomId={activeRoomId}
+          initialElements={currentBoard?.elements}
+          initialTheme={currentBoard?.theme}
+        >
+          <main
+            className={`w-screen h-screen overflow-hidden bg-background ${boardUsesDarkShell ? 'dark' : ''}`}
+            data-board-theme={boardThemeMode}
+          >
             <BoardCanvas boardData={currentBoard}>
               <MockCollaborationBridge />
               <BoardToolbar />
@@ -306,7 +363,10 @@ function TestBoardAppContent() {
 
   return (
     <>
-      <main className="w-screen h-screen overflow-hidden bg-background">
+      <main
+        className={`w-screen h-screen overflow-hidden bg-background ${boardUsesDarkShell ? 'dark' : ''}`}
+        data-board-theme={boardThemeMode}
+      >
         <BoardCanvas boardData={currentBoard}>
           <BoardToolbar />
           <BoardLayoutSlots
