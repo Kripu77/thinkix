@@ -1,17 +1,20 @@
 'use client';
 
 import { Board, Wrapper, useBoard } from '@plait-board/react-board';
-import { BoardTransforms, type PlaitElement, type PlaitPlugin } from '@plait/core';
+import { BoardTransforms, ThemeColorMode, type PlaitElement, type PlaitPlugin, type PlaitTheme } from '@plait/core';
 import { withGroup, withText } from '@plait/common';
 import { withDraw } from '@plait/draw';
-import { MindThemeColors, withMind } from '@plait/mind';
+import { withMind } from '@plait/mind';
 import { FileText, Loader2, Network } from 'lucide-react';
 import { useDeferredValue, useEffect, useRef, useState } from 'react';
 import { addTextRenderer } from '@/features/board/plugins/add-text-renderer';
+import { syncElementsForBoardTheme, THINKIX_MIND_THEME_COLORS } from '@/features/board/utils';
+import { getBoardThemeMode } from '@thinkix/shared';
 
 interface DiagramPreviewProps {
   type: 'mermaid' | 'mindmap';
   content: string;
+  theme?: PlaitTheme;
 }
 
 interface PreviewState {
@@ -35,7 +38,7 @@ const PREVIEW_OPTIONS = {
   hideScrollbar: true,
   disabledScrollOnNonFocus: true,
   viewportScroll: false,
-  themeColors: MindThemeColors,
+  themeColors: THINKIX_MIND_THEME_COLORS,
 };
 
 function getMermaidKindLabel(content: string): string {
@@ -169,12 +172,14 @@ function PreviewFallback({ kindLabel }: { kindLabel: string }) {
 function ReadonlyBoardPreview({
   elements,
   frameSize,
+  theme,
 }: {
   elements: PlaitElement[];
   frameSize: { width: number; height: number };
+  theme: PlaitTheme;
 }) {
   return (
-    <Wrapper value={elements} options={PREVIEW_OPTIONS} plugins={PREVIEW_PLUGINS}>
+    <Wrapper value={elements} options={PREVIEW_OPTIONS} plugins={PREVIEW_PLUGINS} theme={theme}>
       <PreviewViewportController elements={elements} frameSize={frameSize} />
       <Board className="h-full w-full pointer-events-none" />
     </Wrapper>
@@ -202,12 +207,14 @@ function PreviewViewportController({
   return null;
 }
 
-export function DiagramPreview({ type, content }: DiagramPreviewProps) {
+export function DiagramPreview({ type, content, theme }: DiagramPreviewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const deferredContent = useDeferredValue(content);
   const frameRef = useRef<HTMLDivElement | null>(null);
   const [frameSize, setFrameSize] = useState(DEFAULT_PREVIEW_SIZE);
+  const resolvedTheme = theme ?? { themeColorMode: ThemeColorMode.default };
+  const themeMode = getBoardThemeMode(resolvedTheme);
   const [previewState, setPreviewState] = useState<PreviewState>({
     elements: [],
     kindLabel: type === 'mindmap' ? 'Mind Map' : getMermaidKindLabel(content),
@@ -265,7 +272,7 @@ export function DiagramPreview({ type, content }: DiagramPreviewProps) {
 
           if (!cancelled) {
             setPreviewState({
-              elements: element ? [element] : [],
+              elements: element ? syncElementsForBoardTheme([element], themeMode) : [],
               kindLabel: 'Mind Map',
             });
           }
@@ -278,7 +285,7 @@ export function DiagramPreview({ type, content }: DiagramPreviewProps) {
 
         if (!cancelled) {
           setPreviewState({
-            elements: result.elements as PlaitElement[],
+            elements: syncElementsForBoardTheme(result.elements as PlaitElement[], themeMode),
             kindLabel: getMermaidKindLabel(deferredContent),
           });
         }
@@ -302,7 +309,7 @@ export function DiagramPreview({ type, content }: DiagramPreviewProps) {
     return () => {
       cancelled = true;
     };
-  }, [deferredContent, type]);
+  }, [deferredContent, themeMode, type]);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/70 bg-muted/[0.18]">
@@ -322,7 +329,11 @@ export function DiagramPreview({ type, content }: DiagramPreviewProps) {
             ) : error ? (
               <PreviewFallback kindLabel={previewState.kindLabel} />
             ) : previewState.elements.length > 0 ? (
-              <ReadonlyBoardPreview elements={previewState.elements} frameSize={frameSize} />
+              <ReadonlyBoardPreview
+                elements={previewState.elements}
+                frameSize={frameSize}
+                theme={resolvedTheme}
+              />
             ) : (
               <PreviewFallback kindLabel={previewState.kindLabel} />
             )}

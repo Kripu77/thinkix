@@ -15,7 +15,9 @@ import {
   focusAndRevealElements,
   isStickyColorName,
   insertElementDirect,
+  syncElementsForBoardTheme,
 } from '@/features/board/utils';
+import { getBoardInkColors, getBoardThemeMode } from '@thinkix/shared';
 import {
   DEFAULT_STICKY_COLOR,
   STICKY_COLORS,
@@ -700,6 +702,7 @@ Examples:
   const text = args.slice(1).join(' ') || '';
 
   let element: PlaitElement;
+  const ink = getBoardInkColors(getBoardThemeMode(ctx.board.theme));
 
   switch (type) {
     case 'shape': {
@@ -710,13 +713,16 @@ Examples:
         [ox + w, oy + h],
       ];
       const textContent = {
-        children: [{ text }],
+        children: [{ text, color: ink.text }],
         autoSize: true,
       };
       element = createGeometryElement(
         BasicShapes.rectangle,
         points,
         textContent,
+        {
+          strokeColor: ink.stroke,
+        },
       ) as unknown as PlaitElement;
       element.id = idCreator();
       break;
@@ -744,7 +750,7 @@ Examples:
         [ox + w, oy + h],
       ];
       const textContent = {
-        children: [{ text }],
+        children: [{ text, color: ink.text }],
         autoSize: true,
       };
       element = createGeometryElement(
@@ -1424,8 +1430,9 @@ Types:
         };
       }
 
-      const elements = relayoutHeaderDrivenDiagram(
-        result.elements as PlaitElement[],
+      const elements = syncElementsForBoardTheme(
+        relayoutHeaderDrivenDiagram(result.elements as PlaitElement[]),
+        getBoardThemeMode(ctx.board.theme),
       );
       const [dx, dy] = findNonOverlappingOffset(ctx.board, elements);
       const offsetElements = elements.map((el) => offsetElement(el, dx, dy));

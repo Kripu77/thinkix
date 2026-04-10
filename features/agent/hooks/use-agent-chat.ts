@@ -199,6 +199,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
           y: activeBoard.board.viewport.y ?? 0,
           zoom: activeBoard.board.viewport.zoom ?? 1,
         },
+        theme: activeBoard.board.theme ?? currentBoardRef.current?.theme,
         createdAt: activeBoard.createdAt,
         updatedAt: Date.now(),
       });

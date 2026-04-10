@@ -30,6 +30,7 @@ import type {
   RunToolOutput,
 } from '../tools/result-types';
 import type { WebSearchToolOutput } from '@thinkix/ai/tools';
+import { useBoardStore } from '@thinkix/storage';
 
 type ToolPart = ToolUIPart | DynamicToolUIPart;
 
@@ -635,6 +636,7 @@ function WriteToolHeader({ part }: { part: ToolPart }) {
 }
 
 function ToolExpandedContent({ part }: { part: ToolPart }) {
+  const currentBoardTheme = useBoardStore((state) => state.currentBoard?.theme);
   const name = getToolName(part);
   const output = part.output;
   const running = isRunning(part.state);
@@ -685,6 +687,7 @@ function ToolExpandedContent({ part }: { part: ToolPart }) {
             <div className="overflow-hidden rounded-xl border border-border/70 bg-background">
               <DiagramPreview
                 content={writeInfo.content}
+                theme={currentBoardTheme}
                 type={writeInfo.type as 'mermaid' | 'mindmap'}
               />
             </div>

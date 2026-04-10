@@ -27,6 +27,7 @@ import {
   type AIProvider,
   type ClientAIConfig,
 } from '@thinkix/ai';
+import { THEME } from '@/shared/constants';
 import {
   AgentSettingsDialog,
   loadAgentSettings,
@@ -322,7 +323,8 @@ export function AgentPane({
     <>
       <div
         className={cn(
-          'fixed right-0 top-0 z-40 flex h-full flex-col border-l bg-background shadow-lg transition-transform duration-300 ease-in-out',
+          'fixed right-0 top-0 z-40 flex h-full flex-col border-l transition-transform duration-300 ease-in-out',
+          THEME.surface.panel,
           open ? 'translate-x-0' : 'translate-x-full',
         )}
         data-testid="agent-pane"
@@ -342,7 +344,7 @@ export function AgentPane({
           />
         </div>
 
-        <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-border/80 px-4 py-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-4 text-primary" />
@@ -478,13 +480,17 @@ export function AgentPane({
           <ConversationScrollButton />
         </Conversation>
 
-        <div className="shrink-0 space-y-3 border-t bg-background p-4">
+        <div className="shrink-0 space-y-3 border-t border-border/80 bg-card/80 p-4">
           {messages.length === 0 ? (
             <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {DEFAULT_SUGGESTIONS.map((suggestion) => (
                 <button
                   key={suggestion.id}
-                  className="group flex shrink-0 flex-col gap-1 rounded-xl bg-muted/50 px-4 py-3 text-left transition-all duration-200 hover:bg-muted hover:shadow-sm active:scale-[0.98]"
+                  className={cn(
+                    'group flex shrink-0 flex-col gap-1 rounded-xl px-4 py-3 text-left transition-all duration-200 active:scale-[0.98]',
+                    THEME.surface.subtle,
+                    'hover:bg-accent/70 hover:shadow-sm',
+                  )}
                   onClick={() => submitPrompt(suggestion.prompt)}
                   type="button"
                 >
@@ -506,7 +512,13 @@ export function AgentPane({
               return submitPrompt(text);
             }}
           >
-            <div className="overflow-hidden rounded-xl border border-input bg-background shadow-xs">
+            <div
+              className={cn(
+                'overflow-hidden rounded-xl shadow-xs',
+                THEME.surface.input,
+              )}
+              data-testid="agent-prompt-shell"
+            >
               <PromptInputBody className="block p-0">
                 <PromptInputTextarea
                   aria-label="Agent prompt"
@@ -516,7 +528,7 @@ export function AgentPane({
                   rows={4}
                 />
               </PromptInputBody>
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t px-3 py-2">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/80 px-3 py-2">
                 <PromptInputTools>
                   <PromptInputSelect
                     onValueChange={(value) => {
@@ -528,7 +540,10 @@ export function AgentPane({
                     value={normalizedProviderSetting ?? 'auto'}
                   >
                     <PromptInputSelectTrigger
-                      className="h-8 w-auto min-w-[132px] gap-2 border bg-muted/40 px-2.5 text-left text-xs shadow-none"
+                      className={cn(
+                        'h-8 w-auto min-w-[132px] gap-2 px-2.5 text-left text-xs shadow-none',
+                        THEME.surface.input,
+                      )}
                       data-testid="agent-provider-select-trigger"
                     >
                       <div className="flex min-w-0 items-center gap-1.5">
@@ -539,7 +554,11 @@ export function AgentPane({
                         <span className="truncate">{providerConfig.name}</span>
                       </div>
                     </PromptInputSelectTrigger>
-                    <PromptInputSelectContent align="start" side="top">
+                    <PromptInputSelectContent
+                      align="start"
+                      className={THEME.dropdown.content}
+                      side="top"
+                    >
                       <PromptInputSelectItem data-testid="agent-provider-option-auto" value="auto">
                         <span className="flex items-center gap-1.5">
                           Auto
