@@ -12,7 +12,7 @@ import {
 } from '@plait/core';
 import { withGroup, withText } from '@plait/common';
 import { withDraw } from '@plait/draw';
-import { withMind, MindThemeColors } from '@plait/mind';
+import { withMind } from '@plait/mind';
 import { addPenMode } from '../plugins/add-pen-mode';
 import { addImageRenderer } from '../plugins/add-image-renderer';
 import { addEmojiRenderer } from '../plugins/add-emoji-renderer';
@@ -34,6 +34,8 @@ import { useAutoSave } from '@/features/storage';
 import { PencilModeIndicator } from './PencilModeIndicator';
 import type { Board as StorageBoard } from '@thinkix/storage';
 import { useOptionalSyncBus, type BoardElement, validateBoardElements, logger } from '@thinkix/collaboration';
+import { getBoardThemeMode } from '@thinkix/shared';
+import { syncElementsForBoardTheme, THINKIX_MIND_THEME_COLORS } from '../utils';
 
 import '@/app/styles/plait-react-board.css';
 
@@ -48,12 +50,14 @@ const DEFAULT_BOARD_OPTIONS: PlaitBoardOptions = {
   readonly: false,
   hideScrollbar: false,
   disabledScrollOnNonFocus: false,
-  themeColors: MindThemeColors,
+  themeColors: THINKIX_MIND_THEME_COLORS,
 };
 
 const DEFAULT_THEME: PlaitTheme = {
   themeColorMode: ThemeColorMode.default,
 };
+
+const EMPTY_INITIAL_VALUE: PlaitElement[] = [];
 
 const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): PlaitPlugin[] => [
   withGrid,
@@ -76,7 +80,13 @@ const createPlugins = (onPencilModeChange?: (isPencilMode: boolean) => void): Pl
   withPinchZoom,
 ];
 
-function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: PlaitElement[]) => void }) {
+function RemoteSyncHandler({
+  onElementsChange,
+  normalizeElements,
+}: {
+  onElementsChange: (elements: PlaitElement[]) => void;
+  normalizeElements: (elements: PlaitElement[]) => PlaitElement[];
+}) {
   const board = useBoard();
   const listRender = useListRender();
   const syncBusContext = useOptionalSyncBus();
@@ -85,8 +95,9 @@ function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: 
     if (!syncBusContext) return;
     
     const unsubscribe = syncBusContext.syncBus.subscribeToRemoteChanges((elements: BoardElement[]) => {
-      onElementsChange(elements);
-      listRender.update(elements, {
+      const normalized = normalizeElements(elements);
+      onElementsChange(normalized);
+      listRender.update(normalized, {
         board: board,
         parent: board,
         parentG: PlaitBoard.getElementHost(board),
@@ -94,23 +105,38 @@ function RemoteSyncHandler({ onElementsChange }: { onElementsChange: (elements: 
     });
 
     return unsubscribe;
-  }, [board, listRender, onElementsChange, syncBusContext]);
+  }, [board, listRender, normalizeElements, onElementsChange, syncBusContext]);
 
   return null;
 }
 
 export function BoardCanvas({
-  initialValue = [],
+  initialValue,
   className,
   children,
   boardData,
 }: BoardCanvasProps) {
   const { board, setBoard, state, setCurrentBoardId, setPencilMode } = useBoardState();
   const syncBusContext = useOptionalSyncBus();
-  
+  const resolvedInitialValue = initialValue ?? EMPTY_INITIAL_VALUE;
+
+  const boardTheme = useMemo<PlaitTheme>(() => {
+    return boardData?.theme ?? DEFAULT_THEME;
+  }, [boardData?.theme]);
+
+  const boardThemeMode = useMemo(() => getBoardThemeMode(boardTheme), [boardTheme]);
+
+  const normalizeElementsForTheme = useCallback(
+    (elements: PlaitElement[]) => syncElementsForBoardTheme(elements, boardThemeMode),
+    [boardThemeMode],
+  );
+
   const initialElements = useMemo(() => {
-    return boardData?.elements ?? initialValue;
-  }, [boardData?.elements, initialValue]);
+    return syncElementsForBoardTheme(
+      boardData?.elements ?? resolvedInitialValue,
+      getBoardThemeMode(boardData?.theme ?? DEFAULT_THEME),
+    );
+  }, [boardData?.elements, boardData?.theme, resolvedInitialValue]);
 
   const [value, setValue] = useState<PlaitElement[]>(initialElements);
 
@@ -173,13 +199,14 @@ export function BoardCanvas({
         value={value}
         options={DEFAULT_BOARD_OPTIONS}
         plugins={plugins}
-        theme={DEFAULT_THEME}
+        theme={boardTheme}
         onChange={handleChange}
       >
         <div
           data-board="true"
           data-element-count={value.length}
           data-has-elements={value.length > 0 ? 'true' : 'false'}
+          data-board-theme={boardThemeMode}
           className="w-full h-full"
         >
           <Board
@@ -187,7 +214,10 @@ export function BoardCanvas({
             afterInit={handleBoardInit}
           />
         </div>
-        <RemoteSyncHandler onElementsChange={setValue} />
+        <RemoteSyncHandler
+          onElementsChange={setValue}
+          normalizeElements={normalizeElementsForTheme}
+        />
         <PencilModeIndicator />
         <SelectionToolbar />
         <ZoomToolbar />

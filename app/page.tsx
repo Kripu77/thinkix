@@ -1,6 +1,6 @@
 'use client';
  
-import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, Suspense, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { BoardProvider } from '@/features/board/hooks/use-board-state';
@@ -18,6 +18,7 @@ import { useCollaborationState, useCollaborationSession } from '@thinkix/collabo
 import { BoardLayoutSlots } from '@/features/board';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@thinkix/ui';
+import { getBoardThemeMode, isDarkBoardTheme } from '@thinkix/shared';
  
 const BoardCanvas = dynamic(
   () => import('@/features/board').then((mod) => mod.BoardCanvas),
@@ -87,6 +88,30 @@ function BoardAppContent() {
     deleteBoard,
     renameBoard
   } = useBoardStore();
+
+  const boardThemeMode = useMemo(
+    () => getBoardThemeMode(currentBoard?.theme),
+    [currentBoard?.theme],
+  );
+  const boardUsesDarkShell = isDarkBoardTheme(boardThemeMode);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const previousTheme = root.getAttribute('data-board-theme');
+    const previousDark = root.classList.contains('dark');
+
+    root.setAttribute('data-board-theme', boardThemeMode);
+    root.classList.toggle('dark', boardUsesDarkShell);
+
+    return () => {
+      if (previousTheme) {
+        root.setAttribute('data-board-theme', previousTheme);
+      } else {
+        root.removeAttribute('data-board-theme');
+      }
+      root.classList.toggle('dark', previousDark);
+    };
+  }, [boardThemeMode, boardUsesDarkShell]);
  
   const activeRoomId = roomFromUrl || currentBoard?.id || null;
   const { isEnabled, enableCollaboration, disableCollaboration } = useCollaborationState(activeRoomId ?? undefined);
@@ -246,10 +271,15 @@ function BoardAppContent() {
   if (isEnabled && activeRoomId) {
     return (
       <>
-        <Room roomId={activeRoomId} initialElements={currentBoard?.elements}>
+        <Room
+          roomId={activeRoomId}
+          initialElements={currentBoard?.elements}
+          initialTheme={currentBoard?.theme}
+        >
           <CollaborativeBoard>
             <div 
-              className="relative w-screen h-screen overflow-hidden bg-background transition-[padding] duration-200"
+              className={`relative w-screen h-screen overflow-hidden bg-background transition-[padding] duration-200 ${boardUsesDarkShell ? 'dark' : ''}`}
+              data-board-theme={boardThemeMode}
               style={{ paddingRight: agentOpen ? `${agentWidth}px` : 0 }}
             >
               <BoardCanvas boardData={currentBoard}>
@@ -282,7 +312,8 @@ function BoardAppContent() {
   return (
     <>
       <div 
-        className="relative w-screen h-screen overflow-hidden bg-background transition-[padding] duration-200"
+        className={`relative w-screen h-screen overflow-hidden bg-background transition-[padding] duration-200 ${boardUsesDarkShell ? 'dark' : ''}`}
+        data-board-theme={boardThemeMode}
         style={{ paddingRight: agentOpen ? `${agentWidth}px` : 0 }}
       >
         <BoardCanvas boardData={currentBoard}>
