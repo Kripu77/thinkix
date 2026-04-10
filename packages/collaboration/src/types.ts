@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { PlaitTheme } from '@plait/core';
 import { generateUserIdentity } from './user-identity';
 
 export interface CollaborationUser {
@@ -46,6 +47,10 @@ export interface BoardSyncState {
   isSyncing: boolean;
   lastSyncedAt: number | null;
   pendingChanges: number;
+}
+
+export interface SharedBoardTheme {
+  theme: PlaitTheme | null;
 }
 
 export const USER_COLORS = [

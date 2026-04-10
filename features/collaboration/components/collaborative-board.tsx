@@ -14,6 +14,9 @@ import {
   logger,
   type BoardElement,
 } from '@thinkix/collaboration';
+import { useBoardStore } from '@thinkix/storage';
+import { getBoardThemeMode } from '@thinkix/shared';
+import { refreshGrid } from '@/features/board/grid';
 import { Button, cn } from '@thinkix/ui';
 import { UserCircle2, AlertTriangle, X } from 'lucide-react';
 import { useBoardState } from '@/features/board/hooks/use-board-state';
@@ -61,8 +64,11 @@ function generateElementsHash(elements: BoardElement[]): string {
 
 function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
   const { board } = useBoardState();
-  const { elements, isLocalChange, setElements, syncState } = useYjsCollaboration();
+  const { elements, theme, isLocalChange, setElements, syncState } = useYjsCollaboration();
   const { syncBus } = useSyncBus();
+  const currentBoardId = useBoardStore((state) => state.currentBoard?.id);
+  const currentBoardTheme = useBoardStore((state) => state.currentBoard?.theme);
+  const updateBoardTheme = useBoardStore((state) => state.updateBoardTheme);
   const lastElementsHashRef = useRef<string>('');
   const isSyncingRef = useRef(false);
   const offlineQueueRef = useRef<BoardElement[][]>([]);
@@ -95,6 +101,25 @@ function CollaborativeBoardInner({ children }: CollaborativeBoardProps) {
 
     syncBus.emitRemoteChange(elements);
   }, [elements, isLocalChange, board, syncBus]);
+
+  useEffect(() => {
+    if (!board || !theme) return;
+
+    if (getBoardThemeMode(board.theme) !== getBoardThemeMode(theme)) {
+      // eslint-disable-next-line react-hooks/immutability -- Plait board model requires direct mutation
+      board.theme = theme;
+      refreshGrid(board);
+    }
+  }, [board, theme]);
+
+  useEffect(() => {
+    if (!currentBoardId || !theme) return;
+    if (currentBoardTheme && getBoardThemeMode(currentBoardTheme) === getBoardThemeMode(theme)) {
+      return;
+    }
+
+    void updateBoardTheme(currentBoardId, theme);
+  }, [currentBoardId, currentBoardTheme, theme, updateBoardTheme]);
 
   useEffect(() => {
     if (!board) return;

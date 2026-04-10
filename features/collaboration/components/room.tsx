@@ -8,14 +8,16 @@ import {
   getOrCreateUser,
   type BoardElement,
 } from '@thinkix/collaboration';
+import type { PlaitTheme } from '@plait/core';
 
 interface RoomProps {
   children: ReactNode;
   roomId: string;
   initialElements?: BoardElement[];
+  initialTheme?: PlaitTheme;
 }
 
-export function Room({ children, roomId, initialElements }: RoomProps) {
+export function Room({ children, roomId, initialElements, initialTheme }: RoomProps) {
   const [user] = useState(() => getOrCreateUser());
 
   return (
@@ -24,6 +26,7 @@ export function Room({ children, roomId, initialElements }: RoomProps) {
         <YjsRoom 
           roomId={roomId} 
           initialElements={initialElements} 
+          initialTheme={initialTheme}
           user={user}
         >
           {children}

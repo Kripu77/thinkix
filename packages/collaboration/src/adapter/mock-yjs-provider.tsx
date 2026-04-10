@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 import * as Y from 'yjs';
+import type { PlaitTheme } from '@plait/core';
 import type {
   CollaborationUser,
   AdapterConfig,
@@ -26,8 +27,11 @@ import { YjsCollaborationContext } from './yjs-provider';
 interface MockYjsContextValue {
   ydoc: Y.Doc | null;
   elements: BoardElement[];
+  theme: PlaitTheme | null;
   isLocalChange: boolean;
   setElements: (elements: BoardElement[]) => void;
+  setTheme: (theme: PlaitTheme) => void;
+  setBoardState: (elements: BoardElement[], theme: PlaitTheme) => void;
   insertElement: (element: BoardElement) => void;
   updateElement: (id: string, changes: Record<string, unknown>) => void;
   deleteElement: (id: string) => void;
@@ -56,11 +60,12 @@ interface MockYjsProviderProps {
   config?: AdapterConfig;
   roomId?: string;
   initialElements?: BoardElement[];
+  initialTheme?: PlaitTheme | null;
 }
 
 class MockBroadcastSync {
   private channel: BroadcastChannel | null = null;
-  private listeners = new Set<(data: { elements: BoardElement[] }) => void>();
+  private listeners = new Set<(data: { elements: BoardElement[]; theme: PlaitTheme | null }) => void>();
 
   constructor(roomId: string) {
     if (typeof window !== 'undefined') {
@@ -76,13 +81,13 @@ class MockBroadcastSync {
     }
   }
 
-  broadcast(elements: BoardElement[]) {
+  broadcast(elements: BoardElement[], theme: PlaitTheme | null) {
     if (this.channel) {
-      this.channel.postMessage({ elements });
+      this.channel.postMessage({ elements, theme });
     }
   }
 
-  subscribe(listener: (data: { elements: BoardElement[] }) => void) {
+  subscribe(listener: (data: { elements: BoardElement[]; theme: PlaitTheme | null }) => void) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
@@ -108,11 +113,14 @@ export function MockYjsProvider({
   config,
   roomId: providedRoomId,
   initialElements = [],
+  initialTheme = null,
 }: MockYjsProviderProps) {
   const [roomId] = useState(() => providedRoomId ?? createMockRoomId());
   const [ydoc] = useState(() => new Y.Doc());
   const [yelements] = useState(() => ydoc.getMap<BoardElement>('elements'));
+  const [ymeta] = useState(() => ydoc.getMap<unknown>('meta'));
   const [elements, setElementsState] = useState<BoardElement[]>(initialElements);
+  const [theme, setThemeState] = useState<PlaitTheme | null>(initialTheme);
   const [isLocalChange, setIsLocalChange] = useState(false);
   const [undoState, setUndoState] = useState<UndoState>({
     canUndo: false,
@@ -140,9 +148,19 @@ export function MockYjsProvider({
   }, [initialElements, ydoc, yelements]);
 
   useEffect(() => {
+    if (!initialTheme) return;
+
+    ydoc.transact(() => {
+      ymeta.set('theme', initialTheme);
+    }, LOCAL_ORIGIN);
+  }, [initialTheme, ydoc, ymeta]);
+
+  useEffect(() => {
     syncRef.current = new MockBroadcastSync(roomId);
     
     const unsubscribe = syncRef.current.subscribe((data) => {
+      let shouldToggleLocalChange = false;
+
       setElementsState(prevElements => {
         const dataIsDifferent = data.elements.length !== prevElements.length ||
           data.elements.some((el, i) => {
@@ -152,12 +170,18 @@ export function MockYjsProvider({
           });
         
         if (dataIsDifferent) {
-          setIsLocalChange(true);
-          setTimeout(() => setIsLocalChange(false), 0);
+          shouldToggleLocalChange = true;
           return data.elements;
         }
         return prevElements;
       });
+
+      setThemeState((prevTheme) => (data.theme !== prevTheme ? data.theme : prevTheme));
+
+      if (shouldToggleLocalChange) {
+        setIsLocalChange(true);
+        setTimeout(() => setIsLocalChange(false), 0);
+      }
     });
 
     return () => {
@@ -221,6 +245,12 @@ export function MockYjsProvider({
     };
   }, [undoManager]);
 
+  const broadcastState = useCallback((nextElements: BoardElement[], nextTheme: PlaitTheme | null) => {
+    if (syncRef.current) {
+      syncRef.current.broadcast(nextElements, nextTheme);
+    }
+  }, []);
+
   const setElements = useCallback((newElements: BoardElement[]) => {
     setIsLocalChange(true);
     
@@ -236,13 +266,50 @@ export function MockYjsProvider({
       ...current,
       lastSyncedAt: Date.now(),
     }));
-    
-    if (syncRef.current) {
-      syncRef.current.broadcast(newElements);
-    }
+
+    broadcastState(newElements, theme);
 
     setTimeout(() => setIsLocalChange(false), 0);
-  }, [ydoc, yelements]);
+  }, [broadcastState, theme, ydoc, yelements]);
+
+  const setTheme = useCallback((newTheme: PlaitTheme) => {
+    setIsLocalChange(true);
+
+    ydoc.transact(() => {
+      ymeta.set('theme', newTheme);
+    }, LOCAL_ORIGIN);
+
+    setThemeState(newTheme);
+    setSyncState((current) => ({
+      ...current,
+      lastSyncedAt: Date.now(),
+    }));
+    broadcastState(elements, newTheme);
+
+    setTimeout(() => setIsLocalChange(false), 0);
+  }, [broadcastState, elements, ydoc, ymeta]);
+
+  const setBoardState = useCallback((newElements: BoardElement[], newTheme: PlaitTheme) => {
+    setIsLocalChange(true);
+
+    ydoc.transact(() => {
+      ymeta.set('theme', newTheme);
+      yelements.clear();
+      newElements.forEach((el) => {
+        yelements.set(el.id, el);
+      });
+    }, LOCAL_ORIGIN);
+
+    setThemeState(newTheme);
+    setElementsState(newElements);
+    setSyncState((current) => ({
+      ...current,
+      lastSyncedAt: Date.now(),
+    }));
+    broadcastState(newElements, newTheme);
+
+    setTimeout(() => setIsLocalChange(false), 0);
+  }, [broadcastState, ydoc, ymeta, yelements]);
 
   const insertElement = useCallback((element: BoardElement) => {
     setElements([...elements, element]);
@@ -262,11 +329,9 @@ export function MockYjsProvider({
   const updateElementsFromYElements = useCallback(() => {
     const newElements = Array.from(yelements.values());
     setElementsState(newElements);
-    
-    if (syncRef.current) {
-      syncRef.current.broadcast(newElements);
-    }
-  }, [yelements]);
+
+    broadcastState(newElements, theme);
+  }, [broadcastState, theme, yelements]);
 
    const undo = useCallback(() => {
      if (undoManager.undoStack.length > 0) {
@@ -285,8 +350,11 @@ export function MockYjsProvider({
   const value = useMemo(() => ({
     ydoc,
     elements,
+    theme,
     isLocalChange,
     setElements,
+    setTheme,
+    setBoardState,
     insertElement,
     updateElement,
     deleteElement,
@@ -296,7 +364,7 @@ export function MockYjsProvider({
     undoState,
     undo,
     redo,
-  }), [ydoc, elements, isLocalChange, setElements, insertElement, updateElement, deleteElement, syncState, user, config, undoState, undo, redo]);
+  }), [ydoc, elements, theme, isLocalChange, setElements, setTheme, setBoardState, insertElement, updateElement, deleteElement, syncState, user, config, undoState, undo, redo]);
 
   const roomContextValue = useMemo<CollaborationRoomContextValue>(() => ({
     user,

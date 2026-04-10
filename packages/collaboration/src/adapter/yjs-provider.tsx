@@ -13,6 +13,7 @@ import {
 import { LiveblocksProvider, RoomProvider, useRoom, useStatus, useMyPresence } from '@liveblocks/react/suspense';
 import { LiveblocksYjsProvider } from '@liveblocks/yjs';
 import * as Y from 'yjs';
+import type { PlaitTheme } from '@plait/core';
 import type {
   CollaborationUser,
   AdapterConfig,
@@ -27,8 +28,11 @@ import type {
 export interface YjsCollaborationContextValue {
   ydoc: Y.Doc | null;
   elements: BoardElement[];
+  theme: PlaitTheme | null;
   isLocalChange: boolean;
   setElements: (elements: BoardElement[]) => void;
+  setTheme: (theme: PlaitTheme) => void;
+  setBoardState: (elements: BoardElement[], theme: PlaitTheme) => void;
   insertElement: (element: BoardElement) => void;
   updateElement: (id: string, changes: Record<string, unknown>) => void;
   deleteElement: (id: string) => void;
@@ -130,6 +134,7 @@ export function YjsProvider({
 interface YjsRoomProps {
   roomId: string;
   initialElements?: BoardElement[];
+  initialTheme?: PlaitTheme | null;
   children: ReactNode;
   user: CollaborationUser;
   config?: AdapterConfig;
@@ -138,29 +143,42 @@ interface YjsRoomProps {
 function createYjsResources() {
   const ydoc = new Y.Doc();
   const yelements = ydoc.getMap<BoardElement>('elements');
+  const ymeta = ydoc.getMap<unknown>('meta');
   const undoManager = new Y.UndoManager(yelements, {
     trackedOrigins: new Set([LOCAL_ORIGIN]),
   });
-  return { ydoc, yelements, undoManager };
+  return { ydoc, yelements, ymeta, undoManager };
+}
+
+function readThemeFromMeta(meta: Y.Map<unknown>): PlaitTheme | null {
+  const theme = meta.get('theme');
+  if (!theme || typeof theme !== 'object') {
+    return null;
+  }
+
+  return theme as PlaitTheme;
 }
 
 export function YjsRoom({
   roomId,
   initialElements,
+  initialTheme,
   children,
   user,
   config,
 }: YjsRoomProps) {
   const [resources] = useState(createYjsResources);
-  const { ydoc, yelements, undoManager } = resources;
+  const { ydoc, yelements, ymeta, undoManager } = resources;
 
   return (
     <RoomProvider id={roomId} initialStorage={() => ({ elements: [], version: 1 })}>
       <YjsRoomInner
         ydoc={ydoc}
         yelements={yelements}
+        ymeta={ymeta}
         undoManager={undoManager}
         initialElements={initialElements}
+        initialTheme={initialTheme}
         user={user}
         config={config ?? { presence: { throttleMs: 50, idleTimeoutMs: 30000 }, pageSize: 50 }}
       >
@@ -173,8 +191,10 @@ export function YjsRoom({
 interface YjsRoomInnerProps {
   ydoc: Y.Doc;
   yelements: Y.Map<BoardElement>;
+  ymeta: Y.Map<unknown>;
   undoManager: Y.UndoManager;
   initialElements?: BoardElement[];
+  initialTheme?: PlaitTheme | null;
   user: CollaborationUser;
   config: AdapterConfig;
   children: ReactNode;
@@ -183,8 +203,10 @@ interface YjsRoomInnerProps {
 function YjsRoomInner({
   ydoc,
   yelements,
+  ymeta,
   undoManager,
   initialElements,
+  initialTheme,
   user,
   config,
   children,
@@ -192,6 +214,7 @@ function YjsRoomInner({
   const room = useRoom();
   const status = useStatus();
   const [elements, setElementsState] = useState<BoardElement[]>([]);
+  const [theme, setThemeState] = useState<PlaitTheme | null>(initialTheme ?? null);
   const [isLocalChange, setIsLocalChange] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [undoState, setUndoState] = useState<UndoState>({
@@ -232,6 +255,16 @@ function YjsRoomInner({
   }, [ydoc, yelements, initialElements, status]);
 
   useEffect(() => {
+    if (status !== 'connected') return;
+    if (!initialTheme) return;
+    if (ymeta.has('theme')) return;
+
+    ydoc.transact(() => {
+      ymeta.set('theme', initialTheme);
+    }, 'init-theme');
+  }, [initialTheme, status, ydoc, ymeta]);
+
+  useEffect(() => {
     const observer = (event: Y.YMapEvent<BoardElement>) => {
       const transaction = event.transaction;
       const isLocal = transaction?.local && transaction.origin === LOCAL_ORIGIN;
@@ -253,6 +286,25 @@ function YjsRoomInner({
       yelements.unobserve(observer);
     };
   }, [yelements]);
+
+  useEffect(() => {
+    const observer = (event: Y.YMapEvent<unknown>) => {
+      if (!event.keysChanged.has('theme')) {
+        return;
+      }
+
+      setThemeState(readThemeFromMeta(ymeta));
+    };
+
+    ymeta.observe(observer);
+    queueMicrotask(() => {
+      setThemeState(readThemeFromMeta(ymeta) ?? initialTheme ?? null);
+    });
+
+    return () => {
+      ymeta.unobserve(observer);
+    };
+  }, [initialTheme, ymeta]);
 
   useEffect(() => {
     if (status === 'connected') {
@@ -306,6 +358,24 @@ function YjsRoomInner({
     }, LOCAL_ORIGIN);
   }, [ydoc, yelements]);
 
+  const setTheme = useCallback((newTheme: PlaitTheme) => {
+    ydoc.transact(() => {
+      ymeta.set('theme', newTheme);
+    }, LOCAL_ORIGIN);
+    setThemeState(newTheme);
+  }, [ydoc, ymeta]);
+
+  const setBoardState = useCallback((newElements: BoardElement[], newTheme: PlaitTheme) => {
+    ydoc.transact(() => {
+      ymeta.set('theme', newTheme);
+      yelements.clear();
+      newElements.forEach(el => {
+        yelements.set(el.id, el);
+      });
+    }, LOCAL_ORIGIN);
+    setThemeState(newTheme);
+  }, [ydoc, ymeta, yelements]);
+
   const insertElement = useCallback((element: BoardElement) => {
     ydoc.transact(() => {
       yelements.set(element.id, element);
@@ -336,8 +406,11 @@ function YjsRoomInner({
   const contextValue = useMemo<YjsCollaborationContextValue>(() => ({
     ydoc,
     elements,
+    theme,
     isLocalChange,
     setElements,
+    setTheme,
+    setBoardState,
     insertElement,
     updateElement,
     deleteElement,
@@ -350,8 +423,11 @@ function YjsRoomInner({
   }), [
     ydoc,
     elements,
+    theme,
     isLocalChange,
     setElements,
+    setTheme,
+    setBoardState,
     insertElement,
     updateElement,
     deleteElement,
