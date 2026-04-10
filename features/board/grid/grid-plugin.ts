@@ -1,12 +1,16 @@
-import { PlaitBoard, ThemeColorMode } from '@plait/core';
+import { PlaitBoard } from '@plait/core';
 import type { BoardBackground, GridType, ViewportBounds } from './types';
-import { DEFAULT_BOARD_BACKGROUND, GRID_BACKGROUND_COLORS, GRID_DENSITIES } from './types';
-import type { GridDensity } from '@thinkix/shared';
+import { DEFAULT_BOARD_BACKGROUND, GRID_DENSITIES } from './types';
+import {
+  getBoardBackgroundColor,
+  getBoardThemeMode,
+  type GridDensity,
+} from '@thinkix/shared';
 import { STORAGE_KEYS } from '@/shared/constants';
 
 const VALID_GRID_TYPES: GridType[] = ['dot', 'square', 'blueprint', 'isometric', 'ruled', 'blank'];
 import { getViewportBounds } from './utils/world-to-screen';
-import { getGridThemeColors, getBlueprintColors } from './utils/theme-colors';
+import { getGridThemeColors, getBlueprintColors, getRuledColors } from './utils/theme-colors';
 import type { GridRenderer, GridRenderContext } from './renderers';
 import {
   BlankRenderer,
@@ -115,11 +119,13 @@ function renderGrid(state: GridPluginState, board: PlaitBoard): void {
     try {
       const bounds: ViewportBounds = getViewportBounds(board)
       const zoom = board.viewport.zoom
-      const theme = board.theme?.themeColorMode ?? ThemeColorMode.default
+      const theme = getBoardThemeMode(board.theme)
       
       let colors
       if (state.config.type === 'blueprint') {
         colors = getBlueprintColors(theme)
+      } else if (state.config.type === 'ruled') {
+        colors = getRuledColors(theme)
       } else {
         colors = getGridThemeColors(theme)
       }
@@ -148,16 +154,8 @@ function updateBackgroundStyle(state: GridPluginState, board: PlaitBoard): void 
   const boardContainer = PlaitBoard.getBoardContainer(board)
   if (!boardContainer) return
   
-  const theme = board.theme?.themeColorMode ?? ThemeColorMode.default
-  let bgColor: string
-  
-  if (state.config.type === 'blueprint') {
-    bgColor = getBlueprintColors(theme).background
-  } else if (state.config.type === 'ruled') {
-    bgColor = GRID_BACKGROUND_COLORS.ruled
-  } else {
-    bgColor = getGridThemeColors(theme).background
-  }
+  const theme = getBoardThemeMode(board.theme)
+  const bgColor = getBoardBackgroundColor(state.config.type, theme)
   
   const svgHost = boardContainer.querySelector('.board-host-svg') as SVGSVGElement | null
   if (svgHost) {
