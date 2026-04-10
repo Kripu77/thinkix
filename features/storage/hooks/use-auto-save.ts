@@ -39,6 +39,7 @@ export function useAutoSave({ board, enabled = true }: UseAutoSaveOptions) {
           name: cb.name,
           elements: b.children,
           viewport: { x: b.viewport.x ?? 0, y: b.viewport.y ?? 0, zoom: b.viewport.zoom ?? 1 },
+          theme: b.theme ?? cb.theme,
           createdAt: cb.createdAt,
           updatedAt: Date.now(),
         });
