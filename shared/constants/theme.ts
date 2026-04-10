@@ -5,6 +5,25 @@ function cn(...inputs: (string | undefined | boolean | null)[]) {
   return twMerge(clsx(inputs));
 }
 
+const FLOATING_SURFACE = cn(
+  'border border-border/80 bg-card/92 text-foreground',
+  'backdrop-blur-xl shadow-[var(--tx-shadow-toolbar)]'
+);
+
+const PANEL_SURFACE = cn(
+  'border border-border/80 bg-card/94 text-foreground',
+  'backdrop-blur-xl shadow-[var(--tx-shadow-dialog)]'
+);
+
+const INPUT_SURFACE = cn(
+  'border border-border/80 bg-background/70 text-foreground',
+  'backdrop-blur-sm'
+);
+
+const SUBTLE_SURFACE = cn(
+  'border border-border/70 bg-muted/35 text-foreground'
+);
+
 /**
  * Design system theme tokens for Thinkix UI components.
  * All class strings use CSS custom properties (--tx-*) for sizing and typography.
@@ -20,6 +39,12 @@ function cn(...inputs: (string | undefined | boolean | null)[]) {
  * - tip: Information callouts
  */
 export const THEME = {
+  surface: {
+    floating: cn('!border-border/80 !bg-card/92 !text-foreground', FLOATING_SURFACE),
+    panel: cn('!border-border/80 !bg-card/94 !text-foreground', PANEL_SURFACE),
+    input: cn('!border-border/80 !bg-background/70 !text-foreground', INPUT_SURFACE),
+    subtle: cn('!border-border/70 !bg-muted/35 !text-foreground', SUBTLE_SURFACE),
+  },
   /**
    * Toolbar button styles (36px square, 18px icons)
    * Used for: BoardToolbar, AppMenu trigger
@@ -27,9 +52,9 @@ export const THEME = {
   toolbar: {
     container: cn(
       'inline-flex items-center gap-1.5',
-      'rounded-lg border bg-background/95 backdrop-blur',
+      'rounded-lg',
+      FLOATING_SURFACE,
       'px-2 py-2',
-      'shadow-[var(--tx-shadow-toolbar)]'
     ),
     button: cn(
       'h-[var(--tx-toolbar-btn)] w-[var(--tx-toolbar-btn)]',
@@ -41,7 +66,7 @@ export const THEME = {
       'disabled:pointer-events-none disabled:opacity-30'
     ),
     buttonSelected: cn(
-      'bg-accent text-accent-foreground'
+      'border border-border/70 bg-accent/60 text-foreground shadow-sm'
     ),
     separator: 'mx-1.5 h-6 w-px bg-border',
     mobileSeparator: 'mx-1 h-5 w-px bg-border',
@@ -58,9 +83,9 @@ export const THEME = {
   control: {
     container: cn(
       'inline-flex items-center gap-0.5',
-      'rounded-lg border bg-background/95 backdrop-blur',
+      'rounded-lg',
+      FLOATING_SURFACE,
       'px-1 py-1',
-      'shadow-[var(--tx-shadow-toolbar)]'
     ),
     button: cn(
       'h-[var(--tx-control-btn)] w-[var(--tx-control-btn)]',
@@ -87,7 +112,7 @@ export const THEME = {
     content: cn(
       'min-w-[180px] z-50',
       'overflow-hidden rounded-lg border',
-      'bg-popover text-popover-foreground',
+      'border-border/80 bg-popover/98 text-popover-foreground backdrop-blur-xl',
       'p-1',
       'shadow-[var(--tx-shadow-dropdown)]'
     ),
@@ -214,8 +239,9 @@ export const THEME = {
   collab: {
     container: cn(
       'hidden lg:flex items-center gap-2',
-      'rounded-lg border bg-background/95 backdrop-blur',
-      'px-2 py-1.5 shadow-sm'
+      'rounded-lg px-2 py-1.5',
+      FLOATING_SURFACE,
+      'shadow-sm'
     ),
     statusDot: 'h-2 w-2 rounded-full',
     statusConnected: 'bg-green-500',
