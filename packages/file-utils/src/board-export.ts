@@ -1,10 +1,18 @@
-import type { PlaitBoard } from '@plait/core';
-import { toSvgData, toImage, getSelectedElements, ThemeColorMode } from '@plait/core';
+import type { PlaitBoard, PlaitElement } from '@plait/core';
+import { toSvgData, toImage, getSelectedElements } from '@plait/core';
 import type { ThinkixExportedData } from './types';
 import { CURRENT_VERSION, FILE_EXTENSION, MIME_TYPE } from './types';
 import { fileOpen, fileSave, parseFileContents, normalizeFile, base64ToBlob, download, isAbortError } from './filesystem';
-import type { GridType } from '@thinkix/shared';
-import { GRID_BACKGROUND_COLORS } from '@thinkix/shared';
+import {
+  createSvgWithBoardBackground,
+  enhanceSvgWithBoardBackground,
+  getBackgroundColor,
+  getSvgFrame,
+  hasVisibleGrid,
+  shouldKeepCanvasBackground,
+  svgToImageData,
+} from './grid-export';
+export { createSvgWithBoardBackground, enhanceSvgWithBoardBackground, getBackgroundColor, getSvgFrame } from './grid-export';
 
 const TRANSPARENT = 'transparent';
 
@@ -20,26 +28,6 @@ export const isValidThinkixData = (data: unknown): data is ThinkixExportedData =
     typeof data.viewport === 'object'
   );
 };
-
-interface BoardWithGridConfig {
-  getGridConfig?: () => { type: GridType }
-}
-
-export const getBackgroundColor = (board: PlaitBoard & BoardWithGridConfig): string => {
-  const isDark = board.theme?.themeColorMode === ThemeColorMode.dark;
-  
-  if (board.getGridConfig) {
-    const config = board.getGridConfig();
-    if (config.type === 'blueprint') {
-      return isDark ? GRID_BACKGROUND_COLORS.blueprint.dark : GRID_BACKGROUND_COLORS.blueprint.light;
-    }
-    if (config.type === 'ruled') {
-      return GRID_BACKGROUND_COLORS.ruled;
-    }
-  }
-  
-  return isDark ? GRID_BACKGROUND_COLORS.dark : GRID_BACKGROUND_COLORS.light;
-}
 
 export const sanitizeFileName = (name: string): string => {
   return name.replace(/[^a-zA-Z0-9_\-\s]/g, '').trim() || 'board'
@@ -113,18 +101,94 @@ const isWhite = (color: string): boolean => {
   return color === '#ffffff' || color === '#fff' || color === 'white'
 }
 
+const imageDataToBlob = async (imageData: string): Promise<Blob> => {
+  if (typeof fetch === 'function') {
+    try {
+      const response = await fetch(imageData)
+      if (response?.ok) {
+        return response.blob()
+      }
+    } catch {}
+  }
+
+  return base64ToBlob(imageData)
+}
+
+const isUsableImageData = (imageData: string | undefined): imageData is string => {
+  if (!imageData?.startsWith('data:image/')) {
+    return false
+  }
+
+  const [, payload = ''] = imageData.split(',')
+  return payload.length > 0
+}
+
+const downloadImageData = async (imageData: string | undefined, fileName: string): Promise<void> => {
+  if (!isUsableImageData(imageData)) {
+    throw new Error('Failed to export image data')
+  }
+
+  const blob = await imageDataToBlob(imageData)
+  if (blob.size === 0) {
+    throw new Error('Failed to export non-empty image')
+  }
+
+  download(blob, fileName)
+}
+
+const hasElementContent = (board: PlaitBoard, elements?: PlaitElement[]): boolean => {
+  return (elements?.length ?? board.children.length) > 0
+}
+
+const getSvgDataWithFallbackFrame = async (
+  board: PlaitBoard,
+  options: NonNullable<Parameters<typeof toSvgData>[1]>,
+  includeBackground: boolean
+): Promise<string> => {
+  const svgData = enhanceSvgWithBoardBackground(await toSvgData(board, options), board, includeBackground)
+  if (getSvgFrame(svgData) || hasElementContent(board, options.elements)) {
+    return svgData
+  }
+
+  return createSvgWithBoardBackground(board, includeBackground)
+}
+
+const rasterizeGridExport = async (
+  board: PlaitBoard,
+  options: NonNullable<Parameters<typeof toSvgData>[1]>,
+  includeBackground: boolean,
+  mimeType: 'image/png' | 'image/jpeg'
+): Promise<string | undefined> => {
+  const svgData = await getSvgDataWithFallbackFrame(board, options, includeBackground)
+  const imageData = await svgToImageData(svgData, 4, mimeType).catch(() => undefined)
+  if (imageData || hasElementContent(board, options.elements)) {
+    return imageData
+  }
+
+  return svgToImageData(createSvgWithBoardBackground(board, includeBackground), 4, mimeType)
+}
+
+const rasterizeViewportExport = (
+  board: PlaitBoard,
+  includeBackground: boolean,
+  mimeType: 'image/png' | 'image/jpeg'
+): Promise<string | undefined> => {
+  return svgToImageData(createSvgWithBoardBackground(board, includeBackground), 4, mimeType)
+}
+
 export const exportAsSvg = async (board: PlaitBoard, name?: string): Promise<void> => {
   const selectedElements = getSelectedElements(board)
   const backgroundColor = getBackgroundColor(board)
+  const includeBackground = !isWhite(backgroundColor)
 
-  const svgData = await toSvgData(board, {
+  const svgData = await getSvgDataWithFallbackFrame(board, {
     fillStyle: isWhite(backgroundColor) ? TRANSPARENT : backgroundColor,
     padding: 20,
     ratio: 4,
     elements: selectedElements.length > 0 ? selectedElements : undefined,
     inlineStyleClassNames: '.plait-text-container',
     styleNames: ['position'],
-  })
+  }, includeBackground)
 
   const blob = new Blob([svgData], { type: 'image/svg+xml' })
   const fileName = `${sanitizeFileName(name ?? 'board')}.svg`
@@ -134,37 +198,61 @@ export const exportAsSvg = async (board: PlaitBoard, name?: string): Promise<voi
 export const exportAsPng = async (board: PlaitBoard, transparent: boolean = true, name?: string): Promise<void> => {
   const selectedElements = getSelectedElements(board)
   const backgroundColor = getBackgroundColor(board)
+  const shouldRenderGrid = hasVisibleGrid(board)
+  let imageData: string | undefined
 
-  const imageData = await toImage(board, {
-    elements: selectedElements.length > 0 ? selectedElements : undefined,
-    fillStyle: transparent ? TRANSPARENT : backgroundColor,
-    padding: 20,
-    ratio: 4,
-    inlineStyleClassNames: '.extend,.emojis,.text',
-  })
+  if (shouldRenderGrid) {
+    imageData = await rasterizeGridExport(board, {
+      elements: selectedElements.length > 0 ? selectedElements : undefined,
+      fillStyle: transparent ? TRANSPARENT : backgroundColor,
+      padding: 20,
+      ratio: 4,
+      inlineStyleClassNames: '.extend,.emojis,.text',
+    }, shouldKeepCanvasBackground(board, transparent), 'image/png')
+  } else {
+    imageData = await toImage(board, {
+      elements: selectedElements.length > 0 ? selectedElements : undefined,
+      fillStyle: transparent ? TRANSPARENT : backgroundColor,
+      padding: 20,
+      ratio: 4,
+      inlineStyleClassNames: '.extend,.emojis,.text',
+    })
 
-  if (imageData) {
-    const blob = base64ToBlob(imageData)
-    const fileName = `${sanitizeFileName(name ?? 'board')}.png`
-    download(blob, fileName)
+    if (!isUsableImageData(imageData) && !hasElementContent(board, selectedElements.length > 0 ? selectedElements : undefined)) {
+      imageData = await rasterizeViewportExport(board, !transparent, 'image/png')
+    }
   }
+
+  await downloadImageData(imageData, `${sanitizeFileName(name ?? 'board')}.png`)
 }
 
 export const exportAsJpg = async (board: PlaitBoard, name?: string): Promise<void> => {
   const selectedElements = getSelectedElements(board)
   const backgroundColor = getBackgroundColor(board)
+  const shouldRenderGrid = hasVisibleGrid(board)
+  let imageData: string | undefined
 
-  const imageData = await toImage(board, {
-    elements: selectedElements.length > 0 ? selectedElements : undefined,
-    fillStyle: backgroundColor,
-    padding: 20,
-    ratio: 4,
-    inlineStyleClassNames: '.extend,.emojis,.text',
-  })
+  if (shouldRenderGrid) {
+    imageData = await rasterizeGridExport(board, {
+      elements: selectedElements.length > 0 ? selectedElements : undefined,
+      fillStyle: backgroundColor,
+      padding: 20,
+      ratio: 4,
+      inlineStyleClassNames: '.extend,.emojis,.text',
+    }, true, 'image/jpeg')
+  } else {
+    imageData = await toImage(board, {
+      elements: selectedElements.length > 0 ? selectedElements : undefined,
+      fillStyle: backgroundColor,
+      padding: 20,
+      ratio: 4,
+      inlineStyleClassNames: '.extend,.emojis,.text',
+    })
 
-  if (imageData) {
-    const blob = base64ToBlob(imageData)
-    const fileName = `${sanitizeFileName(name ?? 'board')}.jpg`
-    download(blob, fileName)
+    if (!isUsableImageData(imageData) && !hasElementContent(board, selectedElements.length > 0 ? selectedElements : undefined)) {
+      imageData = await rasterizeViewportExport(board, true, 'image/jpeg')
+    }
   }
+
+  await downloadImageData(imageData, `${sanitizeFileName(name ?? 'board')}.jpg`)
 }
