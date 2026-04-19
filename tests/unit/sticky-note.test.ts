@@ -179,6 +179,43 @@ describe('with-sticky-note', () => {
 
       expect(long.width).toBeGreaterThan(short.width);
     });
+
+    it('grows beyond 320px tall when content has many lines', async () => {
+      const { estimateStickySize } = await import('@/features/board/utils/sticky-note');
+
+      const longContent = Array.from({ length: 20 }, (_, i) => `Line ${i + 1}`).join('\n');
+      const result = estimateStickySize(longContent);
+
+      expect(result.height).toBeGreaterThan(320);
+    });
+
+    it('keeps width bounded at a sensible post-it max even for very long single lines', async () => {
+      const { estimateStickySize } = await import('@/features/board/utils/sticky-note');
+
+      const veryLong = 'a'.repeat(500);
+      const result = estimateStickySize(veryLong);
+
+      expect(result.width).toBeLessThanOrEqual(320);
+      expect(result.width).toBeGreaterThanOrEqual(220);
+    });
+
+    it('returns a square minimum size for empty text', async () => {
+      const { estimateStickySize } = await import('@/features/board/utils/sticky-note');
+
+      const result = estimateStickySize('');
+
+      expect(result.width).toBe(result.height);
+      expect(result.width).toBeGreaterThanOrEqual(130);
+    });
+
+    it('produces enough vertical space for every wrapped line', async () => {
+      const { estimateStickySize } = await import('@/features/board/utils/sticky-note');
+
+      const lines = Array.from({ length: 30 }, (_, i) => `Item ${i + 1}: detail`);
+      const result = estimateStickySize(lines.join('\n'));
+
+      expect(result.height).toBeGreaterThanOrEqual(lines.length * 18);
+    });
   });
 
   describe('plugin application', () => {
