@@ -70,6 +70,77 @@ function normalizeColorToken(color: string): string {
   return value;
 }
 
+function parseRgb(color: string): { r: number; g: number; b: number; a: number } | null {
+  const value = color.trim().toLowerCase();
+
+  const shortHex = value.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/);
+  if (shortHex) {
+    const [, r, g, b] = shortHex;
+    return {
+      r: parseInt(r + r, 16),
+      g: parseInt(g + g, 16),
+      b: parseInt(b + b, 16),
+      a: 1,
+    };
+  }
+
+  const longHex = value.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/);
+  if (longHex) {
+    const [, r, g, b] = longHex;
+    return { r: parseInt(r, 16), g: parseInt(g, 16), b: parseInt(b, 16), a: 1 };
+  }
+
+  const rgbMatch = value.match(
+    /^rgba?\(\s*(\d{1,3})[\s,]+(\d{1,3})[\s,]+(\d{1,3})(?:[\s,\/]+([01]?(?:\.\d+)?))?\s*\)$/,
+  );
+  if (rgbMatch) {
+    const [, r, g, b, alpha] = rgbMatch;
+    return {
+      r: Number(r),
+      g: Number(g),
+      b: Number(b),
+      a: alpha === undefined ? 1 : Number(alpha),
+    };
+  }
+
+  return null;
+}
+
+function relativeLuminance(channel: number): number {
+  const c = channel / 255;
+  return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+function isLightFill(fill: string): boolean {
+  const rgb = parseRgb(fill);
+  if (!rgb || rgb.a === 0) {
+    return false;
+  }
+  const luminance =
+    0.2126 * relativeLuminance(rgb.r) +
+    0.7152 * relativeLuminance(rgb.g) +
+    0.0722 * relativeLuminance(rgb.b);
+  return luminance > 0.5;
+}
+
+function hasOpaqueFill(fill: string | undefined): fill is string {
+  if (typeof fill !== 'string') {
+    return false;
+  }
+  const rgb = parseRgb(fill);
+  return !!rgb && rgb.a > 0;
+}
+
+function resolveTextInkForFill(
+  effectiveFill: string | undefined,
+  theme: BoardThemeMode,
+): string {
+  if (hasOpaqueFill(effectiveFill)) {
+    return isLightFill(effectiveFill) ? LIGHT_BOARD_INK.text : DARK_BOARD_INK.text;
+  }
+  return getBoardInkColors(theme).text;
+}
+
 function remapDefaultInk(color: string, theme: BoardThemeMode, kind: 'stroke' | 'text') {
   const normalized = normalizeColorToken(color);
   const lightValue = kind === 'stroke' ? LIGHT_BOARD_INK.stroke : LIGHT_BOARD_INK.text;
@@ -113,34 +184,42 @@ function isRootMindElement(element: ThemeSyncElement): boolean {
   return element.type === 'mindmap' && element.isRoot === true;
 }
 
-function syncSlateTextValue(text: SlateTextValue | undefined, theme: BoardThemeMode) {
+function syncSlateTextValue(
+  text: SlateTextValue | undefined,
+  theme: BoardThemeMode,
+  effectiveFill?: string,
+) {
   if (!text || !Array.isArray(text.children)) {
     return text;
   }
 
   let changed = false;
-  const targetInk = getBoardInkColors(theme);
+  const targetTextColor = resolveTextInkForFill(effectiveFill, theme);
   const nextChildren = text.children.map((child) => {
     if (!child || typeof child !== 'object' || typeof child.text !== 'string') {
       return child;
     }
 
     if (!child.color) {
-      if (targetInk.text === LIGHT_BOARD_INK.text) {
+      if (targetTextColor === LIGHT_BOARD_INK.text && !hasOpaqueFill(effectiveFill)) {
         return child;
       }
 
       changed = true;
-      return { ...child, color: targetInk.text };
+      return { ...child, color: targetTextColor };
     }
 
-    const nextColor = remapDefaultInk(child.color, theme, 'text');
-    if (nextColor === child.color) {
+    const normalized = normalizeColorToken(child.color);
+    if (normalized !== LIGHT_BOARD_INK.text && normalized !== DARK_BOARD_INK.text) {
+      return child;
+    }
+
+    if (normalized === targetTextColor) {
       return child;
     }
 
     changed = true;
-    return { ...child, color: nextColor };
+    return { ...child, color: targetTextColor };
   });
 
   return changed ? { ...text, children: nextChildren } : text;
@@ -170,13 +249,16 @@ function syncElementForBoardTheme(
     changed = true;
   }
 
+  let effectiveFill: string | undefined;
   if (targetRootFill && (typeof element.fill !== 'string' || isThinkixMindRootFill(element.fill))) {
+    effectiveFill = targetRootFill;
     if (element.fill !== targetRootFill) {
       next.fill = targetRootFill;
       changed = true;
     }
   } else if (typeof element.fill === 'string') {
     const fill = remapDefaultFill(element.fill, theme);
+    effectiveFill = fill;
     if (fill !== element.fill) {
       next.fill = fill;
       changed = true;
@@ -194,13 +276,13 @@ function syncElementForBoardTheme(
     changed = true;
   }
 
-  const text = syncSlateTextValue(element.text, theme);
+  const text = syncSlateTextValue(element.text, theme, effectiveFill);
   if (text !== element.text) {
     next.text = text;
     changed = true;
   }
 
-  const topic = syncSlateTextValue(element.data?.topic, theme);
+  const topic = syncSlateTextValue(element.data?.topic, theme, effectiveFill);
   if (element.data && topic !== element.data.topic) {
     next.data = { ...element.data, topic };
     changed = true;

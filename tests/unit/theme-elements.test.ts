@@ -213,4 +213,103 @@ describe('syncElementsForBoardTheme', () => {
 
     expect(nextElements[0].fill).toBe('#17344b');
   });
+
+  it('uses dark text on a custom light fill in dark themes', () => {
+    const elements = [
+      {
+        id: 'shape-1',
+        type: 'geometry',
+        shape: 'rectangle',
+        fill: '#bbf7d0',
+        text: { children: [{ text: 'Box' }] },
+      },
+    ] as unknown as PlaitElement[];
+
+    const nextElements = syncElementsForBoardTheme(elements, 'dark') as Array<{
+      fill?: string;
+      text?: { children: Array<{ color?: string }> };
+    }>;
+
+    expect(nextElements[0].fill).toBe('#bbf7d0');
+    expect(nextElements[0].text?.children[0].color).toBe('#000000');
+  });
+
+  it('keeps default-ink text dark on a custom light fill in starry themes', () => {
+    const elements = [
+      {
+        id: 'shape-1',
+        type: 'geometry',
+        shape: 'rectangle',
+        fill: '#fef3c7',
+        text: { children: [{ text: 'Box', color: '#000000' }] },
+      },
+    ] as unknown as PlaitElement[];
+
+    const nextElements = syncElementsForBoardTheme(elements, 'starry') as Array<{
+      fill?: string;
+      text?: { children: Array<{ color?: string }> };
+    }>;
+
+    expect(nextElements[0].fill).toBe('#fef3c7');
+    expect(nextElements[0].text?.children[0].color).toBe('#000000');
+  });
+
+  it('uses light text on a custom dark fill in light themes', () => {
+    const elements = [
+      {
+        id: 'shape-1',
+        type: 'geometry',
+        shape: 'rectangle',
+        fill: '#1e293b',
+        text: { children: [{ text: 'Box' }] },
+      },
+    ] as unknown as PlaitElement[];
+
+    const nextElements = syncElementsForBoardTheme(elements, 'default') as Array<{
+      fill?: string;
+      text?: { children: Array<{ color?: string }> };
+    }>;
+
+    expect(nextElements[0].fill).toBe('#1e293b');
+    expect(nextElements[0].text?.children[0].color).toBe('#f8fafc');
+  });
+
+  it('preserves a user-customized text color even on custom fills', () => {
+    const elements = [
+      {
+        id: 'shape-1',
+        type: 'geometry',
+        shape: 'rectangle',
+        fill: '#bbf7d0',
+        text: { children: [{ text: 'Box', color: '#ff00aa' }] },
+      },
+    ] as unknown as PlaitElement[];
+
+    const nextElements = syncElementsForBoardTheme(elements, 'dark') as Array<{
+      text?: { children: Array<{ color?: string }> };
+    }>;
+
+    expect(nextElements[0].text?.children[0].color).toBe('#ff00aa');
+  });
+
+  it('uses contrast-aware text on a mind topic with a custom fill', () => {
+    const elements = [
+      {
+        id: 'mind-1',
+        type: 'mindmap',
+        fill: '#bbf7d0',
+        data: {
+          topic: { children: [{ text: 'Branch' }] },
+        },
+      },
+    ] as unknown as PlaitElement[];
+
+    const nextElements = syncElementsForBoardTheme(elements, 'dark') as Array<{
+      fill?: string;
+      data?: { topic?: { children: Array<{ color?: string }> } };
+    }>;
+
+    expect(nextElements[0].fill).toBe('#bbf7d0');
+    expect(nextElements[0].data?.topic?.children[0].color).toBe('#000000');
+  });
 });
