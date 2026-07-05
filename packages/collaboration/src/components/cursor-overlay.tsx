@@ -5,6 +5,7 @@ import type { PlaitBoard } from '@plait/core';
 import type { CursorState } from '../cursor-manager';
 import { getVisibleCursors, getActiveCursors } from '../cursor-manager';
 import { useViewport } from '../hooks/use-viewport';
+import { documentToScreen, getViewportContainerElement } from '../utils';
  
 interface CursorOverlayProps {
   cursors: Map<string, CursorState>;
@@ -123,14 +124,12 @@ export function CursorOverlay({
   const viewport = useViewport(board);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
  
-      useEffect(() => {
+  useEffect(() => {
     const getContainer = (): Element | null => {
       if (containerRef?.current) {
         return containerRef.current;
       }
-      // Fallback to DOM query for backward compatibility
-      const container = document.querySelector('.plait-board-container') as HTMLElement | null;
-      return container?.querySelector('svg') || container;
+      return getViewportContainerElement(board);
     };
 
     const update = () => {
@@ -153,7 +152,7 @@ export function CursorOverlay({
       window.removeEventListener('resize', update);
       observer.disconnect();
     };
-  }, [containerRef]);
+  }, [containerRef, board]);
  
   const renderableCursors = useMemo((): RenderableCursor[] => {
     if (!containerRect) return [];
@@ -172,10 +171,11 @@ export function CursorOverlay({
     visible.forEach((cursor, id) => {
       if (count >= maxCursors) return;
  
+      const { x, y } = documentToScreen(cursor.documentX, cursor.documentY, viewport);
       result.push({
         id,
-        screenX: cursor.documentX * viewport.zoom + viewport.offsetX + containerRect.left,
-        screenY: cursor.documentY * viewport.zoom + viewport.offsetY + containerRect.top,
+        screenX: x + containerRect.left,
+        screenY: y + containerRect.top,
         userName: cursor.userName,
         userColor: cursor.userColor,
         userAvatar: cursor.userAvatar,

@@ -205,9 +205,31 @@ test.describe('Shape Drawing E2E Tests', () => {
     test('should draw an arrow on canvas', async ({ page }) => {
       await selectTool(page, 'arrow');
       await drawShape(page, 100, 100, 300, 200);
-      
+
       const hasElement = await hasElementOnCanvas(page);
       expect(hasElement).toBe(true);
+    });
+  });
+
+  test.describe('Shape Position Stability', () => {
+    test('shape stays where drawn after auto-save settles', async ({ page }) => {
+      await selectTool(page, 'rectangle');
+      await drawShape(page, 100, 100, 300, 250);
+      await clearSelection(page);
+
+      const element = page.locator('.board-wrapper [plait-data-id]').first();
+      await element.waitFor({ state: 'attached' });
+      const before = await element.boundingBox();
+      expect(before).not.toBeNull();
+
+      await page.waitForTimeout(1500);
+
+      const after = await element.boundingBox();
+      expect(after).not.toBeNull();
+      expect(Math.abs(after!.x - before!.x)).toBeLessThan(2);
+      expect(Math.abs(after!.y - before!.y)).toBeLessThan(2);
+      expect(Math.abs(after!.width - before!.width)).toBeLessThan(2);
+      expect(Math.abs(after!.height - before!.height)).toBeLessThan(2);
     });
   });
 });

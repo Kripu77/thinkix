@@ -1,2 +1,8 @@
-export { getViewport, screenToDocument, documentToScreen, type Viewport } from './viewport';
+export {
+  getViewport,
+  screenToDocument,
+  documentToScreen,
+  getViewportContainerElement,
+  type Viewport,
+} from './viewport';
 export { debounce, throttle } from './timing';

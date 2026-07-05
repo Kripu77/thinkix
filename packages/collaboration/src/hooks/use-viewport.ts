@@ -4,10 +4,14 @@ import { useEffect, useState, useRef } from 'react';
 import type { PlaitBoard } from '@plait/core';
 import { getViewport, type Viewport } from '../utils';
 
-const DEFAULT_VIEWPORT: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+const DEFAULT_VIEWPORT: Viewport = { zoom: 1, originationX: 0, originationY: 0 };
 
 function viewportsEqual(a: Viewport, b: Viewport): boolean {
-  return a.zoom === b.zoom && a.offsetX === b.offsetX && a.offsetY === b.offsetY;
+  return (
+    a.zoom === b.zoom &&
+    a.originationX === b.originationX &&
+    a.originationY === b.originationY
+  );
 }
 
 export function useViewport(board: PlaitBoard | null): Viewport {

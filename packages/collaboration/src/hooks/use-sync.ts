@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useStorage, useMutation, useSelf } from '@liveblocks/react/suspense';
 import type { PlaitElement, PlaitBoard } from '@plait/core';
 import { usePresence } from '../providers/liveblocks/hooks';
+import { getViewport, getViewportContainerElement, screenToDocument } from '../utils';
 
 interface UseBoardSyncOptions {
   board: PlaitBoard | null;
@@ -70,12 +71,17 @@ export function useBoardCursorTracking(board: PlaitBoard | null, enabled: boolea
     const handlePointerMove = (e: Event) => {
       const pointerEvent = e as PointerEvent;
       const target = pointerEvent.target as SVGElement | HTMLElement;
-      const svg = target.closest('svg');
-      if (!svg) return;
+      if (!target.closest('.plait-board-container')) return;
 
-      const rect = svg.getBoundingClientRect();
-      const x = (pointerEvent.clientX - rect.left - board.viewport.offsetX) / board.viewport.zoom;
-      const y = (pointerEvent.clientY - rect.top - board.viewport.offsetY) / board.viewport.zoom;
+      const container = getViewportContainerElement(board);
+      if (!container) return;
+
+      const { x, y } = screenToDocument(
+        pointerEvent.clientX,
+        pointerEvent.clientY,
+        container.getBoundingClientRect(),
+        getViewport(board)
+      );
 
       updateCursor({ x, y, pointer: pointerEvent.pointerType as 'mouse' | 'pen' | 'touch' });
     };

@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Top-level rules — these override defaults:**
+
+- **Zero comments** unless explaining a non-obvious *why*. See [Code conventions](#code-conventions).
+- **Simple, readable code over clever code.** Prefer 3 obvious lines over 1 dense line.
+- **Atomic commits** after each logical unit of work. See [Commits](#commits--atomic-always).
+- **Before creating** a new hook, util, or component — grep for an existing one. Follow existing patterns.
+
 ## Project Overview
 
 Thinkix is an AI-native infinite canvas whiteboard built with Next.js 16, React 19, and the Plait board library. The AI agent can read the current board, create new structures, and edit existing elements via a Unix-shell-style command set and a custom DSL. The project uses Bun workspaces for shared code and Liveblocks + Yjs for live collaboration.
@@ -195,8 +202,91 @@ NEXT_PUBLIC_POSTHOG_HOST=...
 
 ## Code conventions
 
-- Self-documenting code; no ceremonial comments. Only comment non-obvious *why*.
+### Comments — default is zero
+
+Write code that does not need comments. Before adding any comment, apply this test: **does it explain WHY something is done this way, in a way the code itself cannot?** If it describes WHAT the code does, delete it and rename variables/functions until the code speaks for itself.
+
+**Never write comments like these:**
+
+```ts
+// Loop through elements and filter selected ones
+const selected = elements.filter(isSelected);
+
+// Set the active tool to pen
+setActiveTool('pen');
+
+// Check if the board exists
+if (!board) return null;
+
+/** Handles the click event */
+function handleClick() { ... }
+
+// Initialize state
+const [count, setCount] = useState(0);
+```
+
+**These are acceptable** (non-obvious why, workaround context, gotcha warnings):
+
+```ts
+// Plait re-orders jsonb keys on write; serialize canonically or prompt
+// caching breaks downstream. See #142.
+const payload = canonicalize(element);
+
+// updatePointerType has no native hook — patched in with-tool-sync.ts
+BoardTransforms.updatePointerType = patchedUpdatePointerType;
+
+// Liveblocks presence uses screen coords; we convert to canvas/world
+// coords here so cursors render correctly across different viewports.
+const worldPos = screenToCanvas(screenPos, viewport);
+```
+
+JSDoc is allowed only on exported package APIs (`packages/*`), never on internal functions whose name and signature already tell the story.
+
+### Simplicity over cleverness
+
+Optimize for the next reader, not for elegance or impressiveness.
+
+**Do:**
+```ts
+const activeUsers = users.filter(user => user.isActive);
+const names = activeUsers.map(user => user.name);
+```
+
+**Don't:**
+```ts
+const names = users.reduce((acc, u) => (u.isActive ? [...acc, u.name] : acc), [] as string[]);
+```
+
+Rules:
+- Prefer a plain `for`/`filter`/`map` chain over a dense one-liner with nested ternaries, `reduce`-to-build-objects, or point-free composition.
+- Prefer 3 obvious lines over 1 dense line. Always.
+- Prefer duplication over the wrong abstraction — do not invent a helper or generic until the third usage.
+- Early returns over nested conditionals: `if (!board) return null` at the top, not an `else` branch at the bottom.
+- No nested ternaries. Extract to a variable or use `if`/`else`.
+- If you feel the urge to add a comment explaining clever logic — that is the signal to rewrite the logic, not add the comment.
+
+### Naming
+
+- Functions: verbs (`createBoard`, `handleClick`, `resolveProvider`).
+- Variables/constants: nouns (`activeUsers`, `boardId`, `GRID_SIZE`).
+- Booleans: adjectives/state (`isActive`, `hasPermission`, `shouldRender`).
+- Names should be specific enough to be grep-able. Avoid single letters except in tight lambda args (`items.map(x => x.id)` is fine; `function f(x, y, z)` is not).
+
+### Commits — atomic, always
+
+Commit after each logical unit of work. Do not batch unrelated changes.
+
+- One logical change per commit. Refactors, behavior changes, and test additions are separate commits even within the same task.
+- If a fix requires a preparatory refactor, commit the refactor first (with no behavior change), then commit the fix.
+- Conventional commit format: `fix(collab): …`, `feat(agent): …`, `refactor(board): …`, `test: …`, `chore: …`.
+- Never mix generated files (`parser.js`) with hand-written changes unless the generation is caused by that change — and say so in the commit body.
+- Commit messages: subject says WHAT changed, body (when needed) says WHY.
+
+### General
+
 - Feature modules expose a small `index.ts` barrel. Follow existing patterns instead of introducing new ones.
+- Before creating a new hook, util, or component, grep the codebase for an existing one that does the same thing.
 - Types flow from `@thinkix/shared` (no JSX) and `shared/constants` (JSX allowed).
-- Prefer early returns (`if (!board) return null`).
+- `const`-first. Only use `let` when reassignment is genuinely needed.
+- Single-responsibility functions. If a function does two things, split it.
 - Keep PRs focused; if you change the DSL grammar, regenerate the parser before opening the PR (see `CONTRIBUTING.md`).
