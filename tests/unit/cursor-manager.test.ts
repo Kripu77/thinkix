@@ -30,44 +30,44 @@ globalThis.DOMRect ??= class DOMRect {
 } as typeof DOMRect;
  
 describe('Coordinate Conversion', () => {
-  const defaultViewport: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+  const defaultViewport: Viewport = { zoom: 1, originationX: 0, originationY: 0 };
   const defaultRect = new DOMRect(0, 0, 800, 600);
- 
+
   describe('screenToDocument', () => {
     it('converts screen coordinates to document coordinates with default viewport', () => {
       const result = screenToDocument(100, 200, defaultRect, defaultViewport);
       expect(result.x).toBe(100);
       expect(result.y).toBe(200);
     });
- 
+
     it('converts screen coordinates with zoom > 1', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 2, originationX: 0, originationY: 0 };
       const result = screenToDocument(200, 400, defaultRect, viewport);
       expect(result.x).toBe(100);
       expect(result.y).toBe(200);
     });
- 
+
     it('converts screen coordinates with zoom < 1', () => {
-      const viewport: Viewport = { zoom: 0.5, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 0.5, originationX: 0, originationY: 0 };
       const result = screenToDocument(100, 200, defaultRect, viewport);
       expect(result.x).toBe(200);
       expect(result.y).toBe(400);
     });
- 
-    it('accounts for pan offset', () => {
-      const viewport: Viewport = { zoom: 1, offsetX: -500, offsetY: -300 };
+
+    it('accounts for pan (origination)', () => {
+      const viewport: Viewport = { zoom: 1, originationX: 500, originationY: 300 };
       const result = screenToDocument(600, 400, defaultRect, viewport);
       expect(result.x).toBe(1100);
       expect(result.y).toBe(700);
     });
- 
+
     it('accounts for both zoom and pan', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: -200, offsetY: -100 };
+      const viewport: Viewport = { zoom: 2, originationX: 100, originationY: 50 };
       const result = screenToDocument(400, 300, defaultRect, viewport);
       expect(result.x).toBe(300);
       expect(result.y).toBe(200);
     });
- 
+
     it('accounts for container rect offset', () => {
       const rect = new DOMRect(100, 50, 800, 600);
       const result = screenToDocument(200, 150, rect, defaultViewport);
@@ -75,46 +75,46 @@ describe('Coordinate Conversion', () => {
       expect(result.y).toBe(100);
     });
   });
- 
+
   describe('documentToScreen', () => {
     it('converts document coordinates to screen coordinates with default viewport', () => {
       const result = documentToScreen(100, 200, defaultViewport);
       expect(result.x).toBe(100);
       expect(result.y).toBe(200);
     });
- 
+
     it('converts document coordinates with zoom > 1', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 2, originationX: 0, originationY: 0 };
       const result = documentToScreen(100, 200, viewport);
       expect(result.x).toBe(200);
       expect(result.y).toBe(400);
     });
- 
+
     it('converts document coordinates with zoom < 1', () => {
-      const viewport: Viewport = { zoom: 0.5, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 0.5, originationX: 0, originationY: 0 };
       const result = documentToScreen(200, 400, viewport);
       expect(result.x).toBe(100);
       expect(result.y).toBe(200);
     });
- 
-    it('accounts for pan offset', () => {
-      const viewport: Viewport = { zoom: 1, offsetX: 100, offsetY: 50 };
+
+    it('accounts for pan (origination)', () => {
+      const viewport: Viewport = { zoom: 1, originationX: 100, originationY: 50 };
       const result = documentToScreen(500, 300, viewport);
-      expect(result.x).toBe(600);
-      expect(result.y).toBe(350);
+      expect(result.x).toBe(400);
+      expect(result.y).toBe(250);
     });
- 
+
     it('accounts for both zoom and pan', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: 100, offsetY: 50 };
+      const viewport: Viewport = { zoom: 2, originationX: 100, originationY: 50 };
       const result = documentToScreen(200, 150, viewport);
-      expect(result.x).toBe(500);
-      expect(result.y).toBe(350);
+      expect(result.x).toBe(200);
+      expect(result.y).toBe(200);
     });
   });
- 
+
   describe('round-trip conversion', () => {
     it('maintains coordinates through round-trip conversion', () => {
-      const viewport: Viewport = { zoom: 1.5, offsetX: 200, offsetY: 100 };
+      const viewport: Viewport = { zoom: 1.5, originationX: 200, originationY: 100 };
       const originalDocX = 500;
       const originalDocY = 350;
  
@@ -183,7 +183,7 @@ describe('CursorManager', () => {
   describe('throttling', () => {
     const throttleMs = 50;
     const rect = new DOMRect(0, 0, 800, 600);
-    const viewport: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+    const viewport: Viewport = { zoom: 1, originationX: 0, originationY: 0 };
  
     beforeEach(() => {
       manager = createCursorManager(onCursorUpdate, onCursorsChange, {
@@ -337,7 +337,7 @@ describe('CursorManager', () => {
  
   describe('cursor screen state conversion', () => {
     const user1: CollaborationUser = { id: 'user1', name: 'Alice', color: '#FF0000' };
-    const viewport: Viewport = { zoom: 2, offsetX: 100, offsetY: 50 };
+    const viewport: Viewport = { zoom: 2, originationX: 100, originationY: 50 };
  
     beforeEach(() => {
       manager = createCursorManager(onCursorUpdate, onCursorsChange);
@@ -352,14 +352,14 @@ describe('CursorManager', () => {
       expect(cursor).toBeDefined();
  
       const screenState = manager.getCursorScreenState(cursor!, viewport);
-      expect(screenState.screenX).toBe(500);
-      expect(screenState.screenY).toBe(350);
+      expect(screenState.screenX).toBe(200);
+      expect(screenState.screenY).toBe(200);
     });
   });
 });
  
 describe('getVisibleCursors', () => {
-  const viewport: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+  const viewport: Viewport = { zoom: 1, originationX: 0, originationY: 0 };
   const screenWidth = 800;
   const screenHeight = 600;
  
@@ -422,7 +422,7 @@ describe('getVisibleCursors', () => {
   });
  
   it('accounts for zoom in visibility calculation', () => {
-    const zoomedViewport: Viewport = { zoom: 2, offsetX: 0, offsetY: 0 };
+    const zoomedViewport: Viewport = { zoom: 2, originationX: 0, originationY: 0 };
     const cursors = new Map<string, CursorState>();
     cursors.set('1', createCursorState('1', 200, 150));
  
@@ -431,7 +431,7 @@ describe('getVisibleCursors', () => {
   });
  
   it('accounts for pan offset in visibility calculation', () => {
-    const pannedViewport: Viewport = { zoom: 1, offsetX: -500, offsetY: -300 };
+    const pannedViewport: Viewport = { zoom: 1, originationX: 500, originationY: 300 };
     const cursors = new Map<string, CursorState>();
     cursors.set('visible', createCursorState('visible', 600, 400));
     cursors.set('hidden', createCursorState('hidden', 100, 100));

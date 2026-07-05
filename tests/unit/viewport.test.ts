@@ -4,20 +4,19 @@ import type { PlaitBoard } from '@plait/core';
 
 describe('Viewport Utilities', () => {
   describe('getViewport', () => {
-    it('returns viewport from board', () => {
+    it('returns zoom and origination from board viewport', () => {
       const mockBoard = {
         viewport: {
           zoom: 1.5,
-          offsetX: 100,
-          offsetY: 200,
+          origination: [100, 200],
         },
       } as unknown as PlaitBoard;
 
       const result = getViewport(mockBoard);
 
       expect(result.zoom).toBe(1.5);
-      expect(result.offsetX).toBe(100);
-      expect(result.offsetY).toBe(200);
+      expect(result.originationX).toBe(100);
+      expect(result.originationY).toBe(200);
     });
 
     it('returns default values when viewport is undefined', () => {
@@ -26,11 +25,11 @@ describe('Viewport Utilities', () => {
       const result = getViewport(mockBoard);
 
       expect(result.zoom).toBe(1);
-      expect(result.offsetX).toBe(0);
-      expect(result.offsetY).toBe(0);
+      expect(result.originationX).toBe(0);
+      expect(result.originationY).toBe(0);
     });
 
-    it('handles partial viewport object', () => {
+    it('defaults origination to zero when board has not initialized it', () => {
       const mockBoard = {
         viewport: {
           zoom: 2,
@@ -40,16 +39,15 @@ describe('Viewport Utilities', () => {
       const result = getViewport(mockBoard);
 
       expect(result.zoom).toBe(2);
-      expect(result.offsetX).toBe(0);
-      expect(result.offsetY).toBe(0);
+      expect(result.originationX).toBe(0);
+      expect(result.originationY).toBe(0);
     });
 
     it('handles extreme zoom values', () => {
       const mockBoard = {
         viewport: {
           zoom: 0.001,
-          offsetX: 0,
-          offsetY: 0,
+          origination: [0, 0],
         },
       } as unknown as PlaitBoard;
 
@@ -58,24 +56,23 @@ describe('Viewport Utilities', () => {
       expect(result.zoom).toBe(0.001);
     });
 
-    it('handles large offset values', () => {
+    it('handles large origination values', () => {
       const mockBoard = {
         viewport: {
           zoom: 1,
-          offsetX: -100000,
-          offsetY: 100000,
+          origination: [-100000, 100000],
         },
       } as unknown as PlaitBoard;
 
       const result = getViewport(mockBoard);
 
-      expect(result.offsetX).toBe(-100000);
-      expect(result.offsetY).toBe(100000);
+      expect(result.originationX).toBe(-100000);
+      expect(result.originationY).toBe(100000);
     });
   });
 
   describe('screenToDocument', () => {
-    const defaultViewport: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+    const defaultViewport: Viewport = { zoom: 1, originationX: 0, originationY: 0 };
     const defaultRect = new DOMRect(0, 0, 800, 600);
 
     it('converts screen coordinates with default viewport', () => {
@@ -86,7 +83,7 @@ describe('Viewport Utilities', () => {
     });
 
     it('converts with zoom > 1', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 2, originationX: 0, originationY: 0 };
       const result = screenToDocument(200, 400, defaultRect, viewport);
 
       expect(result.x).toBe(100);
@@ -94,27 +91,27 @@ describe('Viewport Utilities', () => {
     });
 
     it('converts with zoom < 1', () => {
-      const viewport: Viewport = { zoom: 0.5, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 0.5, originationX: 0, originationY: 0 };
       const result = screenToDocument(100, 200, defaultRect, viewport);
 
       expect(result.x).toBe(200);
       expect(result.y).toBe(400);
     });
 
-    it('accounts for positive offset', () => {
-      const viewport: Viewport = { zoom: 1, offsetX: 100, offsetY: 50 };
+    it('accounts for positive origination (panned right/down)', () => {
+      const viewport: Viewport = { zoom: 1, originationX: 100, originationY: 50 };
       const result = screenToDocument(200, 150, defaultRect, viewport);
 
-      expect(result.x).toBe(100);
-      expect(result.y).toBe(100);
+      expect(result.x).toBe(300);
+      expect(result.y).toBe(200);
     });
 
-    it('accounts for negative offset', () => {
-      const viewport: Viewport = { zoom: 1, offsetX: -100, offsetY: -50 };
+    it('accounts for negative origination (panned left/up)', () => {
+      const viewport: Viewport = { zoom: 1, originationX: -100, originationY: -50 };
       const result = screenToDocument(100, 100, defaultRect, viewport);
 
-      expect(result.x).toBe(200);
-      expect(result.y).toBe(150);
+      expect(result.x).toBe(0);
+      expect(result.y).toBe(50);
     });
 
     it('accounts for container rect offset', () => {
@@ -125,12 +122,12 @@ describe('Viewport Utilities', () => {
       expect(result.y).toBe(100);
     });
 
-    it('handles combined zoom and offset', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: -200, offsetY: -100 };
+    it('handles combined zoom and origination', () => {
+      const viewport: Viewport = { zoom: 2, originationX: -200, originationY: -100 };
       const result = screenToDocument(400, 300, defaultRect, viewport);
 
-      expect(result.x).toBe(300);
-      expect(result.y).toBe(200);
+      expect(result.x).toBe(0);
+      expect(result.y).toBe(50);
     });
 
     it('handles zero screen coordinates', () => {
@@ -148,11 +145,11 @@ describe('Viewport Utilities', () => {
     });
 
     it('handles floating point coordinates', () => {
-      const viewport: Viewport = { zoom: 1.5, offsetX: 10.5, offsetY: 20.5 };
+      const viewport: Viewport = { zoom: 1.5, originationX: 10.5, originationY: 20.5 };
       const result = screenToDocument(100.25, 200.75, defaultRect, viewport);
 
-      expect(result.x).toBeCloseTo((100.25 - 10.5) / 1.5, 10);
-      expect(result.y).toBeCloseTo((200.75 - 20.5) / 1.5, 10);
+      expect(result.x).toBeCloseTo(100.25 / 1.5 + 10.5, 10);
+      expect(result.y).toBeCloseTo(200.75 / 1.5 + 20.5, 10);
     });
 
     it('handles very large screen coordinates', () => {
@@ -164,7 +161,7 @@ describe('Viewport Utilities', () => {
   });
 
   describe('documentToScreen', () => {
-    const defaultViewport: Viewport = { zoom: 1, offsetX: 0, offsetY: 0 };
+    const defaultViewport: Viewport = { zoom: 1, originationX: 0, originationY: 0 };
 
     it('converts document coordinates with default viewport', () => {
       const result = documentToScreen(100, 200, defaultViewport);
@@ -174,7 +171,7 @@ describe('Viewport Utilities', () => {
     });
 
     it('converts with zoom > 1', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 2, originationX: 0, originationY: 0 };
       const result = documentToScreen(100, 200, viewport);
 
       expect(result.x).toBe(200);
@@ -182,35 +179,35 @@ describe('Viewport Utilities', () => {
     });
 
     it('converts with zoom < 1', () => {
-      const viewport: Viewport = { zoom: 0.5, offsetX: 0, offsetY: 0 };
+      const viewport: Viewport = { zoom: 0.5, originationX: 0, originationY: 0 };
       const result = documentToScreen(200, 400, viewport);
 
       expect(result.x).toBe(100);
       expect(result.y).toBe(200);
     });
 
-    it('accounts for positive offset', () => {
-      const viewport: Viewport = { zoom: 1, offsetX: 100, offsetY: 50 };
-      const result = documentToScreen(100, 200, viewport);
-
-      expect(result.x).toBe(200);
-      expect(result.y).toBe(250);
-    });
-
-    it('accounts for negative offset', () => {
-      const viewport: Viewport = { zoom: 1, offsetX: -100, offsetY: -50 };
+    it('accounts for positive origination', () => {
+      const viewport: Viewport = { zoom: 1, originationX: 100, originationY: 50 };
       const result = documentToScreen(100, 200, viewport);
 
       expect(result.x).toBe(0);
       expect(result.y).toBe(150);
     });
 
-    it('handles combined zoom and offset', () => {
-      const viewport: Viewport = { zoom: 2, offsetX: 100, offsetY: 50 };
+    it('accounts for negative origination', () => {
+      const viewport: Viewport = { zoom: 1, originationX: -100, originationY: -50 };
+      const result = documentToScreen(100, 200, viewport);
+
+      expect(result.x).toBe(200);
+      expect(result.y).toBe(250);
+    });
+
+    it('handles combined zoom and origination', () => {
+      const viewport: Viewport = { zoom: 2, originationX: 100, originationY: 50 };
       const result = documentToScreen(200, 150, viewport);
 
-      expect(result.x).toBe(500);
-      expect(result.y).toBe(350);
+      expect(result.x).toBe(200);
+      expect(result.y).toBe(200);
     });
 
     it('handles zero document coordinates', () => {
@@ -228,21 +225,21 @@ describe('Viewport Utilities', () => {
     });
 
     it('handles floating point coordinates', () => {
-      const viewport: Viewport = { zoom: 1.5, offsetX: 10.5, offsetY: 20.5 };
+      const viewport: Viewport = { zoom: 1.5, originationX: 10.5, originationY: 20.5 };
       const result = documentToScreen(100.25, 200.75, viewport);
 
-      expect(result.x).toBe(100.25 * 1.5 + 10.5);
-      expect(result.y).toBe(200.75 * 1.5 + 20.5);
+      expect(result.x).toBeCloseTo((100.25 - 10.5) * 1.5, 10);
+      expect(result.y).toBeCloseTo((200.75 - 20.5) * 1.5, 10);
     });
   });
 
   describe('round-trip conversion', () => {
     it('maintains coordinates through screen -> document -> screen round-trip', () => {
       const viewports: Viewport[] = [
-        { zoom: 1, offsetX: 0, offsetY: 0 },
-        { zoom: 2, offsetX: 100, offsetY: 50 },
-        { zoom: 0.5, offsetX: -200, offsetY: -100 },
-        { zoom: 1.5, offsetX: 0, offsetY: 0 },
+        { zoom: 1, originationX: 0, originationY: 0 },
+        { zoom: 2, originationX: 100, originationY: 50 },
+        { zoom: 0.5, originationX: -200, originationY: -100 },
+        { zoom: 1.5, originationX: 0, originationY: 0 },
       ];
 
       const rect = new DOMRect(0, 0, 800, 600);
@@ -261,9 +258,9 @@ describe('Viewport Utilities', () => {
 
     it('maintains coordinates through document -> screen -> document round-trip', () => {
       const viewports: Viewport[] = [
-        { zoom: 1, offsetX: 0, offsetY: 0 },
-        { zoom: 2, offsetX: 100, offsetY: 50 },
-        { zoom: 0.5, offsetX: -200, offsetY: -100 },
+        { zoom: 1, originationX: 0, originationY: 0 },
+        { zoom: 2, originationX: 100, originationY: 50 },
+        { zoom: 0.5, originationX: -200, originationY: -100 },
       ];
 
       const rect = new DOMRect(0, 0, 800, 600);
@@ -278,6 +275,37 @@ describe('Viewport Utilities', () => {
         expect(doc.x).toBeCloseTo(originalDocX, 10);
         expect(doc.y).toBeCloseTo(originalDocY, 10);
       });
+    });
+  });
+
+  describe('cross-client consistency', () => {
+    it('a point captured in one client projects onto the same board point in a client with different zoom, pan, and window size', () => {
+      const boardPoint = { x: 500, y: 300 };
+
+      const viewportA: Viewport = { zoom: 0.5, originationX: -400, originationY: -100 };
+      const rectA = new DOMRect(0, 0, 1400, 900);
+
+      const viewportB: Viewport = { zoom: 1.5, originationX: 350, originationY: 220 };
+      const rectB = new DOMRect(60, 40, 900, 700);
+
+      const clientA = {
+        x: (boardPoint.x - viewportA.originationX) * viewportA.zoom + rectA.left,
+        y: (boardPoint.y - viewportA.originationY) * viewportA.zoom + rectA.top,
+      };
+
+      const wire = screenToDocument(clientA.x, clientA.y, rectA, viewportA);
+      expect(wire.x).toBeCloseTo(boardPoint.x, 10);
+      expect(wire.y).toBeCloseTo(boardPoint.y, 10);
+
+      const screenB = documentToScreen(wire.x, wire.y, viewportB);
+      expect(screenB.x + rectB.left).toBeCloseTo(
+        (boardPoint.x - viewportB.originationX) * viewportB.zoom + rectB.left,
+        10
+      );
+      expect(screenB.y + rectB.top).toBeCloseTo(
+        (boardPoint.y - viewportB.originationY) * viewportB.zoom + rectB.top,
+        10
+      );
     });
   });
 });

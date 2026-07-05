@@ -7,8 +7,7 @@ import type { CursorState } from '@thinkix/collaboration';
 interface MockBoard {
   viewport: {
     zoom: number;
-    offsetX: number;
-    offsetY: number;
+    origination?: [number, number];
   };
 }
 
@@ -16,8 +15,7 @@ describe('CursorOverlay', () => {
   const mockBoard: MockBoard = {
     viewport: {
       zoom: 1,
-      offsetX: 0,
-      offsetY: 0,
+      origination: [0, 0],
     },
   };
 
@@ -36,15 +34,18 @@ describe('CursorOverlay', () => {
     vi.clearAllMocks();
     
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const viewportContainer = document.createElement('div');
+    viewportContainer.className = 'viewport-container';
     const container = document.createElement('div');
     container.className = 'plait-board-container';
-    container.appendChild(svg);
+    viewportContainer.appendChild(svg);
+    container.appendChild(viewportContainer);
     document.body.appendChild(container);
-    
-    svg.getBoundingClientRect = () => new DOMRect(0, 0, 800, 600);
-    
+
+    viewportContainer.getBoundingClientRect = () => new DOMRect(0, 0, 800, 600);
+
     vi.spyOn(document, 'querySelector').mockImplementation((selector) => {
-      if (selector.includes('svg')) return svg;
+      if (selector.includes('viewport-container')) return viewportContainer;
       if (selector.includes('plait-board-container')) return container;
       return null;
     });

@@ -1,5 +1,5 @@
 import type { Cursor, CollaborationUser } from './types';
-import type { Viewport } from './utils/viewport';
+import { documentToScreen, screenToDocument, type Viewport } from './utils/viewport';
  
 export interface CursorState {
   userId: string;
@@ -57,9 +57,8 @@ export class CursorManager {
     viewport: Viewport,
     pointerType: 'mouse' | 'pen' | 'touch' = 'mouse'
   ): void {
-    const documentX = (clientX - containerRect.left - viewport.offsetX) / viewport.zoom;
-    const documentY = (clientY - containerRect.top - viewport.offsetY) / viewport.zoom;
-    
+    const { x: documentX, y: documentY } = screenToDocument(clientX, clientY, containerRect, viewport);
+
     this.pendingUpdate = { x: documentX, y: documentY };
     this.pendingPointer = pointerType;
  
@@ -150,8 +149,7 @@ export class CursorManager {
   }
  
   getCursorScreenState(cursor: CursorState, viewport: Viewport): CursorState & { screenX: number; screenY: number } {
-    const screenX = cursor.documentX * viewport.zoom + viewport.offsetX;
-    const screenY = cursor.documentY * viewport.zoom + viewport.offsetY;
+    const { x: screenX, y: screenY } = documentToScreen(cursor.documentX, cursor.documentY, viewport);
     return { ...cursor, screenX, screenY };
   }
  
@@ -242,9 +240,8 @@ export function getVisibleCursors(
   const margin = 100;
  
   for (const [id, cursor] of cursors) {
-    const screenX = cursor.documentX * viewport.zoom + viewport.offsetX;
-    const screenY = cursor.documentY * viewport.zoom + viewport.offsetY;
- 
+    const { x: screenX, y: screenY } = documentToScreen(cursor.documentX, cursor.documentY, viewport);
+
     if (screenX < -margin || screenX > screenWidth + margin) continue;
     if (screenY < -margin || screenY > screenHeight + margin) continue;
  

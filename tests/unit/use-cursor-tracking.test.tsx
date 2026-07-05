@@ -5,8 +5,7 @@ import type { PlaitBoard } from '@plait/core';
 interface MockBoard {
   viewport: {
     zoom: number;
-    offsetX: number;
-    offsetY: number;
+    origination?: [number, number];
   };
 }
 
@@ -15,9 +14,9 @@ vi.mock('@thinkix/collaboration/hooks/use-cursor-tracking', () => ({
     cursors: enabled ? new Map() : new Map(),
     updateMyCursor: vi.fn(),
   }),
-  useCursorScreenState: (cursor: { documentX: number; documentY: number }, viewport: { zoom: number; offsetX: number; offsetY: number }) => ({
-    screenX: cursor.documentX * viewport.zoom + viewport.offsetX,
-    screenY: cursor.documentY * viewport.zoom + viewport.offsetY,
+  useCursorScreenState: (cursor: { documentX: number; documentY: number }, viewport: { zoom: number; originationX: number; originationY: number }) => ({
+    screenX: (cursor.documentX - viewport.originationX) * viewport.zoom,
+    screenY: (cursor.documentY - viewport.originationY) * viewport.zoom,
   }),
 }));
 
@@ -27,8 +26,7 @@ describe('useCursorTracking', () => {
   const mockBoard: MockBoard = {
     viewport: {
       zoom: 1,
-      offsetX: 0,
-      offsetY: 0,
+      origination: [0, 0],
     },
   };
 
@@ -124,14 +122,14 @@ describe('useCursorScreenState', () => {
       lastUpdated: Date.now(),
       pointer: 'mouse',
     };
-    const viewport = { zoom: 2, offsetX: 50, offsetY: 25 };
-    
-    const { result } = renderHook(() => 
+    const viewport = { zoom: 2, originationX: 50, originationY: 25 };
+
+    const { result } = renderHook(() =>
       useCursorScreenState(cursor as MockCursor, viewport)
     );
-    
-    expect(result.current.screenX).toBe(250);
-    expect(result.current.screenY).toBe(425);
+
+    expect(result.current.screenX).toBe(100);
+    expect(result.current.screenY).toBe(350);
   });
 
   it('handles zoom < 1', () => {
@@ -144,7 +142,7 @@ describe('useCursorScreenState', () => {
       lastUpdated: Date.now(),
       pointer: 'mouse',
     };
-    const viewport = { zoom: 0.5, offsetX: 0, offsetY: 0 };
+    const viewport = { zoom: 0.5, originationX: 0, originationY: 0 };
     
     const { result } = renderHook(() => 
       useCursorScreenState(cursor as MockCursor, viewport)

@@ -9,7 +9,12 @@ import {
   createCursorManager,
 } from '../cursor-manager';
 import type { Cursor, CollaborationUser } from '../types';
-import { getViewport, type Viewport } from '../utils';
+import {
+  getViewport,
+  getViewportContainerElement,
+  documentToScreen,
+  type Viewport,
+} from '../utils';
 
 export interface UseCursorTrackingOptions {
   board: PlaitBoard | null;
@@ -72,11 +77,13 @@ export function useCursorTracking({
     const handlePointerMove = (e: PointerEvent) => {
       const target = e.target;
       if (!(target instanceof Element)) return;
-      
-      const svg = target.closest('svg');
-      if (!svg || !boardRef.current) return;
 
-      const rect = svg.getBoundingClientRect();
+      if (!target.closest('.plait-board-container') || !boardRef.current) return;
+
+      const container = getViewportContainerElement(boardRef.current);
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
       const viewport = getViewport(boardRef.current);
 
       if (rafId) {
@@ -156,9 +163,6 @@ export function useCursorScreenState(
   cursor: CursorState,
   viewport: Viewport
 ): CursorState & { screenX: number; screenY: number } {
-  return {
-    ...cursor,
-    screenX: cursor.documentX * viewport.zoom + viewport.offsetX,
-    screenY: cursor.documentY * viewport.zoom + viewport.offsetY,
-  };
+  const { x: screenX, y: screenY } = documentToScreen(cursor.documentX, cursor.documentY, viewport);
+  return { ...cursor, screenX, screenY };
 }
