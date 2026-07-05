@@ -93,10 +93,11 @@ function RemoteSyncHandler({
 
   useEffect(() => {
     if (!syncBusContext) return;
-    
+
     const unsubscribe = syncBusContext.syncBus.subscribeToRemoteChanges((elements: BoardElement[]) => {
       const normalized = normalizeElements(elements);
       onElementsChange(normalized);
+      board.children = normalized;
       listRender.update(normalized, {
         board: board,
         parent: board,
@@ -110,7 +111,11 @@ function RemoteSyncHandler({
   return null;
 }
 
-export function BoardCanvas({
+export function BoardCanvas(props: BoardCanvasProps) {
+  return <BoardCanvasInner key={props.boardData?.id ?? 'default'} {...props} />;
+}
+
+function BoardCanvasInner({
   initialValue,
   className,
   children,
@@ -131,24 +136,18 @@ export function BoardCanvas({
     [boardThemeMode],
   );
 
-  const initialElements = useMemo(() => {
-    return syncElementsForBoardTheme(
+  const [value, setValue] = useState<PlaitElement[]>(() =>
+    syncElementsForBoardTheme(
       boardData?.elements ?? resolvedInitialValue,
       getBoardThemeMode(boardData?.theme ?? DEFAULT_THEME),
-    );
-  }, [boardData?.elements, boardData?.theme, resolvedInitialValue]);
-
-  const [value, setValue] = useState<PlaitElement[]>(initialElements);
+    ),
+  );
 
   useEffect(() => {
     if (boardData) {
       setCurrentBoardId(boardData.id);
     }
   }, [boardData, setCurrentBoardId]);
-
-  useEffect(() => {
-    setValue(initialElements);
-  }, [initialElements]);
 
   useAutoSave({
     board: board,
@@ -195,7 +194,6 @@ export function BoardCanvas({
   return (
     <div className={`relative w-full h-full board-wrapper ${className || ''} ${boardCursorClass}`}>
       <Wrapper
-        key={boardData?.id ?? 'default'}
         value={value}
         options={DEFAULT_BOARD_OPTIONS}
         plugins={plugins}
